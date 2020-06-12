@@ -1,0 +1,67 @@
+notifications:
+  email: false
+addons:
+  apt:
+    packages:
+    # These packages are required for testing PyQT5 applications on linux
+    - x11-utils
+    - libxkbcommon-x11-0
+matrix:
+ include:
+ - os: osx
+   language: generic
+   env:
+    - MAC_PYTHON_VERSION=3.6.8
+    - MAC_PYTHON_OSX_VERSION=10.6
+   sudo: required
+ - os: linux
+   language: python
+   python: 3.8
+   services: xvfb
+install:
+# install other dependencies
+- source ./.travis/${TRAVIS_OS_NAME}_setup_python.sh $MAC_PYTHON_VERSION $MAC_PYTHON_OSX_VERSION
+# install binary packages
+- travis_retry pip install --upgrade pip
+- travis_retry pip install setuptools wheel
+# Linux/macOS tests did not run with PyQt 5.15
+- travis_retry pip install threadpoolctl==2.0.0
+- travis_retry pip install PyQt5==5.14.2 PyQt5-sip==12.7.2
+# install package
+- travis_retry pip install -e .
+- travis_retry pip install git+git://github.com/ZELLMECHANIK-DRESDEN/dclab.git
+# for tests:
+- travis_retry pip install codecov coverage flake8
+- pip freeze
+script:
+- coverage run --source=dcor_manager setup.py test
+- coverage report -m
+- flake8 dcor_manager
+- flake8 tests
+# build
+- python setup.py sdist bdist_wheel
+- pip install pyinstaller==3.6
+- bash ./.travis/${TRAVIS_OS_NAME}_build_app.sh DCOR-Manager $TRAVIS_TAG
+after_success:
+- codecov
+deploy:
+  - provider: pypi
+    user: "ci_zmdd"
+    password:
+      secure: "qWKJaxCXot/2I6ZbsamNzcFQBjkzSTEhbKuTbU+4Yz6sYYXHbDCvC4YdgMtL2Zt9yoH9ZFoyxUk2YH72opL5WxvZZYsld/d063M7WabCw6qjhFRuK+Q8UzsWqmT9p+48u0yUl4hOPyOalu6G9hZ/c+Hl5hOrVVFfLHpZyXa4Sp1SRWxe/YTLXDmy7Lqa5WyD6kTterrwcTbe9wUGzysw/FJ5Tvik7RmJ57U3fBWdQpCte5Z/lAY/WT758kWYoRc6xCH7auFoXXT+K4libSK7EADBICaiuTz/j9ouN/GdWUR0hVvFn7EUqIFPdmlk5tIHczQ3udXsE1Xepz8HyIVeeNMiusmnsNOO5bb/Oc48MKfh6u6mloprODfYV7n4GWcsSNzyex494qQYhy9U0F9VP77RBSyMNKeTTnBydmUeA6apDe2pEBBXDOCVWneK+MQLawgAdGC7Q6iQ7tfN8HhQosMUyAd890H1FLXqdmpQaop93Emh1pdWLlvGgaNLEZFtAodVybizwXFO3ow+kIMbox/vVWcj5TT7gOQJIVR5tRTW8Ux+UUhzE2ZcFQ8pQbdenxCxfcG2GLWVSIj7svJf4YSgse4FOERROuWfGvO5mDDmEgpC0uVmLrSY4j4WCJHc2OkbvMqmJoQaXFk8iQ2ewegvRrp2HglESjgFgEOFCrw="
+    on:
+      tags: true
+    skip_cleanup: true
+    skip_existing: true
+  - provider: releases
+    api_key:
+      secure: "nseHIkNTOVWrPZRKwda/Argolb454PnUW36wtihr/Mk739ayRx36RzT6LW6CPCV6GIsNVftv2kAvvkVp4wpy/eXPQExIUqTHeNAYDvdaO4H5JL9cJ8p5oBtKqvpaIlpWdmPlkXF/73DIznVNY0eyK0bAvQ1EjK/7i+9HvwYi6X4I5cDSB5kmOdPj801QKMwF902kgExB9IuLkPEpGSBxjgXEftDY3PZ4EjwVSgC85rIdzfP1fRFqYhSbt8FvcRrTNWOFFub0aQGSMUZNuOQU72/HHlH6y98WYgXlK4RXs2ZbdAwhW4jSNqJs7J0munZJLRU//r9qvJOGFVlHv8EZTQao2YsBgf1/dj+Y7Olhq23ren2sr2Q3PPph4VBiCzFBlbagZnySsTu5pNkfylMVcMKPjVfuJZFH1kmBwn2iux0aikN+QSDYYxNc24uYX8oKWXKhiy5rX5hr2G4n14Qrdtn+hGqQ9HSN391gBxK1vPPlusT8vYzJu28i7UR7yMHDMPlzWsM7IkbdxgToj8LBKcX+CD6+n32zmWmjyq84zmhUIwv79ptZtTtVPGDgaLRTtPO9O7qSM/lVR9eh3FXiVvcB6eQHFyGNSSXND1Bzwhlwlqlt9SF+PyAa7MNjnrfjK+77CwbcOpXkxOaNoZlqRtcgKL2VRG4nz6CFgGOozH8="
+    file_glob: true
+    file:
+      - "dist_app/*.dmg"
+      - "dist_app/*.pkg"
+    skip_cleanup: true
+    draft: true
+    on:
+      tags: true
+
