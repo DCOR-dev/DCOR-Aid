@@ -1,32 +1,16 @@
 import os
-import pathlib
 import pkg_resources
 import signal
 import sys
 import traceback
-import webbrowser
 
 import appdirs
-import dclab
-import h5py
-import numpy
-import scipy
 
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
-import pyqtgraph as pg
-
-from . import widgets
 
 from .. import settings
 from .._version import version as __version__
 from .widgets.wait_cursor import ShowWaitCursor, show_wait_cursor
-
-
-# global plotting configuration parameters
-pg.setConfigOption("background", "w")
-pg.setConfigOption("foreground", "k")
-pg.setConfigOption("antialias", True)
-pg.setConfigOption("imageAxisOrder", "row-major")
 
 
 # set Qt icon theme search path
@@ -47,27 +31,28 @@ class DCORManager(QtWidgets.QMainWindow):
         and exit.
         """
         QtWidgets.QMainWindow.__init__(self)
-        path_ui = pkg_resources.resource_filename("dcor_manager.gui", "main.ui")
+        path_ui = pkg_resources.resource_filename(
+            "dcor_manager.gui", "main.ui")
         uic.loadUi(path_ui, self)
         #: DCOR-Manager settings
         self.settings = settings.SettingsFile()
-        # Register user-defined DCOR API Key in case the user wants to
-        # open a session with private data.
-        api_key = self.settings.get_string("dcor api key")
-        dclab.rtdc_dataset.fmt_dcor.APIHandler.add_api_key(api_key)
         # GUI
         self.setWindowTitle("DCOR-Manager {}".format(__version__))
         # Disable native menubar (e.g. on Mac)
         self.menubar.setNativeMenuBar(False)
         # Help menu
         self.actionSoftware.triggered.connect(self.on_action_software)
-        # Initialize
-        self.showMaximized()
         # if "--version" was specified, print the version and exit
         if "--version" in sys.argv:
             print(__version__)
             QtWidgets.QApplication.processEvents()
             sys.exit(0)
+        self.toolButton_user = QtWidgets.QToolButton()
+        self.toolButton_user.setToolButtonStyle(
+            QtCore.Qt.ToolButtonTextBesideIcon)
+        self.toolButton_user.setAutoRaise(True)
+        self.toolButton_user.setText("Not logged in!")
+        self.tabWidget.setCornerWidget(self.toolButton_user)
 
     def on_action_about(self):
         about_text = "GUI for managing data on DCOR."
@@ -75,17 +60,8 @@ class DCORManager(QtWidgets.QMainWindow):
                                     "DCOR-Manager {}".format(__version__),
                                     about_text)
 
-    def on_action_save(self):
-        path, _ = QtWidgets.QFileDialog.getSaveFileName(
-            self, 'Save session', '', 'Shape-Out 2 session (*.so2)')
-        if path:
-            if not path.endswith(".so2"):
-                path += ".so2"
-            session.save_session(path, self.pipeline)
-
     def on_action_software(self):
         libs = [appdirs,
-                dclab,
                 ]
         sw_text = "DCOR-Manager {}\n\n".format(__version__)
         sw_text += "Python {}\n\n".format(sys.version)
@@ -99,6 +75,7 @@ class DCORManager(QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.information(self,
                                           "Software",
                                           sw_text)
+
 
 def excepthook(etype, value, trace):
     """

@@ -1,13 +1,12 @@
-def main(splash=True):
+def main():
     import os
     import pkg_resources
     import sys
-    import time
 
     from PyQt5.QtWidgets import QApplication
 
     app = QApplication(sys.argv)
-    imdir = pkg_resources.resource_filename("dcor_manger", "img")
+    imdir = pkg_resources.resource_filename("dcor_manager", "img")
 
     from PyQt5 import QtCore, QtGui
     from .gui import DCORManager
@@ -22,9 +21,6 @@ def main(splash=True):
     window = DCORManager()
     window.show()
     window.raise_()
-
-    if splash:
-        splash.finish(window)
 
     sys.exit(app.exec_())
 

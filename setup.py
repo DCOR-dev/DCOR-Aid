@@ -25,7 +25,6 @@ setup(
     description=description,
     long_description=open('README.rst').read() if exists('README.rst') else '',
     install_requires=["appdirs",
-                      "dclab>=0.27.5",
                       "pyqt5",
                       "requests",
                       ],
