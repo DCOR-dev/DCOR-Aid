@@ -14,11 +14,11 @@ def test_cache():
     assert test(1) == 1, "called the first time we invoke it"
     assert test(1) == 1, "not called because it is already cached"
 
-    time.sleep(.09)
+    time.sleep(.01)
     assert test(1) == 1, "not called because it is already cached"
 
     # Let's now wait for the cache to expire
-    time.sleep(.01)
+    time.sleep(.09)
     assert test(1) == 2, "called because the cache expired"
 
 
