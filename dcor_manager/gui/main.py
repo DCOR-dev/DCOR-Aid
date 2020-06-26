@@ -10,7 +10,7 @@ from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
 from .. import settings
 from .._version import version as __version__
-from .widgets.wait_cursor import ShowWaitCursor, show_wait_cursor
+# from .widgets.wait_cursor import ShowWaitCursor, show_wait_cursor
 
 
 # set Qt icon theme search path

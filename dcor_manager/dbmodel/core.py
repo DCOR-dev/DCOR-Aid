@@ -9,7 +9,7 @@ class DBModel(abc.ABC):
     @property
     def is_up_to_date(self):
         if self.local_version_score != self.remote_version_score:
-            uptodate = False 
+            uptodate = False
         elif self.local_timestamp != self.remote_timestamp:
             uptodate = False
         else:
@@ -47,4 +47,3 @@ class DBModel(abc.ABC):
 
     def rebuild_db(self):
         """This only affects local databases"""
-        
