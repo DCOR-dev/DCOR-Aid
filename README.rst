@@ -19,7 +19,7 @@ If you have Python 3 installed, you can install DCOR-Manager with
 
 
 Citing DCOR-Manager
-----------------
+-------------------
 Please cite DCOR-Manager either in-line
 
 ::
