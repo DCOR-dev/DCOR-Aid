@@ -9,7 +9,7 @@ DCOR-Manager is a GUI for managing data on DCOR (https://dcor.mpl.mpg.de).
 
 Installation
 ------------
-Installers for Windows and macOS are available at the `release page https://github.com/DCOR-dev/DCOR-Manager/releases>`__.
+Installers for Windows and macOS are available at the `release page <https://github.com/DCOR-dev/DCOR-Manager/releases>`__.
 
 If you have Python 3 installed, you can install DCOR-Manager with
 
