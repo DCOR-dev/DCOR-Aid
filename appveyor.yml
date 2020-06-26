@@ -52,7 +52,7 @@ after_test:
   # Run pyinstaller
   - "pyinstaller -y --log-level=WARN .appveyor\\dcor_manager.spec"
   # Run the binary (the most simple test)
-  - "dist\\dcor_manager\\DCOR-Manager.exe --version"
+  - "dist\\DCOR-Manager\\DCOR-Manager.exe --version"
   # Create InnoSetup installers
   # Generate iss file
   - "python .appveyor\\make_iss.py"
