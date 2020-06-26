@@ -49,7 +49,7 @@ Testing
 .. |PyPI Version| image:: https://img.shields.io/pypi/v/dcor_manager.svg
    :target: https://pypi.python.org/pypi/DCOR-Manager
 .. |Tests Status Linux| image:: https://img.shields.io/travis/DCOR-dev/DCOR-Manager.svg?label=tests_linux
-   :target: https://travis-ci.org/DCOR-dev/DCOR-Manager
+   :target: https://travis-ci.com/DCOR-dev/DCOR-Manager
 .. |Tests Status Win| image:: https://img.shields.io/appveyor/ci/paulmueller/DCOR-Manager/master.svg?label=tests_win
    :target: https://ci.appveyor.com/project/paulmueller/DCOR-Manager
 .. |Coverage Status| image:: https://img.shields.io/codecov/c/github/DCOR-dev/DCOR-Manager/master.svg

@@ -7,8 +7,8 @@ import warnings
 cdir = abspath(".")
 sys.path.insert(0, cdir)
 
-if not exists(join(cdir, "DCOR-Manager")):
-	warnings.warn("Cannot find 'DCOR-Manager'! Please run pyinstaller "+
+if not exists(join(cdir, "dcor_manager")):
+	warnings.warn("Cannot find 'dcor_manager'! Please run pyinstaller "+
                   "from git root folder.")
 
 name = "DCOR-Manager"
