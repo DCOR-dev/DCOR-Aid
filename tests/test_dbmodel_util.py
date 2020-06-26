@@ -18,7 +18,7 @@ def test_cache():
     assert test(1) == 1, "not called because it is already cached"
 
     # Let's now wait for the cache to expire
-    time.sleep(.091)
+    time.sleep(.1)
     assert test(1) == 2, "called because the cache expired"
 
 
