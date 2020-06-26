@@ -8,7 +8,7 @@
 #define MyAppPublisher "ZELLMECHANIK DRESDEN"
 #define MyAppURL "http://zellmechanik.com"
 #define MyAppPlatform "win32"
-#define MyAppExeName "DCORManager.exe"
+#define MyAppExeName "DCOR-Manager.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -40,8 +40,8 @@ Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\projects\DCORManager\dist\DCORManager\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\projects\DCORManager\dist\DCORManager\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\projects\DCOR-Manager\dist\DCOR-Manager\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\projects\DCOR-Manager\dist\DCOR-Manager\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\{#MyzmAppName}"; Filename: "{app}\{#MyAppExeName}"
