@@ -27,7 +27,6 @@ install:
   # Install dcor_manager and its dependencies
   - "appveyor-retry python -m pip install --upgrade pip"
   - "appveyor-retry pip install -e ."
-  - "appveyor-retry pip install git+git://github.com/ZELLMECHANIK-DRESDEN/dclab.git"
   # Show the installed packages
   - "pip freeze"
 
@@ -53,7 +52,7 @@ after_test:
   # Run pyinstaller
   - "pyinstaller -y --log-level=WARN .appveyor\\dcor_manager.spec"
   # Run the binary (the most simple test)
-  - "dist\\dcor_manager\\dcor_manager.exe --version"
+  - "dist\\dcor_manager\\DCOR-Manager.exe --version"
   # Create InnoSetup installers
   # Generate iss file
   - "python .appveyor\\make_iss.py"
