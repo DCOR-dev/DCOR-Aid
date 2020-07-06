@@ -11,6 +11,8 @@ environment:
   matrix:
     - PYTHON: "C:\\Python36"
     - PYTHON: "C:\\Python36-x64"
+  DCOR_API_KEY:
+    secure: aSDdBj+EaOQdUW0/03/s3SCPbPDuMQQfSSMRHEliPI8r0UKCukUx5LWjuiNsNCMN
 
 init:
   - "ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH%"
