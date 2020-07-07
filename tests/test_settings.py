@@ -1,6 +1,6 @@
 import pathlib
 
-from shapeout2 import settings
+from dcor_manager import settings
 
 
 def test_cfg_basic():

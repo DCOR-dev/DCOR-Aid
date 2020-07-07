@@ -22,7 +22,13 @@ class APIInterrogator(DBInterrogator):
         self.headers = {"Authorization": api_key}
         super(APIInterrogator, self).__init__()
 
-    def _call(self, api_call):
+    def _call(self, api_call, **kwargs):
+        if kwargs:
+            # Add keyword arguments
+            kwv = []
+            for kw in kwargs:
+                kwv.append("{}={}".format(kw, kwargs[kw]))
+            api_call += "?" + "&".join(kwv)
         url_call = self.api_url + api_call
         req = requests.get(url_call, headers=self.headers)
         data = req.json()
@@ -44,20 +50,20 @@ class APIInterrogator(DBInterrogator):
         """Return the list of DCOR Circles
         """
         if mode == "user":
-            api_call = "organization_list_for_user?permission=read"
+            # Organizations the user is a member of
+            data = self._call("organization_list_for_user",
+                              permission="read")
         else:
-            api_call = "organization_list"
-        data = self._call(api_call)
+            data = self._call("organization_list")
         return data
 
     @ttl_cache(seconds=5)
     def get_collections(self, mode="public"):
         """Return the list of DCOR Collections"""
         if mode == "user":
-            api_call = "group_list_authz?am_member=true"
+            data = self._call("group_list_authz", am_member=True)
         else:
-            api_call = "group_list"
-        data = self._call(api_call)
+            data = self._call("group_list")
         return data
 
     @ttl_cache(seconds=3600)
