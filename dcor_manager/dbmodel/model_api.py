@@ -98,8 +98,20 @@ class APIInterrogator(DBInterrogator):
         else:
             return user_list
 
-    def search_dataset(self, circles, collections, mode="public"):
-        pass
+    def search_dataset(self, query, circles, collections, mode="public"):
+        solr_circles = ["organization:{}".format(ci) for ci in circles]
+        solr_circle_query = " OR ".join(solr_circles)
+
+        solr_collections = ["groups:{}".format(co) for co in collections]
+        solr_collections_query = " OR ".join(solr_collections)
+
+        data = self._call("package_search",
+                          q=query,
+                          include_private=(mode == "user"),
+                          fq="({}) AND ({})".format(solr_circle_query,
+                                                    solr_collections_query)
+                          )
+        return data["results"]
 
     @property
     def local_timestamp(self):

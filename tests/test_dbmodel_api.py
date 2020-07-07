@@ -28,7 +28,29 @@ def test_dcor_dev_user_data():
     api_key = get_api_key()
     db = model_api.APIInterrogator("dcor-dev.mpl.mpg.de", api_key=api_key)
     data = db.get_user_data()
-    assert data["fullname"] == "Dcor Manager"
+    assert data["fullname"] == "Dcor Manager", "fullname not 'Dcor Manager'"
+
+
+def test_dcor_dev_search():
+    api_key = get_api_key()
+    db = model_api.APIInterrogator("dcor-dev.mpl.mpg.de", api_key=api_key)
+    # Positive test
+    data = db.search_dataset(query="data",
+                             circles=["dcor-manager-test-circle"],
+                             collections=["dcor-manager-test"],
+                             )
+    assert len(data) >= 1
+    for dd in data:
+        if dd["name"] == "test-dataset-1":
+            break
+    else:
+        assert False, "test-dataset-1 not found!"
+    # Negative test
+    data = db.search_dataset(query="cliauwenlc_should_never_exist",
+                             circles=["dcor-manager-test-circle"],
+                             collections=["dcor-manager-test"],
+                             )
+    assert len(data) == 0, "search result for non-existent dataset?"
 
 
 if __name__ == "__main__":
