@@ -1,4 +1,5 @@
 """Settings file management"""
+import numbers
 import pathlib
 
 import appdirs
@@ -11,8 +12,12 @@ DEFAULTS = {
     "bool": {
         "check update": True,  # check for updates
     },
+    "string": {
+        "api key": "",
+        "server": "dcor.mpl.mpg.de",  # current server
+    },
     "string_list": {
-        "dcor servers": ["dcor.mpl.mpg.de"]
+        "dcor servers": ["dcor.mpl.mpg.de"],
     },
 }
 
@@ -34,68 +39,72 @@ class SettingsFile(object):
         self.defaults = defaults
         self.working_directories = {}
 
-    def get_bool(self, key):
-        """Returns boolean configuration key"""
+    def _get_value(self, dtype, key):
         key = key.lower()
         cdict = self.load()
         if key in cdict:
             val = cdict[key]
-            if val.lower() not in ["true", "false"]:
-                raise ValueError("Config key '{}' not boolean!".format(key))
-            if val == "True":
-                ret = True
-            else:
-                ret = False
+        elif dtype in self.defaults and key in self.defaults[dtype]:
+            val = self.defaults[dtype][key]
         else:
-            ret = self.defaults["bool"][key]
-        return ret
+            raise KeyError(
+                "Config key '{}' of type '{}' not set!".format(key, dtype))
+
+        if dtype == "bool":
+            if isinstance(val, bool):
+                pass
+            else:
+                if val.lower() not in ["true", "false"]:
+                    raise ValueError(
+                        "Config key '{}' not boolean!".format(key))
+                elif val.lower() == "true":
+                    val = True
+                else:
+                    val = False
+        elif dtype == "integer":
+            if isinstance(val, numbers.Integral):
+                pass
+            else:
+                if not val.isdigit():
+                    raise ValueError(
+                        "Config key '{}' is no integer!".format(key))
+                val = int(val)
+        elif dtype == "string_list":
+            if isinstance(val, list):
+                pass
+            else:
+                val = val.split("\t")
+
+        return val
+
+    def get_bool(self, key):
+        """Returns boolean configuration key"""
+        return self._get_value("bool", key)
 
     def get_int(self, key):
         """Returns integer configuration key"""
-        key = key.lower()
-        cdict = self.load()
-        if key in cdict:
-            val = cdict[key]
-            if not val.isdigit():
-                raise ValueError("Config key '{}' is no integer!".format(key))
-            ret = int(val)
-        else:
-            raise KeyError("Config key `{}` not set!".format(key))
-        return ret
+        return self._get_value("integer", key)
 
     def get_path(self, name=""):
         """Returns the path for label `name`"""
-        cdict = self.load()
         wdkey = "path {}".format(name.lower())
-
-        if wdkey in cdict:
-            wd = cdict[wdkey]
-        else:
-            wd = "./"
-
-        return wd
+        try:
+            path = self._get_value("path", wdkey)
+        except KeyError:
+            path = "."
+        return path
 
     def get_string(self, key):
         """Return string"""
-        cdict = self.load()
-        if key in cdict:
-            val = cdict[key]
-        else:
+        try:
+            val = self._get_value("string", key)
+        except KeyError:
             val = ""
         return val
 
     def get_string_list(self, key):
         """Returns list of strings"""
-        key = key.lower()
-        cdict = self.load()
-        if key in cdict:
-            val = cdict[key]
-            ret = val.split("\t")
-        elif key in self.defaults["string_list"]:
-            return self.defaults["string_list"][key]
-        else:
-            ret = []
-        return ret
+        self._get_value("string_list", key)
 
     def load(self):
         """Loads the settings file returning a dictionary"""

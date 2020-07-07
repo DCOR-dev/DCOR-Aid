@@ -4,6 +4,10 @@ from .core import DBInterrogator, DBModel
 from .util import ttl_cache
 
 
+class APIKeyError(BaseException):
+    pass
+
+
 class APIModel(DBModel):
     def __init__(self, url, api_key=None, *args, **kwargs):
         """A CKAN-API-based database model"""
@@ -67,7 +71,8 @@ class APIInterrogator(DBInterrogator):
                 userdata = user
                 break
         else:
-            raise ValueError("Could not determine user data. API key set?")
+            raise APIKeyError(
+                "Could not determine user data. Please check API key.")
         return userdata
 
     @ttl_cache(seconds=3600)

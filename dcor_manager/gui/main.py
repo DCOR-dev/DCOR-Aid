@@ -8,6 +8,7 @@ import appdirs
 
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
+from ..dbmodel import APIInterrogator, APIKeyError
 from .. import settings
 from .._version import version as __version__
 # from .widgets.wait_cursor import ShowWaitCursor, show_wait_cursor
@@ -40,8 +41,11 @@ class DCORManager(QtWidgets.QMainWindow):
         self.setWindowTitle("DCOR-Manager {}".format(__version__))
         # Disable native menubar (e.g. on Mac)
         self.menubar.setNativeMenuBar(False)
+        # File menu
+        self.actionSet_API_key.triggered.connect(self.on_action_api_key)
         # Help menu
         self.actionSoftware.triggered.connect(self.on_action_software)
+        self.actionAbout.triggered.connect(self.on_action_about)
         # if "--version" was specified, print the version and exit
         if "--version" in sys.argv:
             print(__version__)
@@ -51,14 +55,27 @@ class DCORManager(QtWidgets.QMainWindow):
         self.toolButton_user.setToolButtonStyle(
             QtCore.Qt.ToolButtonTextBesideIcon)
         self.toolButton_user.setAutoRaise(True)
-        self.toolButton_user.setText("Not logged in!")
         self.tabWidget.setCornerWidget(self.toolButton_user)
+        self.toolButton_user.setText("Not logged in!")
+        self.toolButton_user.clicked.connect(self.on_action_api_key)
+        self.refresh_login_status()
 
     def on_action_about(self):
         about_text = "GUI for managing data on DCOR."
         QtWidgets.QMessageBox.about(self,
                                     "DCOR-Manager {}".format(__version__),
                                     about_text)
+
+    def on_action_api_key(self):
+        """Open a dialog window for entering an API key"""
+        api_key = self.settings.get_string("api key")
+        text, okPressed = QtWidgets.QInputDialog.getText(
+            self, "API key", "Please enter your API key:",
+            QtWidgets.QLineEdit.Normal, api_key)
+        if okPressed:
+            api_key = "".join([ch for ch in text if ch in "0123456789abcdef-"])
+            self.settings.set_string("api key", api_key)
+        self.refresh_login_status()
 
     def on_action_software(self):
         libs = [appdirs,
@@ -75,6 +92,26 @@ class DCORManager(QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.information(self,
                                           "Software",
                                           sw_text)
+
+    def refresh_login_status(self):
+        api_key = self.settings.get_string("api key")
+        if not api_key:
+            text = "No API key."
+        else:
+            url = self.settings.get_string("server")
+            db = APIInterrogator(url=url, api_key=api_key)
+            try:
+                user_data = db.get_user_data()
+            except APIKeyError:
+                text = "API key invalid."
+            else:
+                fullname = user_data["fullname"]
+                name = user_data["name"]
+                if fullname:
+                    text = "{} ({})".format(fullname, name)
+                else:
+                    text = name
+        self.toolButton_user.setText(text)
 
 
 def excepthook(etype, value, trace):
