@@ -2,7 +2,7 @@ import os
 import pkg_resources
 import signal
 import sys
-import traceback
+import traceback as tb
 
 import appdirs
 
@@ -98,23 +98,32 @@ class DCORManager(QtWidgets.QMainWindow):
 
     def refresh_login_status(self):
         api_key = self.settings.get_string("api key")
-        if not api_key:
-            text = "No API key."
+        url = self.settings.get_string("server")
+        db = APIInterrogator(url=url, api_key=api_key)
+        try:
+            db._call("site_read")
+        except BaseException:
+            text = "No connection to '{}'.".format(url)
+            tip = tb.format_exc()
         else:
-            url = self.settings.get_string("server")
-            db = APIInterrogator(url=url, api_key=api_key)
-            try:
-                user_data = db.get_user_data()
-            except APIKeyError:
-                text = "API key invalid."
+            if not api_key:
+                text = "No API key."
+                tip = "Click here to enter your API key."
             else:
-                fullname = user_data["fullname"]
-                name = user_data["name"]
-                if fullname:
-                    text = "{} ({})".format(fullname, name)
+                try:
+                    user_data = db.get_user_data()
+                except APIKeyError:
+                    text = "API key not valid for '{}'.".format(url)
+                    tip = "Click here to update your API key."
                 else:
-                    text = name
+                    fullname = user_data["fullname"]
+                    name = user_data["name"]
+                    if not fullname:
+                        fullname = name
+                    text = "logged in as: {}".format(fullname)
+                    tip = "user '{}'".format(name)
         self.toolButton_user.setText(text)
+        self.toolButton_user.setToolTip(tip)
 
     def refresh_private_data(self):
         # TODO:
@@ -138,7 +147,7 @@ def excepthook(etype, value, trace):
     """
     vinfo = "Unhandled exception in DCOR-Manager version {}:\n".format(
         __version__)
-    tmp = traceback.format_exception(etype, value, trace)
+    tmp = tb.format_exception(etype, value, trace)
     exception = "".join([vinfo]+tmp)
 
     errorbox = QtWidgets.QMessageBox()
