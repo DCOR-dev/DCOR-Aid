@@ -128,7 +128,8 @@ class DCORManager(QtWidgets.QMainWindow):
     def refresh_private_data(self):
         # TODO:
         # - what happens if the user changes the server? Ask to restart?
-        am = APIModel(self.settings.get_string("server"))
+        am = APIModel(url=self.settings.get_string("server"),
+                      api_key=self.settings.get_string("api key"))
         db_extract = am.get_user_datasets()
         self.user_filter_chain.set_db_extract(db_extract)
 

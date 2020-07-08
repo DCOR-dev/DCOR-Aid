@@ -20,6 +20,7 @@ class FilterChain(QtWidgets.QWidget):
 
         #: Signals and slots
         self.fw_datasets.selection_changed.connect(self.show_resources)
+        self.fw_resources.checkBox.stateChanged.connect(self.update_resources)
 
     @property
     def selected_circles(self):
@@ -61,12 +62,25 @@ class FilterChain(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(list)
     def show_resources(self, dataset_names):
+        self.dataset_names = dataset_names
+        self.update_resources()
+
+    @QtCore.pyqtSlot()
+    def update_resources(self):
         rs_items = OrderedDict()
-        for dn in dataset_names:
+        for dn in self.dataset_names:
             ddict = self.db_extract.get_dataset_dict(dn)
             for rs in ddict["resources"]:
-                key = rs["id"]
-                name = "{} ({} events)".format(
-                    rs["name"], rs["dc:experiment:event count"])
-                rs_items[key] = name
+                if (self.fw_resources.checkBox.isChecked()
+                    and ("mimetype" in rs
+                         and rs["mimetype"] != "RT-DC")):
+                    # Ignore non-RT-DC mimetypes
+                    continue
+                else:
+                    key = rs["id"]
+                    name = rs["name"]
+                    if "dc:experiment:event count" in rs:
+                        name += " ({} events)".format(
+                            rs["dc:experiment:event count"])
+                    rs_items[key] = name
         self.fw_resources.set_items(rs_items)

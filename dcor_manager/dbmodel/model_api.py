@@ -69,6 +69,13 @@ class APIInterrogator(DBInterrogator):
         return data
 
     @ttl_cache(seconds=3600)
+    def get_datasets_user_following(self):
+        user_data = self.get_user_data()
+        data = self._call("dataset_followee_list",
+                          id=user_data["name"])
+        return data
+
+    @ttl_cache(seconds=3600)
     def get_datasets_user_owned(self):
         """Get all the user's datasets"""
         user_data = self.get_user_data()

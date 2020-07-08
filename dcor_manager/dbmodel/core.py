@@ -93,7 +93,8 @@ class DBModel():
         """Return DBExtract with data owned by or shared with the user"""
         owned = self.db.get_datasets_user_owned()
         shared = self.db.get_datasets_user_shared()
-        return DBExtract(owned+shared)
+        following = self.db.get_datasets_user_following()
+        return DBExtract(owned+shared+following)
 
     def get_users(self):
         """Return the list of DCOR users"""
@@ -164,6 +165,11 @@ class DBInterrogator(abc.ABC):
     @abc.abstractmethod
     def get_collections(self, mode="public"):
         """Return the list of DCOR Collections"""
+        pass
+
+    @abc.abstractmethod
+    def get_datasets_user_following(self):
+        """Return all datasets the user is following"""
         pass
 
     @abc.abstractmethod
