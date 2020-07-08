@@ -8,7 +8,7 @@ import appdirs
 
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
-from ..dbmodel import APIInterrogator, APIKeyError
+from ..dbmodel import APIInterrogator, APIModel, APIKeyError
 from .. import settings
 from .._version import version as __version__
 # from .widgets.wait_cursor import ShowWaitCursor, show_wait_cursor
@@ -51,6 +51,7 @@ class DCORManager(QtWidgets.QMainWindow):
             print(__version__)
             QtWidgets.QApplication.processEvents()
             sys.exit(0)
+        # Display login status
         self.toolButton_user = QtWidgets.QToolButton()
         self.toolButton_user.setToolButtonStyle(
             QtCore.Qt.ToolButtonTextBesideIcon)
@@ -59,6 +60,8 @@ class DCORManager(QtWidgets.QMainWindow):
         self.toolButton_user.setText("Not logged in!")
         self.toolButton_user.clicked.connect(self.on_action_api_key)
         self.refresh_login_status()
+        # Update private data tab
+        self.refresh_private_data()
 
     def on_action_about(self):
         about_text = "GUI for managing data on DCOR."
@@ -112,6 +115,13 @@ class DCORManager(QtWidgets.QMainWindow):
                 else:
                     text = name
         self.toolButton_user.setText(text)
+
+    def refresh_private_data(self):
+        # TODO:
+        # - what happens if the user changes the server? Ask to restart?
+        am = APIModel(self.settings.get_string("server"))
+        db_extract = am.get_user_datasets()
+        self.user_filter_chain.set_db_extract(db_extract)
 
 
 def excepthook(etype, value, trace):

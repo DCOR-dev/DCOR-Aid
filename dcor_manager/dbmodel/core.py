@@ -1,5 +1,58 @@
 import abc
+from functools import lru_cache
+
 from .util import ttl_cache
+
+
+class DBExtract():
+    def __init__(self, datasets, circles=None, collections=None):
+        """User-convenient access to dataset search results
+
+        Parameters
+        ----------
+        datasets: list
+            List of CKAN package dictionaries
+        """
+        self._circles = circles
+        self._collections = collections
+        self._dataset_name_index = None
+        self.datasets = datasets
+
+    @property
+    @lru_cache(maxsize=1)
+    def circles(self):
+        if self._circles is None:
+            cl = []
+            for dd in self.datasets:
+                name = dd["organization"]["name"]
+                if name not in cl:
+                    cl.append(name)
+            self._circles = sorted(cl)
+        return self._circles
+
+    @property
+    @lru_cache(maxsize=1)
+    def collections(self):
+        if self._collections is None:
+            ct = []
+            for dd in self.datasets:
+                for gg in dd["groups"]:
+                    name = gg["name"]
+                    if gg not in ct:
+                        ct.append(name)
+            self._collections = sorted(ct)
+        return self._collections
+
+    def _generate_index(self):
+        if self._dataset_name_index is None:
+            index = {}
+            for ii, dd in enumerate(self.datasets):
+                index[dd["name"]] = ii
+            self._dataset_name_index = index
+
+    def get_dataset_dict(self, dataset_name):
+        self._generate_index()
+        return self.datasets[self._dataset_name_index[dataset_name]]
 
 
 class DBModel():
@@ -36,18 +89,29 @@ class DBModel():
         """Return the list of DCOR Collections"""
         return self.db.get_collections(mode=self.mode)
 
+    def get_user_datasets(self):
+        """Return DBExtract with data owned by or shared with the user"""
+        owned = self.db.get_datasets_user_owned()
+        shared = self.db.get_datasets_user_shared()
+        return DBExtract(owned+shared)
+
     def get_users(self):
         """Return the list of DCOR users"""
         return self.db.get_users()
 
     def search_dataset(self, query):
         """Search for a string in the database"""
-        return self.db.search_dataset(
+        data = self.db.search_dataset(
             query,
             mode=self.mode,
             circles=self.search_query["circles"],
             collections=self.search_query["collections"],
         )
+        extract = DBExtract(data,
+                            circles=self.search_query["circles"],
+                            collections=self.search_query["collections"],
+                            )
+        return extract
 
     def set_filter(self, circles=[], collections=[]):
         """Set a search query filter"""
@@ -103,9 +167,19 @@ class DBInterrogator(abc.ABC):
         pass
 
     @abc.abstractmethod
+    def get_datasets_user_owned(self):
+        """Return all datasets owned by the user"""
+        pass
+
+    @abc.abstractmethod
+    def get_datasets_user_shared(self):
+        """Return all datasets shared with the user"""
+        pass
+
+    @abc.abstractmethod
     def get_user_data(self):
         """Return the current user data dictionary"""
-        return {}
+        pass
 
     @abc.abstractmethod
     def get_users(self):

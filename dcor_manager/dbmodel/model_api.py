@@ -1,3 +1,5 @@
+import warnings
+
 import requests
 
 from .core import DBInterrogator, DBModel
@@ -67,6 +69,29 @@ class APIInterrogator(DBInterrogator):
         return data
 
     @ttl_cache(seconds=3600)
+    def get_datasets_user_owned(self):
+        """Get all the user's datasets"""
+        user_data = self.get_user_data()
+        numd = user_data["number_created_packages"]
+        if numd > 1000:
+            raise NotImplementedError(
+                "Reached hard limit of 1000 results! "
+                + "Please ask someone to implement this with `start`.")
+        data2 = self._call("package_search",
+                           q="*:*",
+                           fq="creator_user_id:{}".format(user_data["id"]),
+                           rows=numd+1)
+        if data2["count"] != numd:
+            raise ValueError("Number of user datasets don't match!")
+
+        return data2["results"]
+
+    def get_datasets_user_shared(self):
+        warnings.warn("`APIInterrogator.get_datasets_user_shared` "
+                      + "not yet implemented!")
+        return []
+
+    @ttl_cache(seconds=3600)
     def get_user_data(self):
         """Return the current user data dictionary"""
         # Workaround for https://github.com/ckan/ckan/issues/5490
@@ -99,6 +124,7 @@ class APIInterrogator(DBInterrogator):
             return user_list
 
     def search_dataset(self, query, circles, collections, mode="public"):
+        # https://docs.ckan.org/en/latest/user-guide.html#search-in-detail
         solr_circles = ["organization:{}".format(ci) for ci in circles]
         solr_circle_query = " OR ".join(solr_circles)
 
