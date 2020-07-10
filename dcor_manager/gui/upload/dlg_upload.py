@@ -111,6 +111,7 @@ class UploadDialog(QtWidgets.QMainWindow):
         This will first trigger a creation of the draft dataset
         on DCOR. Then, the job is enqueued in the parent
         """
+        self.setHidden(True)
         # Initiate API
         settings = SettingsFile()
         # Try to create the dataset and display any issues with the metadata
@@ -122,6 +123,7 @@ class UploadDialog(QtWidgets.QMainWindow):
         self.dataset_id = data["id"]
         # signal that we are clear to proceed
         self.finished.emit(self)
+        self.close()
 
     def assemble_metadata(self):
         """Get all the metadata from the form"""
