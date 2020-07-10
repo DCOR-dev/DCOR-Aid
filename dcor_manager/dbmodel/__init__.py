@@ -1,1 +1,1 @@
-from .model_api import APIInterrogator, APIModel, APIKeyError  # noqa: F401
+from .model_api import APIInterrogator, APIModel  # noqa: F401

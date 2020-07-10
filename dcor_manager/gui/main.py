@@ -8,7 +8,8 @@ import appdirs
 
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
-from ..dbmodel import APIInterrogator, APIModel, APIKeyError
+from ..api import APIKeyError, CKANAPI
+from ..dbmodel import APIModel
 from .. import settings
 from .._version import version as __version__
 # from .widgets.wait_cursor import ShowWaitCursor, show_wait_cursor
@@ -98,12 +99,12 @@ class DCORManager(QtWidgets.QMainWindow):
 
     def refresh_login_status(self):
         api_key = self.settings.get_string("api key")
-        url = self.settings.get_string("server")
-        db = APIInterrogator(url=url, api_key=api_key)
+        server = self.settings.get_string("server")
+        api = CKANAPI(server=server, api_key=api_key)
         try:
-            db._call("site_read")
+            api.get("site_read")
         except BaseException:
-            text = "No connection to '{}'.".format(url)
+            text = "No connection to '{}'.".format(server)
             tip = tb.format_exc()
         else:
             if not api_key:
@@ -111,9 +112,9 @@ class DCORManager(QtWidgets.QMainWindow):
                 tip = "Click here to enter your API key."
             else:
                 try:
-                    user_data = db.get_user_data()
+                    user_data = api.get_user_dict()
                 except APIKeyError:
-                    text = "API key not valid for '{}'.".format(url)
+                    text = "API key not valid for '{}'.".format(server)
                     tip = "Click here to update your API key."
                 else:
                     fullname = user_data["fullname"]

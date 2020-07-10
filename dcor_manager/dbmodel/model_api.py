@@ -1,13 +1,9 @@
 import warnings
 
-import requests
+from ..api import CKANAPI
 
 from .core import DBInterrogator, DBModel
 from .util import ttl_cache
-
-
-class APIKeyError(BaseException):
-    pass
 
 
 class APIModel(DBModel):
@@ -19,33 +15,8 @@ class APIModel(DBModel):
 
 class APIInterrogator(DBInterrogator):
     def __init__(self, url, api_key=None):
-        self.api_key = api_key
-        self.api_url = self._make_api_url(url)
-        self.headers = {"Authorization": api_key}
+        self.api = CKANAPI(url, api_key)
         super(APIInterrogator, self).__init__()
-
-    def _call(self, api_call, **kwargs):
-        if kwargs:
-            # Add keyword arguments
-            kwv = []
-            for kw in kwargs:
-                kwv.append("{}={}".format(kw, kwargs[kw]))
-            api_call += "?" + "&".join(kwv)
-        url_call = self.api_url + api_call
-        req = requests.get(url_call, headers=self.headers)
-        data = req.json()
-        if not data["success"]:
-            raise ConnectionError(
-                "Could not run API call '{}'! ".format(url_call)
-                + "Reason: {}".format(req.reason))
-        return data["result"]
-
-    def _make_api_url(self, url):
-        if not url.count("//"):
-            url = "https://" + url
-        if not url.endswith("/action/"):
-            url = url.rstrip("/") + "/api/3/action/"
-        return url
 
     @ttl_cache(seconds=5)
     def get_circles(self, mode="public"):
@@ -53,26 +24,26 @@ class APIInterrogator(DBInterrogator):
         """
         if mode == "user":
             # Organizations the user is a member of
-            data = self._call("organization_list_for_user",
-                              permission="read")
+            data = self.api.get("organization_list_for_user",
+                                permission="read")
         else:
-            data = self._call("organization_list")
+            data = self.api.get("organization_list")
         return data
 
     @ttl_cache(seconds=5)
     def get_collections(self, mode="public"):
         """Return the list of DCOR Collections"""
         if mode == "user":
-            data = self._call("group_list_authz", am_member=True)
+            data = self.api.get("group_list_authz", am_member=True)
         else:
-            data = self._call("group_list")
+            data = self.api.get("group_list")
         return data
 
     @ttl_cache(seconds=3600)
     def get_datasets_user_following(self):
         user_data = self.get_user_data()
-        data = self._call("dataset_followee_list",
-                          id=user_data["name"])
+        data = self.api.get("dataset_followee_list",
+                            id=user_data["name"])
         return data
 
     @ttl_cache(seconds=3600)
@@ -84,10 +55,10 @@ class APIInterrogator(DBInterrogator):
             raise NotImplementedError(
                 "Reached hard limit of 1000 results! "
                 + "Please ask someone to implement this with `start`.")
-        data2 = self._call("package_search",
-                           q="*:*",
-                           fq="creator_user_id:{}".format(user_data["id"]),
-                           rows=numd+1)
+        data2 = self.api.get("package_search",
+                             q="*:*",
+                             fq="creator_user_id:{}".format(user_data["id"]),
+                             rows=numd+1)
         if data2["count"] != numd:
             raise ValueError("Number of user datasets don't match!")
 
@@ -101,22 +72,12 @@ class APIInterrogator(DBInterrogator):
     @ttl_cache(seconds=3600)
     def get_user_data(self):
         """Return the current user data dictionary"""
-        # Workaround for https://github.com/ckan/ckan/issues/5490
-        # Get the user that has a matching API key
-        data = self._call("user_list")
-        for user in data:
-            if user.get("apikey") == self.api_key:
-                userdata = user
-                break
-        else:
-            raise APIKeyError(
-                "Could not determine user data. Please check API key.")
-        return userdata
+        return self.api.get_user_dict()
 
     @ttl_cache(seconds=3600)
     def get_users(self, ret_fullnames=False):
         """Return the list of DCOR users"""
-        data = self._call("user_list")
+        data = self.api.get("user_list")
         user_list = []
         full_list = []
         for dd in data:
@@ -138,12 +99,12 @@ class APIInterrogator(DBInterrogator):
         solr_collections = ["groups:{}".format(co) for co in collections]
         solr_collections_query = " OR ".join(solr_collections)
 
-        data = self._call("package_search",
-                          q=query,
-                          include_private=(mode == "user"),
-                          fq="({}) AND ({})".format(solr_circle_query,
-                                                    solr_collections_query)
-                          )
+        data = self.api.get("package_search",
+                            q=query,
+                            include_private=(mode == "user"),
+                            fq="({}) AND ({})".format(solr_circle_query,
+                                                      solr_collections_query)
+                            )
         return data["results"]
 
     @property
