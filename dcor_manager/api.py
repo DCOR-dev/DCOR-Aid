@@ -1,3 +1,5 @@
+import json
+
 import requests
 
 
@@ -9,7 +11,11 @@ class CKANAPI():
     def __init__(self, server, api_key):
         self.api_key = api_key
         self.api_url = self._make_api_url(server)
-        self.headers = {"Authorization": api_key}
+        self.headers = {"Authorization": api_key,
+                        # This is necessary because we cannot otherwise
+                        # create packages with tags (list of dicts);
+                        # We have to json-dump the dict.
+                        "Content-Type": "application/json"}
 
     def _make_api_url(self, url):
         if not url.count("//"):
@@ -56,7 +62,10 @@ class CKANAPI():
 
     def post(self, api_call, data_dict):
         url_call = self.api_url + api_call
-        req = requests.post(url_call, data=data_dict, headers=self.headers)
+        data_dump = json.dumps(data_dict)
+        req = requests.post(url_call,
+                            data=data_dump,
+                            headers=self.headers)
         data = req.json()
         if not data["success"]:
             raise ConnectionError(

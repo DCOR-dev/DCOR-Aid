@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>727</width>
-    <height>915</height>
+    <height>929</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,7 +31,7 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QLineEdit" name="lineEdit">
+          <widget class="QLineEdit" name="lineEdit_title">
            <property name="placeholderText">
             <string>A descriptive title</string>
            </property>
@@ -45,7 +45,7 @@
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QLineEdit" name="lineEdit_2">
+          <widget class="QLineEdit" name="lineEdit_authors">
            <property name="placeholderText">
             <string>Guybrush Threepwood, John Cleese</string>
            </property>
@@ -59,7 +59,7 @@
           </widget>
          </item>
          <item row="2" column="1">
-          <widget class="QLineEdit" name="lineEdit_4">
+          <widget class="QLineEdit" name="lineEdit_doi">
            <property name="placeholderText">
             <string>only if published elsewhere (e.g. on figshare)</string>
            </property>
@@ -73,7 +73,7 @@
           </widget>
          </item>
          <item row="3" column="1">
-          <widget class="QLineEdit" name="lineEdit_3">
+          <widget class="QLineEdit" name="lineEdit_references">
            <property name="placeholderText">
             <string>publications (DOIs, arXiv, bioRxiv) or other links</string>
            </property>
@@ -87,7 +87,7 @@
           </widget>
          </item>
          <item row="4" column="1">
-          <widget class="QPlainTextEdit" name="plainTextEdit">
+          <widget class="QPlainTextEdit" name="plainTextEdit_notes">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -107,7 +107,7 @@
           </widget>
          </item>
          <item row="5" column="1">
-          <widget class="QLineEdit" name="lineEdit_5">
+          <widget class="QLineEdit" name="lineEdit_tags">
            <property name="placeholderText">
             <string>HL60, CD66, Hoechst</string>
            </property>
@@ -121,7 +121,7 @@
           </widget>
          </item>
          <item row="6" column="1">
-          <widget class="QComboBox" name="comboBox_3"/>
+          <widget class="QComboBox" name="comboBox_license"/>
          </item>
          <item row="7" column="0">
           <widget class="QLabel" name="label_8">
@@ -131,7 +131,7 @@
           </widget>
          </item>
          <item row="7" column="1">
-          <widget class="QComboBox" name="comboBox_2"/>
+          <widget class="QComboBox" name="comboBox_circles"/>
          </item>
          <item row="8" column="0">
           <widget class="QLabel" name="label_9">
@@ -141,18 +141,7 @@
           </widget>
          </item>
          <item row="8" column="1">
-          <widget class="QComboBox" name="comboBox">
-           <item>
-            <property name="text">
-             <string>Public</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Private</string>
-            </property>
-           </item>
-          </widget>
+          <widget class="QComboBox" name="comboBox_vis"/>
          </item>
         </layout>
        </item>
@@ -173,7 +162,7 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QListWidget" name="listWidget">
+        <widget class="QListWidget" name="listWidget_resources">
          <property name="selectionMode">
           <enum>QAbstractItemView::MultiSelection</enum>
          </property>
@@ -185,17 +174,29 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <property name="rightMargin">
-          <number>10</number>
+          <number>0</number>
          </property>
          <item>
-          <widget class="QToolButton" name="toolButton_2">
+          <widget class="QToolButton" name="toolButton_add">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
-            <string>Add files</string>
+            <string>Add resources</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="toolButton_3">
+          <widget class="QToolButton" name="toolButton_rem">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>Remove selected</string>
            </property>
@@ -220,7 +221,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="pushButton">
+     <widget class="QPushButton" name="pushButton_proceed">
       <property name="text">
        <string>Proceed with upload / Enqueue job</string>
       </property>
