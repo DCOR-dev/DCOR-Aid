@@ -2,7 +2,7 @@ import pathlib
 from threading import Thread
 import time
 
-import requests
+from ..api import CKANAPI
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
 
@@ -37,7 +37,7 @@ class UploadJob(object):
         """Start the upload"""
         self.state = "running"
         # Do the things to do and watch self.state while doing so
-        url = "https://{}/api/3/resource_create".format(self.server)
+        api = CKANAPI(server=self.server, api_key=self.api_key)
         for ii, path in enumerate(self.paths):
             self.index = ii
             e = MultipartEncoder(
@@ -45,17 +45,11 @@ class UploadJob(object):
                         'name': path.name,
                         'upload': (path.name, path.open('rb'))}
             )
-
             m = MultipartEncoderMonitor(e, self.monitor_callback)
-            headers = {"Authorization": self.api_key,
-                       "Content-Type": m.content_type}
-            req = requests.post(url,
-                                data=e,
-                                headers=headers,
-                                )
-            if not req.ok:
-                raise ValueError(
-                    "Upload failed. Reason: {}".format(req.reason))
+            api.post("resource_create",
+                     data=m,
+                     dump_json=False,
+                     headers={"Content-Type": m.content_type})
             self.paths_uploaded.append(path)
         self.state = "finished"
 
@@ -70,6 +64,10 @@ class UploadJobList(object):
         self.api_key = api_key
         self.jobs = []
         self.runner = UploadRunner(self.jobs)
+        self.runner.start()
+
+    def __getitem__(self, index):
+        return self.jobs[index]
 
     def abort_job(self, dataset_id):
         """Abort a running job"""
@@ -119,10 +117,11 @@ class UploadRunner(Thread):
         """This upload runner is constantly running in the background"""
         self.jobs = jobs
         self.state = "running"
+        super(UploadRunner, self).__init__()
 
     def run(self):
         while True:
-            if self.status != "running":
+            if self.state != "running":
                 # Don't do anything
                 time.sleep(.1)
                 continue

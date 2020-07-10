@@ -1,3 +1,4 @@
+import copy
 import json
 
 import requests
@@ -11,11 +12,7 @@ class CKANAPI():
     def __init__(self, server, api_key):
         self.api_key = api_key
         self.api_url = self._make_api_url(server)
-        self.headers = {"Authorization": api_key,
-                        # This is necessary because we cannot otherwise
-                        # create packages with tags (list of dicts);
-                        # We have to json-dump the dict.
-                        "Content-Type": "application/json"}
+        self.headers = {"Authorization": api_key}
 
     def _make_api_url(self, url):
         if not url.count("//"):
@@ -41,12 +38,23 @@ class CKANAPI():
                                            data["error"]["message"]))
         return data["result"]
 
-    def post(self, api_call, data_dict):
+    def post(self, api_call, data, dump_json=True, headers={}):
+        new_headers = copy.deepcopy(self.headers)
+        new_headers.update(headers)
+        if dump_json:
+            if "Content-Type" in headers:
+                raise ValueError("Do not specify 'Content-Type' with "
+                                 + "`dump_json=True`!")
+            # This is necessary because we cannot otherwise
+            # create packages with tags (list of dicts);
+            # We have to json-dump the dict.
+            new_headers["Content-Type"] = "application/json"
+            data = json.dumps(data)
+
         url_call = self.api_url + api_call
-        data_dump = json.dumps(data_dict)
         req = requests.post(url_call,
-                            data=data_dump,
-                            headers=self.headers)
+                            data=data,
+                            headers=new_headers)
         data = req.json()
         if not data["success"]:
             raise ConnectionError(

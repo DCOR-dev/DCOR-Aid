@@ -146,5 +146,6 @@ class UploadDialog(QtWidgets.QMainWindow):
         """Return the paths of the files to be uploaded"""
         files = []
         for ii in range(self.listWidget_resources.count()):
-            files.append(self.listWidget_resources.item(ii).text())
+            files.append(
+                pathlib.Path(self.listWidget_resources.item(ii).text()))
         return files
