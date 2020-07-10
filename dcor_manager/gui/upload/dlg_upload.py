@@ -4,6 +4,7 @@ import pkg_resources
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
 from ...api import CKANAPI
+from ...upload import create_dataset
 from ...settings import SettingsFile
 from functools import lru_cache
 
@@ -112,13 +113,11 @@ class UploadDialog(QtWidgets.QMainWindow):
         """
         # Initiate API
         settings = SettingsFile()
-        api = CKANAPI(server=settings.get_string("server"),
-                      api_key=settings.get_string("api key"))
-        # Get the metadata dictionary
-        dataset_dict = self.assemble_metadata()
-        dataset_dict["state"] = "draft"
         # Try to create the dataset and display any issues with the metadata
-        data = api.post("package_create", dataset_dict)
+        data = create_dataset(dataset_dict=self.assemble_metadata(),
+                              server=settings.get_string("server"),
+                              api_key=settings.get_string("api key")
+                              )
         # Remember the dataset identifier
         self.dataset_id = data["id"]
         # signal that we are clear to proceed

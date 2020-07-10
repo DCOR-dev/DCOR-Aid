@@ -2,6 +2,7 @@ import os
 import pathlib
 import time
 
+from dcor_manager.upload import create_dataset, remove_draft
 from dcor_manager.api import CKANAPI
 
 # These don't have to be hard-coded like this.
@@ -32,7 +33,6 @@ def make_dataset_dict(hint=""):
         "private": True,
         "license_id": "CC0-1.0",
         "owner_org": CIRCLE,
-        "state": "draft",
         "authors": USER_NAME,
     }
     return dataset_dict
@@ -40,20 +40,23 @@ def make_dataset_dict(hint=""):
 
 def test_dataset_creation():
     """Just test whether we can create (and remove) a draft dataset"""
-    api_key = get_api_key()
     # create some metadata
     dataset_dict = make_dataset_dict(hint="basic_test")
-    # initiate API
-    api = CKANAPI(server=SERVER, api_key=api_key)
     # post dataset creation request
-    data = api.post("package_create", dataset_dict)
+    data = create_dataset(dataset_dict=dataset_dict,
+                          server=SERVER,
+                          api_key=get_api_key())
     # simple test
     assert "authors" in data
     assert data["authors"] == USER_NAME
     assert data["state"] == "draft"
     # remove draft dataset
-    api.post("package_delete", data)
+    remove_draft(dataset_id=data["id"],
+                 server=SERVER,
+                 api_key=get_api_key(),
+                 )
     # make sure it is gone
+    api = CKANAPI(server=SERVER, api_key=get_api_key())
     req = api.get("package_show", id=data["id"])
     assert req["state"] == "deleted"
 

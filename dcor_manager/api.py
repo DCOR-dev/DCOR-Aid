@@ -24,25 +24,6 @@ class CKANAPI():
             url = url.rstrip("/") + "/api/3/action/"
         return url
 
-    def call(self, api_call, method="get", **kwargs):
-        if kwargs:
-            # Add keyword arguments
-            kwv = []
-            for kw in kwargs:
-                kwv.append("{}={}".format(kw, kwargs[kw]))
-            api_call += "?" + "&".join(kwv)
-        url_call = self.api_url + api_call
-        if method == "get":
-            req = requests.get(url_call, headers=self.headers)
-        elif method == "post":
-            req = requests.post(url_call, headers=self.headers)
-        data = req.json()
-        if not data["success"]:
-            raise ConnectionError(
-                "Could not run API call '{}'! ".format(url_call)
-                + "Reason: {}".format(req.reason))
-        return data["result"]
-
     def get(self, api_call, **kwargs):
         if kwargs:
             # Add keyword arguments
