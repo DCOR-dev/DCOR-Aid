@@ -2,8 +2,11 @@ import pathlib
 from threading import Thread
 import time
 
-from ..api import CKANAPI
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
+
+from ..api import CKANAPI
+
+from .dataset import activate_dataset
 
 
 class UploadJob(object):
@@ -51,6 +54,10 @@ class UploadJob(object):
                      dump_json=False,
                      headers={"Content-Type": m.content_type})
             self.paths_uploaded.append(path)
+        # finalize dataset
+        activate_dataset(dataset_id=self.dataset_id,
+                         server=self.server,
+                         api_key=self.api_key)
         self.state = "finished"
 
     def stop(self):
