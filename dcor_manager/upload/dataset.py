@@ -36,7 +36,7 @@ def remove_all_drafts(server, api_key):
 
 
 def activate_dataset(dataset_id, server, api_key):
-    # TODO: user package_revise instead
+    # TODO: use package_revise instead
     api = CKANAPI(server=server, api_key=api_key)
     data = api.get("package_show", id=dataset_id)
     data["state"] = "active"

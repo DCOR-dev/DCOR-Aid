@@ -27,6 +27,7 @@ setup(
     install_requires=["appdirs",
                       "pyqt5",
                       "requests",
+                      "requests_toolbelt",  # multipart uploads with progress
                       ],
     python_requires='>=3.6, <4',
     setup_requires=['pytest-runner'],
