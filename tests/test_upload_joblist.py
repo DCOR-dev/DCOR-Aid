@@ -47,7 +47,7 @@ def test_create_dataset_with_resource():
                           server=SERVER,
                           api_key=get_api_key())
     joblist = UploadJobList(server=SERVER, api_key=get_api_key())
-    joblist.add_job(dataset_id=data["name"],
+    joblist.add_job(dataset_dict=data,
                     paths=[dpath])
     for _ in range(600):  # 60 seconds to upload
         if joblist[0].state == "finished":
