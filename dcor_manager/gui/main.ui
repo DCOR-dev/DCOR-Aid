@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="tab_browse">
        <attribute name="title">
@@ -393,24 +393,7 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_8">
         <item>
-         <widget class="QToolButton" name="toolButton">
-          <property name="text">
-           <string>Remove Draft datasets</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
+         <widget class="MaintenanceWidget" name="widget" native="true"/>
         </item>
        </layout>
       </widget>
@@ -491,6 +474,12 @@
    <class>UploadWidget</class>
    <extends>QWidget</extends>
    <header>dcor_manager.gui.upload.widget_upload</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MaintenanceWidget</class>
+   <extends>QWidget</extends>
+   <header>dcor_manager.gui.maintenance.widget_maintenance</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
