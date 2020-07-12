@@ -10,8 +10,9 @@ from .dataset import activate_dataset
 
 
 class UploadJob(object):
-    def __init__(self, dataset_id, paths, server, api_key):
-        self.dataset_id = dataset_id
+    def __init__(self, dataset_dict, paths, server, api_key):
+        self.dataset_dict = dataset_dict
+        self.dataset_id = dataset_dict["id"]
         self.server = server
         self.api_key = api_key
         self.paths = paths
@@ -20,6 +21,32 @@ class UploadJob(object):
         self.file_sizes = [pathlib.Path(ff).stat().st_size for ff in paths]
         self.file_bytes_uploaded = [0] * len(paths)
         self.index = 0
+        self.start_time = None
+        self.end_time = None
+        self._last_time = 0
+        self._last_bytes = 0
+
+    def get_rate(self, resolution=1):
+        """Get the dataset rate with 1s precision"""
+        cur_time = time.perf_counter()
+        cur_bytes = sum(self.file_bytes_uploaded)
+
+        if (cur_time - self._last_time) > resolution:
+            self._last_time = cur_time
+            self._last_bytes = cur_bytes
+
+        if self.start_time is None:
+            # not started yet
+            rate = 0
+        elif self.end_time is None:
+            # not finished yet
+            tdelt = self._last_time - self.start_time
+            rate = self._last_bytes / tdelt
+        else:
+            # finished
+            tdelt = (self.end_time - self.start_time)
+            rate = sum(self.file_bytes_uploaded) / tdelt
+        return rate
 
     def get_status(self):
         """Get the status of the current job"""
@@ -29,6 +56,7 @@ class UploadJob(object):
             "files uploaded": len(self.paths_uploaded),
             "bytes total": sum(self.file_sizes),
             "bytes uploaded": sum(self.file_bytes_uploaded),
+            "rate": self.get_rate(),
         }
         return data
 
@@ -39,6 +67,7 @@ class UploadJob(object):
     def start(self):
         """Start the upload"""
         self.state = "running"
+        self.start_time = time.perf_counter()
         # Do the things to do and watch self.state while doing so
         api = CKANAPI(server=self.server, api_key=self.api_key)
         for ii, path in enumerate(self.paths):
@@ -54,7 +83,9 @@ class UploadJob(object):
                      dump_json=False,
                      headers={"Content-Type": m.content_type})
             self.paths_uploaded.append(path)
+        self.end_time = time.perf_counter()
         # finalize dataset
+        self.state = "finalizing"
         activate_dataset(dataset_id=self.dataset_id,
                          server=self.server,
                          api_key=self.api_key)
@@ -76,13 +107,16 @@ class UploadJobList(object):
     def __getitem__(self, index):
         return self.jobs[index]
 
+    def __len__(self):
+        return len(self.jobs)
+
     def abort_job(self, dataset_id):
         """Abort a running job"""
         self.get_job(dataset_id).stop()
 
-    def add_job(self, dataset_id, paths):
+    def add_job(self, dataset_dict, paths):
         """Add a job to the job list"""
-        job = UploadJob(dataset_id=dataset_id,
+        job = UploadJob(dataset_dict=dataset_dict,
                         paths=paths,
                         server=self.server,
                         api_key=self.api_key)

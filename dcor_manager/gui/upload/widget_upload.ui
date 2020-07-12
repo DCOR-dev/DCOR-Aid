@@ -54,6 +54,11 @@
        <widget class="UploadTableWidget" name="widget_jobs">
         <column>
          <property name="text">
+          <string>ID</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
           <string>Dataset</string>
          </property>
         </column>

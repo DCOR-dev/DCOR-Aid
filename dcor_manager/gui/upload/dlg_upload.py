@@ -120,6 +120,7 @@ class UploadDialog(QtWidgets.QMainWindow):
                               api_key=settings.get_string("api key")
                               )
         # Remember the dataset identifier
+        self.dataset_dict = data
         self.dataset_id = data["id"]
         # signal that we are clear to proceed
         self.finished.emit(self)
