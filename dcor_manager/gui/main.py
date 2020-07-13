@@ -63,6 +63,8 @@ class DCORManager(QtWidgets.QMainWindow):
         self.refresh_login_status()
         # Update private data tab
         self.refresh_private_data()
+        # If a new dataset has been uploaded, refresh private data
+        self.panel_upload.upload_finished.connect(self.refresh_private_data)
 
     def on_action_about(self):
         about_text = "GUI for managing data on DCOR."
@@ -97,6 +99,7 @@ class DCORManager(QtWidgets.QMainWindow):
                                           "Software",
                                           sw_text)
 
+    @QtCore.pyqtSlot()
     def refresh_login_status(self):
         api_key = self.settings.get_string("api key")
         server = self.settings.get_string("server")

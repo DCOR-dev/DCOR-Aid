@@ -10,6 +10,8 @@ from .dlg_upload import UploadDialog
 
 
 class UploadWidget(QtWidgets.QWidget):
+    upload_finished = QtCore.pyqtSignal()
+
     def __init__(self, *args, **kwargs):
         """Manage running uploads
         """
@@ -27,6 +29,9 @@ class UploadWidget(QtWidgets.QWidget):
                                   api_key=settings.get_string("api key"))
         self.widget_jobs.set_job_list(self.jobs)
 
+        # upload finished signal
+        self.widget_jobs.upload_finished.connect(self.upload_finished)
+
     @QtCore.pyqtSlot()
     def on_draft_upload(self):
         dlg = UploadDialog(self)
@@ -43,12 +48,15 @@ class UploadWidget(QtWidgets.QWidget):
 
 
 class UploadTableWidget(QtWidgets.QTableWidget):
+    upload_finished = QtCore.pyqtSignal()
+
     def __init__(self, *args, **kwargs):
         super(UploadTableWidget, self).__init__(*args, **kwargs)
         self.jobs = []  # Will become UploadJobList with self.set_job_list
         self.watcher = UpdateTriggerer()
         self.watcher.trigger.connect(self.update_job_status)
         self.watcher.start()
+        self._finished_uploads = []
 
     def set_job_list(self, jobs):
         """Set the current job list
@@ -58,6 +66,12 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         """
         # This is the actual initialization
         self.jobs = jobs
+
+    def on_upload_finished(self, dataset_id):
+        """Triggers upload_finished whenever an upload is finished"""
+        if dataset_id not in self._finished_uploads:
+            self._finished_uploads.append(dataset_id)
+            self.upload_finished.emit()
 
     @QtCore.pyqtSlot()
     def update_job_status(self):
@@ -83,6 +97,8 @@ class UploadTableWidget(QtWidgets.QTableWidget):
             elif status["state"] in ["finished", "finalizing"]:
                 progress = "100% ({} file{})".format(status["files total"],
                                                      plural)
+                if status["state"] == "finished":
+                    self.on_upload_finished(job.dataset_id)
             elif status["state"] == "queued":
                 progress = "0% (0/{} file{})".format(status["files total"],
                                                      plural)
