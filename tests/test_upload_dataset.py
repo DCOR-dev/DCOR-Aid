@@ -10,7 +10,7 @@ SERVER = "dcor-dev.mpl.mpg.de"
 CIRCLE = "dcor-manager-test-circle"
 COLLECTION = "dcor-manager-test"
 USER = "dcor-manager-test"
-USER_NAME = "Dcor Manager"
+USER_NAME = "Dcor Managerin"
 SEARCH_QUERY = "data"
 DATASET = "test-dataset-1"
 

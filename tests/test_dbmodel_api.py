@@ -9,7 +9,7 @@ SERVER = "dcor-dev.mpl.mpg.de"
 CIRCLE = "dcor-manager-test-circle"
 COLLECTION = "dcor-manager-test"
 USER = "dcor-manager-test"
-USER_NAME = "Dcor Manager"
+USER_NAME = "Dcor Managerin"
 SEARCH_QUERY = "data"
 DATASET = "test-dataset-1"
 
@@ -38,7 +38,7 @@ def test_dcor_dev_user_data():
     api_key = get_api_key()
     db = model_api.APIInterrogator(SERVER, api_key=api_key)
     data = db.get_user_data()
-    assert data["fullname"] == USER_NAME, "fullname not 'Dcor Manager'"
+    assert data["fullname"] == USER_NAME, "fullname not 'Dcor Managerin'"
 
 
 def test_dcor_dev_search():
