@@ -129,10 +129,14 @@ class DCORManager(QtWidgets.QMainWindow):
     def refresh_private_data(self):
         # TODO:
         # - what happens if the user changes the server? Ask to restart?
-        am = APIModel(url=self.settings.get_string("server"),
-                      api_key=self.settings.get_string("api key"))
-        db_extract = am.get_user_datasets()
-        self.user_filter_chain.set_db_extract(db_extract)
+        try:
+            am = APIModel(url=self.settings.get_string("server"),
+                          api_key=self.settings.get_string("api key"))
+            db_extract = am.get_user_datasets()
+        except APIKeyError:
+            pass
+        else:
+            self.user_filter_chain.set_db_extract(db_extract)
 
 
 def excepthook(etype, value, trace):
@@ -151,7 +155,7 @@ def excepthook(etype, value, trace):
         __version__)
     tmp = tb.format_exception(etype, value, trace)
     exception = "".join([vinfo]+tmp)
-
+    print(exception)
     errorbox = QtWidgets.QMessageBox()
     errorbox.setIcon(QtWidgets.QMessageBox.Critical)
     errorbox.addButton(QtWidgets.QPushButton('Close'),
