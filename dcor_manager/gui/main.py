@@ -5,6 +5,8 @@ import sys
 import traceback as tb
 
 import appdirs
+import requests
+import requests_toolbelt
 
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
@@ -80,6 +82,8 @@ class DCORManager(QtWidgets.QMainWindow):
 
     def on_action_software(self):
         libs = [appdirs,
+                requests,
+                requests_toolbelt,
                 ]
         sw_text = "DCOR-Manager {}\n\n".format(__version__)
         sw_text += "Python {}\n\n".format(sys.version)
