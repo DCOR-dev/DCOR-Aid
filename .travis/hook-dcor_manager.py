@@ -14,3 +14,5 @@ from PyInstaller.utils.hooks import collect_data_files
 datas = collect_data_files("dcor_manager", include_py_files=True)
 datas += collect_data_files("dcor_manager", subdir="img")
 
+hiddenimports = ["requests_toolbelt"]
+
