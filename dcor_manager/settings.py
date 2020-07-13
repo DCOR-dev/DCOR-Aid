@@ -17,7 +17,7 @@ DEFAULTS = {
         "server": "dcor.mpl.mpg.de",  # current server
     },
     "string_list": {
-        "dcor servers": ["dcor.mpl.mpg.de"],
+        "server list": ["dcor.mpl.mpg.de", "dcor-dev.mpl.mpg.de"],
     },
 }
 
@@ -77,6 +77,11 @@ class SettingsFile(object):
 
         return val
 
+    def delete_key(self, key):
+        cdict = self.load()
+        cdict.pop(key.lower())
+        self.save(cdict)
+
     def get_bool(self, key):
         """Returns boolean configuration key"""
         return self._get_value("bool", key)
@@ -104,7 +109,7 @@ class SettingsFile(object):
 
     def get_string_list(self, key):
         """Returns list of strings"""
-        self._get_value("string_list", key)
+        return self._get_value("string_list", key)
 
     def load(self):
         """Loads the settings file returning a dictionary"""

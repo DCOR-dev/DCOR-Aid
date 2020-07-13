@@ -12,8 +12,8 @@ from ..api import APIKeyError, CKANAPI
 from ..dbmodel import APIModel
 from .. import settings
 from .._version import version as __version__
-# from .widgets.wait_cursor import ShowWaitCursor, show_wait_cursor
 
+from .preferences import PreferencesDialog
 
 # set Qt icon theme search path
 QtGui.QIcon.setThemeSearchPaths([
@@ -39,11 +39,16 @@ class DCORManager(QtWidgets.QMainWindow):
         #: DCOR-Manager settings
         self.settings = settings.SettingsFile()
         # GUI
+        # Preferences dialog
+        self.dlg_pref = PreferencesDialog()
+        self.dlg_pref.server_changed.connect(self.refresh_private_data)
+        self.dlg_pref.server_changed.connect(self.refresh_login_status)
+        # Window title
         self.setWindowTitle("DCOR-Manager {}".format(__version__))
         # Disable native menubar (e.g. on Mac)
         self.menubar.setNativeMenuBar(False)
         # File menu
-        self.actionSet_API_key.triggered.connect(self.on_action_api_key)
+        self.actionPreferences.triggered.connect(self.dlg_pref.show_server)
         # Help menu
         self.actionSoftware.triggered.connect(self.on_action_software)
         self.actionAbout.triggered.connect(self.on_action_about)
@@ -52,6 +57,7 @@ class DCORManager(QtWidgets.QMainWindow):
             print(__version__)
             QtWidgets.QApplication.processEvents()
             sys.exit(0)
+
         # Display login status
         self.toolButton_user = QtWidgets.QToolButton()
         self.toolButton_user.setToolButtonStyle(
@@ -59,7 +65,7 @@ class DCORManager(QtWidgets.QMainWindow):
         self.toolButton_user.setAutoRaise(True)
         self.tabWidget.setCornerWidget(self.toolButton_user)
         self.toolButton_user.setText("Not logged in!")
-        self.toolButton_user.clicked.connect(self.on_action_api_key)
+        self.toolButton_user.clicked.connect(self.dlg_pref.on_show_server)
         self.refresh_login_status()
         # Update private data tab
         self.refresh_private_data()
@@ -71,17 +77,6 @@ class DCORManager(QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.about(self,
                                     "DCOR-Manager {}".format(__version__),
                                     about_text)
-
-    def on_action_api_key(self):
-        """Open a dialog window for entering an API key"""
-        api_key = self.settings.get_string("api key")
-        text, okPressed = QtWidgets.QInputDialog.getText(
-            self, "API key", "Please enter your API key:",
-            QtWidgets.QLineEdit.Normal, api_key)
-        if okPressed:
-            api_key = "".join([ch for ch in text if ch in "0123456789abcdef-"])
-            self.settings.set_string("api key", api_key)
-        self.refresh_login_status()
 
     def on_action_software(self):
         libs = [appdirs,
@@ -101,6 +96,8 @@ class DCORManager(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def refresh_login_status(self):
+        self.toolButton_user.setText("updating...")
+        self.toolButton_user.setToolTip("Please wait")
         api_key = self.settings.get_string("api key")
         server = self.settings.get_string("server")
         api = CKANAPI(server=server, api_key=api_key)
@@ -129,6 +126,7 @@ class DCORManager(QtWidgets.QMainWindow):
         self.toolButton_user.setText(text)
         self.toolButton_user.setToolTip(tip)
 
+    @QtCore.pyqtSlot()
     def refresh_private_data(self):
         # TODO:
         # - what happens if the user changes the server? Ask to restart?

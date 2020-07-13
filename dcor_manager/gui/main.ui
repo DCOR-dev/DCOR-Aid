@@ -421,8 +421,6 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionSet_API_key"/>
-    <addaction name="actionUpdate_local_database"/>
     <addaction name="separator"/>
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
