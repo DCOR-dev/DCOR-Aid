@@ -155,7 +155,7 @@ def excepthook(etype, value, trace):
         __version__)
     tmp = tb.format_exception(etype, value, trace)
     exception = "".join([vinfo]+tmp)
-    print(exception)
+
     errorbox = QtWidgets.QMessageBox()
     errorbox.setIcon(QtWidgets.QMessageBox.Critical)
     errorbox.addButton(QtWidgets.QPushButton('Close'),
