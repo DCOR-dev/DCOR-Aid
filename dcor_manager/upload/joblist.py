@@ -2,11 +2,8 @@ import pathlib
 from threading import Thread
 import time
 
-from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
-from ..api import CKANAPI
-
-from .dataset import activate_dataset
+from .dataset import activate_dataset, add_resource
 
 
 class UploadJob(object):
@@ -69,19 +66,13 @@ class UploadJob(object):
         self.state = "running"
         self.start_time = time.perf_counter()
         # Do the things to do and watch self.state while doing so
-        api = CKANAPI(server=self.server, api_key=self.api_key)
         for ii, path in enumerate(self.paths):
             self.index = ii
-            e = MultipartEncoder(
-                fields={'package_id': self.dataset_id,
-                        'name': path.name,
-                        'upload': (path.name, path.open('rb'))}
-            )
-            m = MultipartEncoderMonitor(e, self.monitor_callback)
-            api.post("resource_create",
-                     data=m,
-                     dump_json=False,
-                     headers={"Content-Type": m.content_type})
+            add_resource(dataset_id=self.dataset_id,
+                         path=path,
+                         server=self.server,
+                         api_key=self.api_key,
+                         monitor_callback=self.monitor_callback)
             self.paths_uploaded.append(path)
         self.end_time = time.perf_counter()
         # finalize dataset

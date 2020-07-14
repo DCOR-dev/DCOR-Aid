@@ -1,6 +1,7 @@
 import os
 import pathlib
 
+from dcor_manager.upload import create_dataset
 from dcor_manager.dbmodel import model_api
 
 
@@ -10,8 +11,11 @@ CIRCLE = "dcor-manager-test-circle"
 COLLECTION = "dcor-manager-test"
 USER = "dcor-manager-test"
 USER_NAME = "Dcor Managerin"
-SEARCH_QUERY = "data"
-DATASET = "test-dataset-1"
+SEARCH_QUERY = "dataset"
+DATASET = "test-dataset-for-search"
+TITLE = "Test Dataset for search"
+
+dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
 
 
 def get_api_key():
@@ -43,6 +47,17 @@ def test_dcor_dev_user_data():
 
 def test_dcor_dev_search():
     api_key = get_api_key()
+    # Create a test dataset
+    create_dataset({"title": TITLE,
+                    "owner_org": CIRCLE,
+                    "authors": USER_NAME,
+                    "license_id": "CC0-1.0",
+                    "groups": [{"name": COLLECTION}],
+                    },
+                   server=SERVER,
+                   api_key=api_key,
+                   resources=[dpath],
+                   activate=True)
     db = model_api.APIInterrogator(SERVER, api_key=api_key)
     # Positive test
     data = db.search_dataset(query=SEARCH_QUERY,

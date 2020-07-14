@@ -1,2 +1,3 @@
-from .joblist import UploadJobList  # noqa: F401
-from .dataset import create_dataset, remove_draft  # noqa: F401
+# flake8: noqa: F401
+from .joblist import UploadJobList
+from .dataset import activate_dataset, create_dataset, remove_draft

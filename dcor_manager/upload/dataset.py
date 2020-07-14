@@ -1,14 +1,48 @@
 import copy
 
+from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
+
 from ..api import CKANAPI
 
 
-def create_dataset(dataset_dict, server, api_key):
+def activate_dataset(dataset_id, server, api_key):
+    # TODO: use package_revise instead
+    api = CKANAPI(server=server, api_key=api_key)
+    data = api.get("package_show", id=dataset_id)
+    data["state"] = "active"
+    res = api.post("package_update", data)
+    assert res["state"] == "active"
+
+
+def add_resource(dataset_id, path, server, api_key, monitor_callback=None):
+    api = CKANAPI(server=server, api_key=api_key)
+    e = MultipartEncoder(
+        fields={'package_id': dataset_id,
+                'name': path.name,
+                'upload': (path.name, path.open('rb'))}
+    )
+    m = MultipartEncoderMonitor(e, monitor_callback)
+    api.post("resource_create",
+             data=m,
+             dump_json=False,
+             headers={"Content-Type": m.content_type})
+
+
+def create_dataset(dataset_dict, server, api_key, resources=[],
+                   activate=False):
     """Creates a draft dataset"""
     api = CKANAPI(server=server, api_key=api_key)
     dataset_dict = copy.deepcopy(dataset_dict)
     dataset_dict["state"] = "draft"
     data = api.post("package_create", dataset_dict)
+    if resources:
+        for res in resources:
+            add_resource(dataset_id=data["id"],
+                         path=res,
+                         server=server,
+                         api_key=api_key)
+    if activate:
+        activate_dataset(dataset_id=data["id"], server=server, api_key=api_key)
     return data
 
 
@@ -16,6 +50,7 @@ def remove_draft(dataset_id, server, api_key):
     """Remove a draft dataset"""
     api = CKANAPI(server=server, api_key=api_key)
     api.post("package_delete", {"id": dataset_id})
+    api.post("dataset_purge", {"id": dataset_id})
 
 
 def remove_all_drafts(server, api_key):
@@ -33,12 +68,3 @@ def remove_all_drafts(server, api_key):
         assert dd["state"] == "draft"
         remove_draft(dd["id"], server=server, api_key=api_key)
     return data["results"]
-
-
-def activate_dataset(dataset_id, server, api_key):
-    # TODO: use package_revise instead
-    api = CKANAPI(server=server, api_key=api_key)
-    data = api.get("package_show", id=dataset_id)
-    data["state"] = "active"
-    res = api.post("package_update", data)
-    assert res["state"] == "active"

@@ -57,8 +57,12 @@ def test_dataset_creation():
                  )
     # make sure it is gone
     api = CKANAPI(server=SERVER, api_key=get_api_key())
-    req = api.get("package_show", id=data["id"])
-    assert req["state"] == "deleted"
+    try:
+        api.get("package_show", id=data["id"])
+    except BaseException:
+        pass
+    else:
+        assert False
 
 
 if __name__ == "__main__":
