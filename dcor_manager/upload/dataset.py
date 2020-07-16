@@ -49,7 +49,7 @@ def create_dataset(dataset_dict, server, api_key, resources=[],
         If True, then the dataset state is changed to "active"
         after uploading of the resources is complete. For DCOR,
         this implies that no other resources can be added to the
-        dataset. 
+        dataset.
     """
     api = CKANAPI(server=server, api_key=api_key)
     dataset_dict = copy.deepcopy(dataset_dict)

@@ -8,6 +8,15 @@ from .dataset import activate_dataset, add_resource
 
 class UploadJob(object):
     def __init__(self, dataset_dict, paths, server, api_key):
+        """Wrapper for resource uploads
+
+        This job is meant to be run from a separate thread.
+        When `start` is called, the upload begins. While the
+        upload is running, it is constantly updating the
+        progress attributes (e.g. `self.file_bytes_uploaded`).
+        These can then be read-out from another thread to e.g.
+        update a UI.
+        """
         self.dataset_dict = dataset_dict
         self.dataset_id = dataset_dict["id"]
         self.server = server
@@ -24,7 +33,23 @@ class UploadJob(object):
         self._last_bytes = 0
 
     def get_rate(self, resolution=1):
-        """Get the dataset rate with 1s precision"""
+        """Return the mean resource upload rate
+
+        Parameters
+        ----------
+        resolution: float
+            Time interval in which to perform the average. This was
+            introduced because at the beginning of a large upload
+            the rate changes quite rapidly while at the end the
+            mean does not change alot. Setting resolution to 1s
+            (default) will prevent the rate to jump around which
+            irritates the user.
+
+        Returns
+        -------
+        upload_rate: float
+            Mean upload rate in bytes per second
+        """
         cur_time = time.perf_counter()
         cur_bytes = sum(self.file_bytes_uploaded)
 
@@ -46,7 +71,13 @@ class UploadJob(object):
         return rate
 
     def get_status(self):
-        """Get the status of the current job"""
+        """Get the status of the current job
+
+        Returns
+        -------
+        status: dict
+            Dictionary with various interesting parameters
+        """
         data = {
             "state": self.state,
             "files total": len(self.paths),
@@ -58,11 +89,22 @@ class UploadJob(object):
         return data
 
     def monitor_callback(self, monitor):
+        """Upload progress monitor callback function
+
+        This method updates `self.file_sizes` and
+        `self.file_bytes_uploaded` for the currently
+        uploading resource.
+        """
         self.file_sizes[self.index] = monitor.len
         self.file_bytes_uploaded[self.index] = monitor.bytes_read
 
     def start(self):
-        """Start the upload"""
+        """Start the upload
+
+        The progress of the upload is monitored and written
+        to attributes. The current status can be retrieved
+        via :func:`UploadJob.get_status`.
+        """
         self.state = "running"
         self.start_time = time.perf_counter()
         # Do the things to do and watch self.state while doing so
@@ -83,7 +125,13 @@ class UploadJob(object):
         self.state = "finished"
 
     def stop(self):
-        """Stop the upload"""
+        """Stop the upload
+
+        This only changes the `self.state` string.
+        """
+        raise NotImplementedError(
+            "I don't know how to implement this with "
+            + "'requests_toolbelt.MultipartEncoderMonitor'!")
         self.state = "aborted"
 
 
