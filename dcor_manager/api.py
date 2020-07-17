@@ -10,11 +10,17 @@ class APIKeyError(BaseException):
 
 class CKANAPI():
     def __init__(self, server, api_key):
+        """User-convenient interface to the CKAN API"""
         self.api_key = api_key
         self.api_url = self._make_api_url(server)
         self.headers = {"Authorization": api_key}
 
     def _make_api_url(self, url):
+        """Generate a complete CKAN API URL
+
+        Any given string is changed to yield the
+        form "https://domain.name/api/2/action".
+        """
         if not url.count("//"):
             url = "https://" + url
         if not url.endswith("/action/"):
@@ -22,6 +28,22 @@ class CKANAPI():
         return url
 
     def get(self, api_call, **kwargs):
+        """GET request
+
+        Parameters
+        ----------
+        api_call: str
+            An API call function (e.g. "package_show")
+        kwargs: dict
+            Any keyword arguments to the API call
+            (e.g. `name="test-dataset"`)
+
+        Returns
+        -------
+        result: dict
+            Result of the API call converted to a dictionary
+            from the returned json string
+        """
         if kwargs:
             # Add keyword arguments
             kwv = []
@@ -39,6 +61,29 @@ class CKANAPI():
         return data["result"]
 
     def post(self, api_call, data, dump_json=True, headers={}):
+        """POST request
+
+        Parameters
+        ----------
+        api_call: str
+            An API call function (e.g. "package_create")
+        data: dict, MultipartEncoder, ...
+            The data connected to the post request. For
+            "package_create", this would be a dictionary
+            with the dataset name, author, license, etc.
+        dump_json: bool
+            If True (default) dump `data` into a json string.
+            If False, `data` is not touched.
+        headers: dict
+            Additional headers (updates `self.headers`) for the
+            POST request (used for multipart uploads).
+
+        Returns
+        -------
+        result: dict
+            Result of the API call converted to a dictionary
+            from the returned json string
+        """
         new_headers = copy.deepcopy(self.headers)
         new_headers.update(headers)
         if dump_json:
@@ -64,7 +109,10 @@ class CKANAPI():
         return data["result"]
 
     def get_user_dict(self):
-        """Return the current user data dictionary"""
+        """Return the current user data dictionary
+
+        The user name is inferred from the API key.
+        """
         # Workaround for https://github.com/ckan/ckan/issues/5490
         # Get the user that has a matching API key
         data = self.get("user_list")
