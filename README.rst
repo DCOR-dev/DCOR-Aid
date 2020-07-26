@@ -1,5 +1,5 @@
-DCOR-Manager
-============
+|DCOR-Manager|
+==============
 
 |PyPI Version| |Tests Status Linux| |Tests Status Win| |Coverage Status| |Docs Status|
 
@@ -46,6 +46,7 @@ Testing
     python setup.py test
     
 
+.. |DCOR-Manager| image:: https://raw.github.com/DCOR-dev/DCOR-Manager/master/dcor_manager/img/dcor_manager_text.png
 .. |PyPI Version| image:: https://img.shields.io/pypi/v/dcor_manager.svg
    :target: https://pypi.python.org/pypi/DCOR-Manager
 .. |Tests Status Linux| image:: https://img.shields.io/travis/DCOR-dev/DCOR-Manager.svg?label=tests_linux
