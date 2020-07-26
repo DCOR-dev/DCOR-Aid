@@ -18,25 +18,6 @@ If you have Python 3 installed, you can install DCOR-Manager with
     pip install dcor_manager
 
 
-Citing DCOR-Manager
--------------------
-Please cite DCOR-Manager either in-line
-
-::
-
-  (...) using the software DCOR-Manager version X.X.X (available at
-  https://github.com/DCOR-dev/DCOR-Manager).
-
-or in a bibliography
-
-::
-
-  Paul Müller and others (2019), DCOR-Manager version X.X.X [Software].
-  Available at https://github.com/DCOR-dev/DCOR-Manager.
-
-and replace ``X.X.X`` with the version of DCOR-Manager that you used.
-
-
 Testing
 -------
 
