@@ -1,7 +1,7 @@
 |DCOR-Aid|
 ==========
 
-|PyPI Version| |Tests Status Linux| |Tests Status Win| |Coverage Status| |Docs Status|
+|PyPI Version| |Tests Status Linux| |Tests Status Win| |Coverage Status|
 
 
 DCOR-Aid is a GUI for managing data on DCOR (https://dcor.mpl.mpg.de).
@@ -36,5 +36,3 @@ Testing
    :target: https://ci.appveyor.com/project/paulmueller/DCOR-Aid
 .. |Coverage Status| image:: https://img.shields.io/codecov/c/github/DCOR-dev/DCOR-Aid/master.svg
    :target: https://codecov.io/gh/DCOR-dev/DCOR-Aid
-.. |Docs Status| image:: https://readthedocs.org/projects/DCOR-Aid/badge/?version=latest
-   :target: https://readthedocs.org/projects/DCOR-Aid/builds/
