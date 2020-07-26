@@ -103,7 +103,8 @@ class APIInterrogator(DBInterrogator):
                             q=query,
                             include_private=(mode == "user"),
                             fq="({}) AND ({})".format(solr_circle_query,
-                                                      solr_collections_query)
+                                                      solr_collections_query),
+                            rows=100,
                             )
         return data["results"]
 

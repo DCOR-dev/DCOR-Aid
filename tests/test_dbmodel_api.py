@@ -1,5 +1,6 @@
 import os
 import pathlib
+import random
 
 from dcoraid.upload import create_dataset
 from dcoraid.dbmodel import model_api
@@ -47,8 +48,9 @@ def test_dcor_dev_user_data():
 
 def test_dcor_dev_search():
     api_key = get_api_key()
+    ranstr = ''.join(random.choice("0123456789") for _i in range(10))
     # Create a test dataset
-    create_dataset({"title": TITLE,
+    create_dataset({"title": "{} {}".format(TITLE, ranstr),
                     "owner_org": CIRCLE,
                     "authors": USER_NAME,
                     "license_id": "CC0-1.0",
@@ -66,7 +68,7 @@ def test_dcor_dev_search():
                              )
     assert len(data) >= 1
     for dd in data:
-        if dd["name"] == DATASET:
+        if dd["name"] == DATASET + "-" + ranstr:
             break
     else:
         assert False, "{} not found!".format(DATASET)
