@@ -1,8 +1,8 @@
 import os
 import pathlib
 
-from dcor_manager.upload import create_dataset
-from dcor_manager.dbmodel import model_api
+from dcoraid.upload import create_dataset
+from dcoraid.dbmodel import model_api
 
 
 # These don't have to be hard-coded like this.

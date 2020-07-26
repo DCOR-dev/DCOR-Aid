@@ -1,6 +1,6 @@
 import pathlib
 
-from dcor_manager import settings
+from dcoraid import settings
 
 
 def test_cfg_basic():

@@ -38,14 +38,14 @@ install:
 - travis_retry pip install codecov coverage flake8
 - pip freeze
 script:
-- coverage run --source=dcor_manager setup.py test
+- coverage run --source=dcoraid setup.py test
 - coverage report -m
-- flake8 dcor_manager
+- flake8 dcoraid
 - flake8 tests
 # build
 - python setup.py sdist bdist_wheel
 - pip install pyinstaller==3.6
-- bash ./.travis/${TRAVIS_OS_NAME}_build_app.sh DCOR-Manager $TRAVIS_TAG
+- bash ./.travis/${TRAVIS_OS_NAME}_build_app.sh DCOR-Aid $TRAVIS_TAG
 after_success:
 - codecov
 deploy:

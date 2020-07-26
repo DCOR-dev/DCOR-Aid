@@ -1,5 +1,5 @@
 import time
-from dcor_manager.dbmodel import util
+from dcoraid.dbmodel import util
 
 
 def test_cache():

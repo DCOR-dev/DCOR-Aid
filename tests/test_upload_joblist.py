@@ -2,7 +2,7 @@ import os
 import pathlib
 import time
 
-from dcor_manager.upload import UploadJobList, create_dataset
+from dcoraid.upload import UploadJobList, create_dataset
 
 # These don't have to be hard-coded like this.
 SERVER = "dcor-dev.mpl.mpg.de"

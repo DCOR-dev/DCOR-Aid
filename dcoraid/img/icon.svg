@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="256"
+   height="256"
+   viewBox="0 0 67.733334 67.733334"
+   version="1.1"
+   id="svg1125"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   sodipodi:docname="icon.svg"
+   inkscape:export-filename="/home/paul/repos/DCOR-Aid/dcoraid/img/icon_64.png"
+   inkscape:export-xdpi="24.000002"
+   inkscape:export-ydpi="24.000002">
+  <defs
+     id="defs1119">
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Cross Blur"
+       id="filter1296-7-3-8">
+      <feColorMatrix
+         in="SourceGraphic"
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 -0.2125 -0.7154 -0.0721 1 0 "
+         result="colormatrix"
+         id="feColorMatrix1286-9-9-5" />
+      <feComposite
+         k1="0"
+         in="SourceGraphic"
+         in2="colormatrix"
+         operator="arithmetic"
+         k2="1"
+         k3="0"
+         k4="0"
+         result="composite"
+         id="feComposite1288-2-4-0" />
+      <feGaussianBlur
+         stdDeviation="0.15 0.01"
+         result="blur1"
+         id="feGaussianBlur1290-0-8-9" />
+      <feGaussianBlur
+         in="composite"
+         stdDeviation="0.01 0.01"
+         result="blur2"
+         id="feGaussianBlur1292-2-1-6" />
+      <feBlend
+         in="blur2"
+         in2="blur1"
+         mode="multiply"
+         result="blend"
+         id="feBlend1294-3-2-3" />
+    </filter>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath1733">
+      <rect
+         style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.08739917;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers stroke fill"
+         id="rect1735"
+         width="5.9223204"
+         height="5.360846"
+         x="236.40088"
+         y="191.34003" />
+    </clipPath>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Feather"
+       id="filter2682">
+      <feGaussianBlur
+         stdDeviation="1.68"
+         result="blur"
+         id="feGaussianBlur2674" />
+      <feComposite
+         in="SourceGraphic"
+         in2="blur"
+         operator="atop"
+         result="composite1"
+         id="feComposite2676" />
+      <feComposite
+         in2="composite1"
+         operator="in"
+         result="composite2"
+         id="feComposite2678" />
+      <feComposite
+         in2="composite2"
+         operator="in"
+         result="composite3"
+         id="feComposite2680" />
+    </filter>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath2688">
+      <rect
+         style="opacity:1;fill:#000000;fill-opacity:0.99029122;fill-rule:nonzero;stroke:none;stroke-width:0.22979623;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers stroke fill"
+         id="rect2690"
+         width="75"
+         height="75"
+         x="149.08919"
+         y="74.91304"
+         rx="0.75030959" />
+    </clipPath>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.4"
+     inkscape:cx="18.026217"
+     inkscape:cy="143.47196"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="1863"
+     inkscape:window-height="1025"
+     inkscape:window-x="57"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     units="px"
+     inkscape:snap-page="true"
+     inkscape:snap-object-midpoints="true"
+     inkscape:snap-center="true"
+     inkscape:snap-bbox="true"
+     inkscape:snap-bbox-midpoints="true"
+     inkscape:snap-others="false"
+     inkscape:snap-grids="false"
+     inkscape:snap-to-guides="false"
+     inkscape:snap-nodes="false"
+     inkscape:bbox-nodes="true"
+     inkscape:bbox-paths="true"
+     inkscape:snap-bbox-edge-midpoints="true" />
+  <metadata
+     id="metadata1122">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-149.08919,-82.179707)">
+    <g
+       id="g840">
+      <path
+         transform="matrix(0.90311111,0,0,0.90311111,14.445086,14.524908)"
+         clip-path="url(#clipPath2688)"
+         inkscape:connector-curvature="0"
+         id="rect1739"
+         d="m 186.58919,74.913036 37.49999,37.499994 -37.5,37.50001 -37.49999,-37.49999 z"
+         style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2.8106935;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers stroke fill;filter:url(#filter2682)" />
+      <text
+         transform="matrix(10.328844,0,0,10.328844,-2289.3773,-1887.9606)"
+         clip-path="url(#clipPath1733)"
+         id="text1242-7-9-8"
+         y="196.58015"
+         x="236.19945"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.49122858px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#494949;fill-opacity:1;stroke:#009ba1;stroke-width:0.05683329;stroke-miterlimit:4;stroke-dasharray:none;filter:url(#filter1296-7-3-8);stroke-opacity:1;"
+         xml:space="preserve"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05555534px;font-family:'Ubuntu Condensed';-inkscape-font-specification:'Ubuntu Condensed, ';fill:#494949;fill-opacity:1;stroke:#009ba1;stroke-width:0.05683329;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;"
+           y="196.58015"
+           x="236.19945"
+           id="tspan1240-5-3-5"
+           sodipodi:role="line">❖</tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.49122858px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="114.34415"
+       y="47.281544"
+       id="text844"><tspan
+         sodipodi:role="line"
+         id="tspan842"
+         x="114.34415"
+         y="51.25523"
+         style="stroke-width:0.26458332" /><tspan
+         sodipodi:role="line"
+         x="114.34415"
+         y="56.869263"
+         style="stroke-width:0.26458332"
+         id="tspan3186">Export the individual images with the respective resolutions and then run:</tspan><tspan
+         sodipodi:role="line"
+         x="114.34415"
+         y="62.483299"
+         style="stroke-width:0.26458332"
+         id="tspan3190" /><tspan
+         sodipodi:role="line"
+         x="114.34415"
+         y="68.097336"
+         style="stroke-width:0.26458332"
+         id="tspan848">for Windows ico: icotool -c -o icon.ico icon_32.png icon_64.png icon_128.png icon_256.png</tspan><tspan
+         sodipodi:role="line"
+         x="114.34415"
+         y="73.711372"
+         style="stroke-width:0.26458332"
+         id="tspan3196">for macOS icns (needs 16 32 48 128 256): png2icns icon.icns icon_*.png</tspan></text>
+  </g>
+</svg>

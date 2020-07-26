@@ -2,8 +2,8 @@ import os
 import pathlib
 import time
 
-from dcor_manager.upload import create_dataset, remove_draft
-from dcor_manager.api import CKANAPI
+from dcoraid.upload import create_dataset, remove_draft
+from dcoraid.api import CKANAPI
 
 # These don't have to be hard-coded like this.
 SERVER = "dcor-dev.mpl.mpg.de"

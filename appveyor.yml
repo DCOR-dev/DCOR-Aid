@@ -26,7 +26,7 @@ install:
   - "set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   # Check that we have the expected version and architecture for Python
   - "python --version"
-  # Install dcor_manager and its dependencies
+  # Install dcoraid and its dependencies
   - "appveyor-retry python -m pip install --upgrade pip"
   - "appveyor-retry pip install -e ."
   # Show the installed packages
@@ -35,10 +35,10 @@ install:
 build: off
 
 test_script:
-  - 'python -c "import dcor_manager; print(dcor_manager.__version__)"'
+  - 'python -c "import dcoraid; print(dcoraid.__version__)"'
   - "pip install coverage"
   - "pip install codecov"
-  - "coverage run --source=dcor_manager ./setup.py test"
+  - "coverage run --source=dcoraid ./setup.py test"
   - "coverage report -m"
   # Allow codecov to fail
   - "codecov || exit 0"
@@ -52,15 +52,15 @@ after_test:
   # Install pyinstaller (includes dependency for pywin32)
   - "appveyor-retry pip install pyinstaller==3.6"
   # Run pyinstaller
-  - "pyinstaller -y --log-level=WARN .appveyor\\dcor_manager.spec"
+  - "pyinstaller -y --log-level=WARN .appveyor\\dcoraid.spec"
   # Run the binary (the most simple test)
-  - "dist\\DCOR-Manager\\DCOR-Manager.exe --version"
+  - "dist\\DCOR-Aid\\DCOR-Aid.exe --version"
   # Create InnoSetup installers
   # Generate iss file
   - "python .appveyor\\make_iss.py"
   # Set InnoSetup path here, because Cython complained about it.
   - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
-  - iscc /Q .appveyor\\dcor_manager.iss
+  - iscc /Q .appveyor\\dcoraid.iss
 
 artifacts:
   # InnoSetup files

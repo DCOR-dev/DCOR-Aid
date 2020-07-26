@@ -11,11 +11,11 @@ pdir = op.dirname(cdir)
 sys.path.insert(0, pdir)
 
 # get version
-import dcor_manager
-version = dcor_manager.__version__
+import dcoraid
+version = dcoraid.__version__
 
 # read dummy
-with io.open(op.join(cdir, "dcor_manager.iss_dummy"), 'r') as dummy:
+with io.open(op.join(cdir, "dcoraid.iss_dummy"), 'r') as dummy:
     iss = dummy.readlines()
 
 # replace keywords
@@ -27,6 +27,6 @@ for i in range(len(iss)):
         iss[i] = '#define MyAppPlatform "win_{}"\n'.format(platform.architecture()[0])
 
 # write iss
-with io.open(op.join(cdir, "dcor_manager.iss"), 'w') as issfile:
+with io.open(op.join(cdir, "dcoraid.iss"), 'w') as issfile:
     issfile.writelines(iss)
 

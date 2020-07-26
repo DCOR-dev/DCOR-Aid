@@ -6,7 +6,7 @@ import sys
 author = u"Paul Müller"
 authors = [author]
 description = 'GUI for managing data on DCOR'
-name = 'dcor_manager'
+name = 'dcoraid'
 year = "2019"
 
 sys.path.insert(0, realpath(dirname(__file__))+"/"+name)
@@ -16,7 +16,7 @@ setup(
     name=name,
     author=author,
     author_email='dev@craban.de',
-    url='https://github.com/DCOR-dev/DCOR-Manager',
+    url='https://github.com/DCOR-dev/DCOR-Aid',
     version=version,
     packages=find_packages(),
     package_dir={name: name},
@@ -32,7 +32,7 @@ setup(
     python_requires='>=3.6, <4',
     setup_requires=['pytest-runner'],
     tests_require=["pytest", "pytest-qt"],
-    entry_points={"gui_scripts": ['dcor_manager = dcor_manager.__main__:main']},
+    entry_points={"gui_scripts": ['dcoraid = dcoraid.__main__:main']},
     keywords=["RT-DC", "deformability", "cytometry", "zellmechanik"],
     classifiers=['Operating System :: OS Independent',
                  'Programming Language :: Python :: 3',
