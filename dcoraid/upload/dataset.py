@@ -32,7 +32,7 @@ def activate_dataset(dataset_id, server, api_key):
 
 
 def create_dataset(dataset_dict, server, api_key, resources=[],
-                   activate=False):
+                   create_circle=False, activate=False):
     """Create a draft dataset
 
     Parameters
@@ -45,6 +45,8 @@ def create_dataset(dataset_dict, server, api_key, resources=[],
         API key of the CKAN/DCOR user
     resources: list of str or pathlib.Path
         Paths to dataset resources
+    create_circle: bool
+        Create the circle if it does not already exist
     activate: bool
         If True, then the dataset state is changed to "active"
         after uploading of the resources is complete. For DCOR,
@@ -52,6 +54,12 @@ def create_dataset(dataset_dict, server, api_key, resources=[],
         dataset.
     """
     api = CKANAPI(server=server, api_key=api_key)
+    if create_circle:
+        circles = [c["name"] for c in api.get("organization_list_for_user")]
+        if dataset_dict["owner_org"] not in circles:
+            # Create the circle before creating the dataset
+            api.post("organization_create",
+                     data={"name": dataset_dict["owner_org"]})
     dataset_dict = copy.deepcopy(dataset_dict)
     dataset_dict["state"] = "draft"
     data = api.post("package_create", dataset_dict)
@@ -63,6 +71,7 @@ def create_dataset(dataset_dict, server, api_key, resources=[],
                          api_key=api_key)
     if activate:
         activate_dataset(dataset_id=data["id"], server=server, api_key=api_key)
+        data["state"] = "active"
     return data
 
 

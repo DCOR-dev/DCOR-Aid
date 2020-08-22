@@ -53,7 +53,10 @@ class CKANAPI():
         url_call = self.api_url + api_call
         req = requests.get(url_call, headers=self.headers)
         data = req.json()
-        if not data["success"]:
+        if isinstance(data, str):
+            raise ValueError(
+                "Command did not succeed, reason: '{}'".format(data))
+        elif not data["success"]:
             raise ConnectionError(
                 "Could not run API call '{}'! ".format(url_call)
                 + "Reason: {} ({})".format(req.reason,

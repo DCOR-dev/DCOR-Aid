@@ -1,3 +1,9 @@
+0.0.6
+ - enh: allow to create the circle if it does not exist during dataset
+   creation
+ - fix: set "state" to "active" in dictionary returned by `create_dataset`
+ - fix: catch error when user uses `CKANAPI.get` when he should use
+   `CKANAPI.post`
 0.0.5
  - basic upload functional
 0.0.4
