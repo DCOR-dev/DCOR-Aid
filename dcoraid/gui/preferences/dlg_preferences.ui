@@ -74,14 +74,14 @@
           <item row="0" column="1">
            <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Forget this API key</string>
+             <string>Forget the API key on this machine</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
            <widget class="QLabel" name="label_4">
             <property name="text">
-             <string>Replace this API key (invalidates current API key)</string>
+             <string>Replace the API key (invalidates the API key on all other machines)</string>
             </property>
            </widget>
           </item>
