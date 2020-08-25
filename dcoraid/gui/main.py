@@ -105,11 +105,9 @@ class DCORAid(QtWidgets.QMainWindow):
         api_key = self.settings.get_string("api key")
         server = self.settings.get_string("server")
         api = CKANAPI(server=server, api_key=api_key)
-        try:
-            api.get("site_read")
-        except BaseException:
+        if not api.is_available():
             text = "No connection to '{}'.".format(server)
-            tip = tb.format_exc()
+            tip = "Can you access {} via a browser?".format(server)
         else:
             if not api_key:
                 text = "No API key."
@@ -134,11 +132,13 @@ class DCORAid(QtWidgets.QMainWindow):
     def refresh_private_data(self):
         # TODO:
         # - what happens if the user changes the server? Ask to restart?
+        api_key = self.settings.get_string("api key")
+        server = self.settings.get_string("server")
         try:
-            am = APIModel(url=self.settings.get_string("server"),
-                          api_key=self.settings.get_string("api key"))
-            db_extract = am.get_user_datasets()
-        except APIKeyError:
+            am = APIModel(url=server, api_key=api_key)
+            if am.api.is_available():
+                db_extract = am.get_user_datasets()
+        except (ConnectionError, APIKeyError):
             pass
         else:
             self.user_filter_chain.set_db_extract(db_extract)

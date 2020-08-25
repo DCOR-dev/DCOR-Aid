@@ -27,6 +27,16 @@ class CKANAPI():
             url = url.rstrip("/") + "/api/3/action/"
         return url
 
+    def is_available(self):
+        """Check whether server and API are reachable"""
+        try:
+            self.get("site_read")
+        except BaseException:
+            status = False
+        else:
+            status = True
+        return status
+
     def get(self, api_call, **kwargs):
         """GET request
 
@@ -52,6 +62,10 @@ class CKANAPI():
             api_call += "?" + "&".join(kwv)
         url_call = self.api_url + api_call
         req = requests.get(url_call, headers=self.headers)
+        if not req.ok:
+            raise ConnectionError(
+                "Could not run API call '{}'! ".format(url_call)
+                + "Reason: {}".format(req.reason))
         data = req.json()
         if isinstance(data, str):
             raise ValueError(

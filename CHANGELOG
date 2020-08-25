@@ -1,3 +1,5 @@
+0.0.7
+ - fix: start even if DCOR is down
 0.0.6
  - enh: allow to create the circle if it does not exist during dataset
    creation
