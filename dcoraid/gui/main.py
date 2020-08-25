@@ -16,6 +16,7 @@ from .. import settings
 from .._version import version as __version__
 
 from .preferences import PreferencesDialog
+from .tools import run_async
 
 # set Qt icon theme search path
 QtGui.QIcon.setThemeSearchPaths([
@@ -98,9 +99,10 @@ class DCORAid(QtWidgets.QMainWindow):
                                           "Software",
                                           sw_text)
 
+    @run_async
     @QtCore.pyqtSlot()
     def refresh_login_status(self):
-        self.toolButton_user.setText("updating...")
+        self.toolButton_user.setText("Attempting to connect...")
         self.toolButton_user.setToolTip("Please wait")
         api_key = self.settings.get_string("api key")
         server = self.settings.get_string("server")
@@ -128,8 +130,10 @@ class DCORAid(QtWidgets.QMainWindow):
         self.toolButton_user.setText(text)
         self.toolButton_user.setToolTip(tip)
 
+    @run_async
     @QtCore.pyqtSlot()
     def refresh_private_data(self):
+        self.tab_user.setCursor(QtCore.Qt.WaitCursor)
         # TODO:
         # - what happens if the user changes the server? Ask to restart?
         api_key = self.settings.get_string("api key")
@@ -142,6 +146,7 @@ class DCORAid(QtWidgets.QMainWindow):
             pass
         else:
             self.user_filter_chain.set_db_extract(db_extract)
+        self.tab_user.setCursor(QtCore.Qt.ArrowCursor)
 
 
 def excepthook(etype, value, trace):

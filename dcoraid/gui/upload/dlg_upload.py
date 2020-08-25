@@ -1,3 +1,4 @@
+from functools import lru_cache
 import pathlib
 import pkg_resources
 
@@ -6,7 +7,6 @@ from PyQt5 import uic, QtCore, QtGui, QtWidgets
 from ...api import CKANAPI
 from ...upload import create_dataset
 from ...settings import SettingsFile
-from functools import lru_cache
 
 
 class UploadDialog(QtWidgets.QMainWindow):

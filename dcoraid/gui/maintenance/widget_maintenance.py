@@ -5,7 +5,7 @@ from PyQt5 import uic, QtCore, QtWidgets
 from ...settings import SettingsFile
 from ...upload.dataset import remove_all_drafts
 
-from ..widgets import ShowWaitCursor
+from ..tools import ShowWaitCursor
 
 
 class MaintenanceWidget(QtWidgets.QWidget):

@@ -5,7 +5,7 @@ from PyQt5 import uic, QtCore, QtWidgets
 
 from ...api import CKANAPI, APIKeyError
 from ...settings import SettingsFile
-from ..widgets import show_wait_cursor
+from ..tools import show_wait_cursor
 
 
 class PreferencesDialog(QtWidgets.QMainWindow):
@@ -58,11 +58,12 @@ class PreferencesDialog(QtWidgets.QMainWindow):
                       api_key=self.settings.get_string("api key"))
         try:
             user_dict = api.get_user_dict()
-        except APIKeyError:
+        except (ConnectionError, APIKeyError):
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Warning)
-            msg.setText("Bad server / API key combination!")
+            msg.setText("No connection or wrong server or invalid API key!")
             msg.setWindowTitle("Warning")
+            msg.setDetailedText(tb.format_exc())
             msg.exec_()
             self.on_show_server()
         else:
@@ -87,11 +88,12 @@ class PreferencesDialog(QtWidgets.QMainWindow):
                       api_key=self.settings.get_string("api key"))
         try:
             user_dict = api.get_user_dict()
-        except APIKeyError:
+        except (ConnectionError, APIKeyError):
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Warning)
-            msg.setText("Bad server / API key combination!")
+            msg.setText("No connection or wrong server or invalid API key!")
             msg.setWindowTitle("Warning")
+            msg.setDetailedText(tb.format_exc())
             msg.exec_()
             self.on_show_server()
         update_dict = {}
