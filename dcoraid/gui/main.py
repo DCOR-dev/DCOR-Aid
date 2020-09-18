@@ -142,7 +142,7 @@ class DCORAid(QtWidgets.QMainWindow):
             am = APIModel(url=server, api_key=api_key)
             if am.api.is_available():
                 db_extract = am.get_user_datasets()
-        except (ConnectionError, APIKeyError):
+        except BaseException:
             pass
         else:
             self.user_filter_chain.set_db_extract(db_extract)

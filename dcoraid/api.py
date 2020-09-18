@@ -121,8 +121,7 @@ class CKANAPI():
         if not data["success"]:
             raise ConnectionError(
                 "Could not run API call '{}'! ".format(url_call)
-                + "Reason: {} ({})".format(req.reason,
-                                           data["error"]["message"]))
+                + "Reason: {} ({})".format(req.reason, data["error"]))
         return data["result"]
 
     def get_user_dict(self):

@@ -2,13 +2,15 @@ import functools
 
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QCursor
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QEventLoop
 
 
 class ShowWaitCursor(object):
     def __enter__(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        QApplication.processEvents()
+        # This overloaded function call makes sure that all events,
+        # even those triggered during the function call, are processed.
+        QApplication.processEvents(QEventLoop.AllEvents, 50)
         return self
 
     def __exit__(self, type, value, traceback):

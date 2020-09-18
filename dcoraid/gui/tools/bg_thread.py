@@ -6,6 +6,7 @@ from PyQt5 import QtCore
 
 class Runner(QtCore.QThread):
     """Runs a function in the background"""
+
     def __init__(self, target, *args, **kwargs):
         super().__init__()
         self._target = target
