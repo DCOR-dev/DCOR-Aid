@@ -1,7 +1,7 @@
 import pathlib
 from threading import Thread
 import time
-
+import traceback as tb
 
 from .dataset import activate_dataset, add_resource
 
@@ -24,6 +24,7 @@ class UploadJob(object):
         self.paths = paths
         self.paths_uploaded = []
         self.state = "queued"
+        self.traceback = None
         self.file_sizes = [pathlib.Path(ff).stat().st_size for ff in paths]
         self.file_bytes_uploaded = [0] * len(paths)
         self.index = 0
@@ -31,19 +32,15 @@ class UploadJob(object):
         self.end_time = None
         self._last_time = 0
         self._last_bytes = 0
+        self._last_rate = 0
 
     def get_rate(self, resolution=1):
-        """Return the mean resource upload rate
+        """Return the current resource upload rate
 
         Parameters
         ----------
         resolution: float
-            Time interval in which to perform the average. This was
-            introduced because at the beginning of a large upload
-            the rate changes quite rapidly while at the end the
-            mean does not change alot. Setting resolution to 1s
-            (default) will prevent the rate to jump around which
-            irritates the user.
+            Time interval in which to perform the average.
 
         Returns
         -------
@@ -53,21 +50,25 @@ class UploadJob(object):
         cur_time = time.perf_counter()
         cur_bytes = sum(self.file_bytes_uploaded)
 
-        if (cur_time - self._last_time) > resolution:
-            self._last_time = cur_time
-            self._last_bytes = cur_bytes
+        delta_time = cur_time - self._last_time
+        delta_bytes = cur_bytes - self._last_bytes
 
         if self.start_time is None:
             # not started yet
             rate = 0
         elif self.end_time is None:
             # not finished yet
-            tdelt = self._last_time - self.start_time
-            rate = self._last_bytes / tdelt
+            if delta_time > resolution:
+                rate = delta_bytes / delta_time
+                self._last_time = cur_time
+                self._last_bytes = cur_bytes
+            else:
+                rate = self._last_rate
         else:
             # finished
             tdelt = (self.end_time - self.start_time)
             rate = sum(self.file_bytes_uploaded) / tdelt
+        self._last_rate = rate
         return rate
 
     def get_status(self):
@@ -105,24 +106,28 @@ class UploadJob(object):
         to attributes. The current status can be retrieved
         via :func:`UploadJob.get_status`.
         """
-        self.state = "running"
-        self.start_time = time.perf_counter()
-        # Do the things to do and watch self.state while doing so
-        for ii, path in enumerate(self.paths):
-            self.index = ii
-            add_resource(dataset_id=self.dataset_id,
-                         path=path,
-                         server=self.server,
-                         api_key=self.api_key,
-                         monitor_callback=self.monitor_callback)
-            self.paths_uploaded.append(path)
-        self.end_time = time.perf_counter()
-        # finalize dataset
-        self.state = "finalizing"
-        activate_dataset(dataset_id=self.dataset_id,
-                         server=self.server,
-                         api_key=self.api_key)
-        self.state = "finished"
+        try:
+            self.state = "running"
+            self.start_time = time.perf_counter()
+            # Do the things to do and watch self.state while doing so
+            for ii, path in enumerate(self.paths):
+                self.index = ii
+                add_resource(dataset_id=self.dataset_id,
+                             path=path,
+                             server=self.server,
+                             api_key=self.api_key,
+                             monitor_callback=self.monitor_callback)
+                self.paths_uploaded.append(path)
+            self.end_time = time.perf_counter()
+            # finalize dataset
+            self.state = "finalizing"
+            activate_dataset(dataset_id=self.dataset_id,
+                             server=self.server,
+                             api_key=self.api_key)
+            self.state = "finished"
+        except BaseException:
+            self.state = "error"
+            self.traceback = tb.format_exc()
 
     def stop(self):
         """Stop the upload
@@ -175,7 +180,7 @@ class UploadJobList(object):
     def run(self):
         """Commence uploading"""
         # Get the first job that is not running
-        self.runner.state
+        self.runner.state = "running"
 
     def start(self, dataset_id):
         job = self.get_job(dataset_id).get_status()
