@@ -102,6 +102,10 @@ class UploadTableWidget(QtWidgets.QTableWidget):
             elif status["state"] == "queued":
                 progress = "0% (0/{} file{})".format(status["files total"],
                                                      plural)
+            elif status["state"] == "error":
+                progress = "-- ({}/{} file{})".format(status["files uploaded"],
+                                                      status["files total"],
+                                                      plural)
             self.set_label_item(row, 3, progress)
             rate = status["rate"]
             if rate > 1e6:
