@@ -2,7 +2,7 @@ import os
 import pathlib
 import time
 
-from dcoraid.upload import UploadJobList, create_dataset
+from dcoraid.upload import UploadQueue, create_dataset
 
 import common
 
@@ -40,11 +40,11 @@ def test_create_dataset_with_resource():
     data = create_dataset(dataset_dict=dataset_dict,
                           server=common.SERVER,
                           api_key=get_api_key())
-    joblist = UploadJobList(server=common.SERVER, api_key=get_api_key())
+    joblist = UploadQueue(server=common.SERVER, api_key=get_api_key())
     joblist.add_job(dataset_dict=data,
                     paths=[dpath])
     for _ in range(600):  # 60 seconds to upload
-        if joblist[0].state == "finished":
+        if joblist[0].state == "done":
             break
         time.sleep(.1)
     else:
