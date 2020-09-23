@@ -3,7 +3,7 @@ import time
 
 from PyQt5 import uic, QtCore, QtWidgets
 
-from ...upload import UploadJobList
+from ...upload import UploadQueue
 from ...settings import SettingsFile
 
 from .dlg_upload import UploadDialog
@@ -25,8 +25,8 @@ class UploadWidget(QtWidgets.QWidget):
 
         # Underlying upload class
         settings = SettingsFile()
-        self.jobs = UploadJobList(server=settings.get_string("server"),
-                                  api_key=settings.get_string("api key"))
+        self.jobs = UploadQueue(server=settings.get_string("server"),
+                                api_key=settings.get_string("api key"))
         self.widget_jobs.set_job_list(self.jobs)
 
         # upload finished signal
@@ -88,31 +88,10 @@ class UploadTableWidget(QtWidgets.QTableWidget):
             self.set_label_item(row, 0, job.dataset_id[:5])
             self.set_label_item(row, 1, job.dataset_dict["title"])
             self.set_label_item(row, 2, status["state"])
-            plural = "s" if status["files total"] > 1 else ""
-            if status["state"] == "running":
-                progress = "{:.0f}% (file {}/{})".format(
-                    status["bytes uploaded"]/status["bytes total"]*100,
-                    status["files uploaded"]+1,
-                    status["files total"])
-            elif status["state"] in ["finished", "finalizing"]:
-                progress = "100% ({} file{})".format(status["files total"],
-                                                     plural)
-                if status["state"] == "finished":
-                    self.on_upload_finished(job.dataset_id)
-            elif status["state"] == "queued":
-                progress = "0% (0/{} file{})".format(status["files total"],
-                                                     plural)
-            elif status["state"] == "error":
-                progress = "-- ({}/{} file{})".format(status["files uploaded"],
-                                                      status["files total"],
-                                                      plural)
-            self.set_label_item(row, 3, progress)
-            rate = status["rate"]
-            if rate > 1e6:
-                rate_label = "{:.1f} MB/s".format(rate/1e6)
-            else:
-                rate_label = "{:.0f} kB/s".format(rate/1e3)
-            self.set_label_item(row, 4, rate_label)
+            self.set_label_item(row, 3, job.get_progress_string())
+            self.set_label_item(row, 4, job.get_rate_string())
+            if status["state"] == "done":
+                self.on_upload_finished(job.dataset_id)
 
         # spacing (did not work in __init__)
         header = self.horizontalHeader()
