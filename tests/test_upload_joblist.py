@@ -4,14 +4,8 @@ import time
 
 from dcoraid.upload import UploadJobList, create_dataset
 
-# These don't have to be hard-coded like this.
-SERVER = "dcor-dev.mpl.mpg.de"
-CIRCLE = "dcor-manager-test-circle"
-COLLECTION = "dcor-manager-test"
-USER = "dcor-manager-test"
-USER_NAME = "Dcor Managerin"
-SEARCH_QUERY = "data"
-DATASET = "test-dataset-1"
+import common
+
 
 dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
 
@@ -33,8 +27,8 @@ def make_dataset_dict(hint=""):
         "title": "A test dataset {}{}".format(hint, time.time()),
         "private": True,
         "license_id": "CC0-1.0",
-        "owner_org": CIRCLE,
-        "authors": USER_NAME,
+        "owner_org": common.CIRCLE,
+        "authors": common.USER_NAME,
     }
     return dataset_dict
 
@@ -44,9 +38,9 @@ def test_create_dataset_with_resource():
     dataset_dict = make_dataset_dict(hint="create-with-resource")
     # post dataset creation request
     data = create_dataset(dataset_dict=dataset_dict,
-                          server=SERVER,
+                          server=common.SERVER,
                           api_key=get_api_key())
-    joblist = UploadJobList(server=SERVER, api_key=get_api_key())
+    joblist = UploadJobList(server=common.SERVER, api_key=get_api_key())
     joblist.add_job(dataset_dict=data,
                     paths=[dpath])
     for _ in range(600):  # 60 seconds to upload

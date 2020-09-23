@@ -4,7 +4,19 @@ import json
 import requests
 
 
-class APIKeyError(BaseException):
+class APIError(BaseException):
+    pass
+
+
+class APIKeyError(APIError):
+    pass
+
+
+class APIConflictError(APIError):
+    pass
+
+
+class APINotFoundError(APIError):
     pass
 
 
@@ -63,18 +75,20 @@ class CKANAPI():
         url_call = self.api_url + api_call
         req = requests.get(url_call, headers=self.headers)
         if not req.ok:
-            raise ConnectionError(
-                "Could not run API call '{}'! ".format(url_call)
-                + "Reason: {}".format(req.reason))
+            if req.reason == "NOT FOUND":
+                raise APINotFoundError("Not found: '{}'".format(url_call))
+            else:
+                raise ConnectionError(
+                    "Could not run API call '{}'! ".format(url_call)
+                    + "Reason: {}".format(req.reason))
         data = req.json()
         if isinstance(data, str):
             raise ValueError(
-                "Command did not succeed, reason: '{}'".format(data))
+                "Command did not succeed, output: '{}'".format(data))
         elif not data["success"]:
             raise ConnectionError(
                 "Could not run API call '{}'! ".format(url_call)
-                + "Reason: {} ({})".format(req.reason,
-                                           data["error"]["message"]))
+                + "Reason: {} ({})".format(req.reason, data["error"]))
         return data["result"]
 
     def post(self, api_call, data, dump_json=True, headers={}):
@@ -117,6 +131,17 @@ class CKANAPI():
         req = requests.post(url_call,
                             data=data,
                             headers=new_headers)
+        if not req.ok:
+            if req.reason == "NOT FOUND":
+                raise APINotFoundError("Not found: {}".format(url_call))
+            if req.reason == "CONFLICT":
+                raise APIConflictError("Conflict with '{}': ".format(url_call)
+                                       + "{}".format(req.json()["error"])
+                                       )
+            else:
+                raise ConnectionError(
+                    "Could not run API call '{}'! ".format(url_call)
+                    + "Reason: {}".format(req.reason))
         data = req.json()
         if not data["success"]:
             raise ConnectionError(

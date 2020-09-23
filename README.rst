@@ -20,6 +20,9 @@ If you have Python 3 installed, you can install DCOR-Aid with
 
 Testing
 -------
+By default, testing is done with https://dcor-dev.mpl.mpg.de and the user
+"dcoraid". The API key must either be present in the environment variable
+``DCOR_API_KEY`` or in the file ``tests/api_key``.
 
 ::
 

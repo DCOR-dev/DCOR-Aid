@@ -5,14 +5,7 @@ import time
 from dcoraid.upload import create_dataset, remove_draft
 from dcoraid.api import CKANAPI
 
-# These don't have to be hard-coded like this.
-SERVER = "dcor-dev.mpl.mpg.de"
-CIRCLE = "dcor-manager-test-circle"
-COLLECTION = "dcor-manager-test"
-USER = "dcor-manager-test"
-USER_NAME = "Dcor Managerin"
-SEARCH_QUERY = "data"
-DATASET = "test-dataset-1"
+import common
 
 
 def get_api_key():
@@ -32,8 +25,8 @@ def make_dataset_dict(hint=""):
         "title": "A test dataset {}{}".format(hint, time.time()),
         "private": True,
         "license_id": "CC0-1.0",
-        "owner_org": CIRCLE,
-        "authors": USER_NAME,
+        "owner_org": common.CIRCLE,
+        "authors": common.USER_NAME,
     }
     return dataset_dict
 
@@ -44,19 +37,19 @@ def test_dataset_creation():
     dataset_dict = make_dataset_dict(hint="basic_test")
     # post dataset creation request
     data = create_dataset(dataset_dict=dataset_dict,
-                          server=SERVER,
+                          server=common.SERVER,
                           api_key=get_api_key())
     # simple test
     assert "authors" in data
-    assert data["authors"] == USER_NAME
+    assert data["authors"] == common.USER_NAME
     assert data["state"] == "draft"
     # remove draft dataset
     remove_draft(dataset_id=data["id"],
-                 server=SERVER,
+                 server=common.SERVER,
                  api_key=get_api_key(),
                  )
     # make sure it is gone
-    api = CKANAPI(server=SERVER, api_key=get_api_key())
+    api = CKANAPI(server=common.SERVER, api_key=get_api_key())
     try:
         api.get("package_show", id=data["id"])
     except BaseException:
