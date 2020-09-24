@@ -1,7 +1,12 @@
 import pathlib
+import shutil
 import time
 import traceback as tb
 import warnings
+
+import appdirs
+from dclab.rtdc_dataset.check import IntegrityChecker
+from dclab.cli import compress
 
 from .dataset import activate_dataset, add_resource
 
@@ -45,10 +50,23 @@ class UploadJob(object):
         self._last_time = 0
         self._last_bytes = 0
         self._last_rate = 0
+        # caching
+        dcoraid_cache = pathlib.Path(appdirs.user_cache_dir()) / "dcoraid"
+        self.cache_dir = dcoraid_cache / "compress-{}".format(self.dataset_id)
 
     def compress_resources(self):
-        # TODO
-        pass
+        self.set_state("compress")
+        for ii, path in enumerate(list(self.paths)):
+            if path.suffix in [".rtdc", ".dc"]:  # do we have an .rtdc file?
+                # check for compression
+                with IntegrityChecker(path) as ic:
+                    cdata = ic.check_compression()[0].data
+                if cdata["uncompressed"]:  # (partially) not compressed?
+                    res_dir = self.cache_dir / "{}".format(ii)
+                    res_dir.mkdir(exist_ok=True, parents=True)
+                    path_out = res_dir / path.name
+                    compress(path_out=path_out, path_in=path)
+                    self.paths[ii] = path_out
         self.set_state("parcel")
 
     def get_progress_string(self):
@@ -57,7 +75,7 @@ class UploadJob(object):
         state = status["state"]
         plural = "s" if status["files total"] > 1 else ""
 
-        if state in ["init", "compress", "parcel"]:
+        if state in ["init", "compress", "parcel", "abort", "error"]:
             progress = "0% ({} file{})".format(status["files total"], plural)
         elif state == "transfer":
             progress = "{:.0f}% (file {}/{})".format(
@@ -182,9 +200,12 @@ class UploadJob(object):
                 self.end_time = time.perf_counter()
                 # finalize dataset
                 self.set_state("finalize")
+                # draft -> active
                 activate_dataset(dataset_id=self.dataset_id,
                                  server=self.server,
                                  api_key=self.api_key)
+                # cleanup temporary files
+                shutil.rmtree(self.cache_dir, ignore_errors=True)
                 self.set_state("done")
             except BaseException:
                 self.set_state("error")

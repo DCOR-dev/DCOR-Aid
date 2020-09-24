@@ -25,6 +25,7 @@ setup(
     description=description,
     long_description=open('README.rst').read() if exists('README.rst') else '',
     install_requires=["appdirs",
+                      "dclab>=0.28.0",
                       "pyqt5",
                       "requests",
                       "requests_toolbelt",  # multipart uploads with progress
