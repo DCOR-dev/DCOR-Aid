@@ -75,7 +75,7 @@ class UploadJob(object):
         state = status["state"]
         plural = "s" if status["files total"] > 1 else ""
 
-        if state in ["init", "compress", "parcel", "abort", "error"]:
+        if state in ["init", "compress", "parcel"]:
             progress = "0% ({} file{})".format(status["files total"], plural)
         elif state == "transfer":
             progress = "{:.0f}% (file {}/{})".format(
