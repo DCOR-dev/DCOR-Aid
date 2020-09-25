@@ -227,7 +227,7 @@ class UploadJob(object):
                                 api_key=self.api_key,
                                 monitor_callback=self.monitor_callback)
                             self.paths_uploaded.append(path)
-                        except api.APIGatewayTimeoutError:
+                        except api.APIError:
                             # Workaround for large datasets (no response)
                             # just check whether the resource is there
                             exists = dataset.resource_exists(
@@ -236,9 +236,7 @@ class UploadJob(object):
                                 server=self.server,
                                 api_key=self.api_key)
                             if not exists:
-                                raise ValueError(
-                                    "Could not find resource {} in {}".format(
-                                        self.dataset_id, path.name))
+                                raise
                         except SystemExit:
                             # This thread has just been killed
                             self.start_time = None

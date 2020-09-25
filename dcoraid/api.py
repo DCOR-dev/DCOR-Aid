@@ -8,6 +8,10 @@ class APIError(BaseException):
     pass
 
 
+class APIBadGatewayError(APIError):
+    pass
+
+
 class APIConflictError(APIError):
     pass
 
@@ -137,18 +141,18 @@ class CKANAPI():
                             headers=new_headers)
         if not req.ok:
             if req.reason == "NOT FOUND":
-                raise APINotFoundError("Not found: {}".format(url_call))
-            if req.reason == "CONFLICT":
-                raise APIConflictError("Conflict with '{}': ".format(url_call)
-                                       + "{}".format(req.json()["error"])
-                                       )
-            if req.reason == "Gateway Time-out":
-                raise APIGatewayTimeoutError(
-                    "Gateway timeout: {}".format(url_call))
+                raise APINotFoundError("{}: {}".format(api_call, data))
+            elif req.reason == "CONFLICT":
+                raise APIConflictError("{}: {}".format(api_call, data))
+            elif req.reason == "Gateway Time-out":
+                raise APIGatewayTimeoutError("{}: {}".format(api_call, data))
+            elif req.reason == "Bad Gateway":
+                raise APIBadGatewayError("{}: {}".format(api_call, data))
             else:
                 raise ConnectionError(
                     "Could not run API call '{}'! ".format(url_call)
-                    + "Reason: {}".format(req.reason))
+                    + "Reason: '{}' ".format(req.reason)
+                    + "Data: '{}'".format(data))
         data = req.json()
         if not data["success"]:
             raise ConnectionError(
