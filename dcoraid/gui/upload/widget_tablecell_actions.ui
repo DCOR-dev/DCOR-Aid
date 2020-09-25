@@ -30,7 +30,7 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QToolButton" name="abort">
+    <widget class="QToolButton" name="tb_abort">
      <property name="toolTip">
       <string>Abort job</string>
      </property>
@@ -43,7 +43,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QToolButton" name="error">
+    <widget class="QToolButton" name="tb_error">
      <property name="toolTip">
       <string>Show error message</string>
      </property>
@@ -56,7 +56,20 @@
     </widget>
    </item>
    <item>
-    <widget class="QToolButton" name="toolButton">
+    <widget class="QToolButton" name="tb_retry">
+     <property name="toolTip">
+      <string>Retry upload</string>
+     </property>
+     <property name="text">
+      <string>r</string>
+     </property>
+     <property name="icon">
+      <iconset theme="redo"/>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QToolButton" name="tb_view">
      <property name="toolTip">
       <string>View dataset online</string>
      </property>

@@ -120,8 +120,9 @@ class UploadTableWidget(QtWidgets.QTableWidget):
     def set_actions_item(self, row, col, job):
         wid = self.cellWidget(row, col)
         if wid is None:
-            wid = TableCellActions()
+            wid = TableCellActions(job)
             self.setCellWidget(row, col, wid)
+        wid.refresh_visibility(job)
 
 
 class UpdateTriggerer(QtCore.QThread):

@@ -8,11 +8,15 @@ class APIError(BaseException):
     pass
 
 
-class APIKeyError(APIError):
+class APIConflictError(APIError):
     pass
 
 
-class APIConflictError(APIError):
+class APIGatewayTimeoutError(APIError):
+    pass
+
+
+class APIKeyError(APIError):
     pass
 
 
@@ -138,6 +142,9 @@ class CKANAPI():
                 raise APIConflictError("Conflict with '{}': ".format(url_call)
                                        + "{}".format(req.json()["error"])
                                        )
+            if req.reason == "Gateway Time-out":
+                raise APIGatewayTimeoutError(
+                    "Gateway timeout: {}".format(url_call))
             else:
                 raise ConnectionError(
                     "Could not run API call '{}'! ".format(url_call)

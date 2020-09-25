@@ -31,6 +31,43 @@ def activate_dataset(dataset_id, server, api_key):
     assert res["state"] == "active"
 
 
+def add_resource(dataset_id, path, server, api_key, monitor_callback=None):
+    """Add a resource to a dataset
+
+    Parameters
+    ----------
+    dataset_id: str
+        CKAN ID of the dataset to which the resource is added
+    path: str or pathlib.Path
+        Path to the resource
+    server: str
+        server domain name
+    api_key: str
+        API key of the CKAN/DCOR user
+    monitor_callback: None or callable
+        This callable is used to monitor the upload progress. It must
+        accept one argument: a
+        `requests_toolbelt.MultipartEncoderMonitor` object.
+
+    See Also
+    --------
+    dcoraid.upload.joblist.UploadJob
+        An implementation of an upload job that monitors progress.
+    """
+    path = pathlib.Path(path)
+    api = CKANAPI(server=server, api_key=api_key)
+    e = MultipartEncoder(
+        fields={'package_id': dataset_id,
+                'name': path.name,
+                'upload': (path.name, path.open('rb'))}
+    )
+    m = MultipartEncoderMonitor(e, monitor_callback)
+    api.post("resource_create",
+             data=m,
+             dump_json=False,
+             headers={"Content-Type": m.content_type})
+
+
 def create_dataset(dataset_dict, server, api_key, resources=[],
                    create_circle=False, activate=False):
     """Create a draft dataset
@@ -75,41 +112,15 @@ def create_dataset(dataset_dict, server, api_key, resources=[],
     return data
 
 
-def add_resource(dataset_id, path, server, api_key, monitor_callback=None):
-    """Add a resource to a dataset
-
-    Parameters
-    ----------
-    dataset_id: str
-        CKAN ID of the dataset to which the resource is added
-    path: str or pathlib.Path
-        Path to the resource
-    server: str
-        server domain name
-    api_key: str
-        API key of the CKAN/DCOR user
-    monitor_callback: None or callable
-        This callable is used to monitor the upload progress. It must
-        accept one argument: a
-        `requests_toolbelt.MultipartEncoderMonitor` object.
-
-    See Also
-    --------
-    dcoraid.upload.joblist.UploadJob
-        An implementation of an upload job that monitors progress.
-    """
-    path = pathlib.Path(path)
+def resource_exists(dataset_id, filename, server, api_key):
+    """Check whether a resource exists in a dataset"""
     api = CKANAPI(server=server, api_key=api_key)
-    e = MultipartEncoder(
-        fields={'package_id': dataset_id,
-                'name': path.name,
-                'upload': (path.name, path.open('rb'))}
-    )
-    m = MultipartEncoderMonitor(e, monitor_callback)
-    api.post("resource_create",
-             data=m,
-             dump_json=False,
-             headers={"Content-Type": m.content_type})
+    pkg_dict = api.get("package_show", id=dataset_id)
+    for resource in pkg_dict["resources"]:
+        if resource.name == filename:
+            return True
+    else:
+        return False
 
 
 def remove_draft(dataset_id, server, api_key):

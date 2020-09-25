@@ -69,7 +69,7 @@
         </column>
         <column>
          <property name="text">
-          <string>Upload progress</string>
+          <string>Transfer</string>
          </property>
         </column>
         <column>

@@ -8,7 +8,8 @@ import appdirs
 from dclab.rtdc_dataset.check import IntegrityChecker
 from dclab.cli import compress
 
-from .dataset import activate_dataset, add_resource
+from . import dataset
+from .. import api
 
 
 JOB_STATES = [
@@ -68,6 +69,10 @@ class UploadJob(object):
                     compress(path_out=path_out, path_in=path)
                     self.paths[ii] = path_out
         self.set_state("parcel")
+
+    def get_dataset_url(self):
+        """Return a link to the dataset on DCOR"""
+        return "{}/dataset/{}".format(self.server, self.dataset_id)
 
     def get_progress_string(self):
         """Return a nice string representation of the progress"""
@@ -172,6 +177,13 @@ class UploadJob(object):
         self.file_sizes[self.index] = monitor.len
         self.file_bytes_uploaded[self.index] = monitor.bytes_read
 
+    def retry_upload(self):
+        """Retry uploading resources when an error occured"""
+        if self.state in ["abort", "error"]:
+            self.set_state("parcel")
+        else:
+            raise ValueError("Can only retry upload in error state!")
+
     def set_state(self, state):
         if state not in JOB_STATES:
             raise ValueError("Unknown state: '{}'".format(state))
@@ -191,19 +203,36 @@ class UploadJob(object):
                 # Do the things to do and watch self.state while doing so
                 for ii, path in enumerate(self.paths):
                     self.index = ii
-                    add_resource(dataset_id=self.dataset_id,
-                                 path=path,
-                                 server=self.server,
-                                 api_key=self.api_key,
-                                 monitor_callback=self.monitor_callback)
-                    self.paths_uploaded.append(path)
+                    try:
+                        dataset.add_resource(
+                            dataset_id=self.dataset_id,
+                            path=path,
+                            server=self.server,
+                            api_key=self.api_key,
+                            monitor_callback=self.monitor_callback)
+                        self.paths_uploaded.append(path)
+                    except api.APIConflictError:
+                        # We are currently retrying an upload. If the
+                        # resource exists, we have already uploaded it.
+                        pass
+                    except api.APIGatewayTimeoutError:
+                        # Workaround for large datasets (no server response)
+                        # just check whether the resource is there
+                        exists = dataset.resource_exists(
+                            dataset_id=self.dataset_id,
+                            filename=path.name,
+                            server=self.server,
+                            api_key=self.api_key)
+                        if not exists:
+                            raise
                 self.end_time = time.perf_counter()
                 # finalize dataset
                 self.set_state("finalize")
                 # draft -> active
-                activate_dataset(dataset_id=self.dataset_id,
-                                 server=self.server,
-                                 api_key=self.api_key)
+                dataset.activate_dataset(
+                    dataset_id=self.dataset_id,
+                    server=self.server,
+                    api_key=self.api_key)
                 # cleanup temporary files
                 shutil.rmtree(self.cache_dir, ignore_errors=True)
                 self.set_state("done")

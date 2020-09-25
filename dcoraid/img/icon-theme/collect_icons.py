@@ -49,6 +49,7 @@ icons = {
         "filter",
         "folder",
         "puzzle-piece",
+        "redo",
         "users",
         ],
 }
