@@ -93,6 +93,7 @@ class DCORAid(QtWidgets.QMainWindow):
             sw_text += "- {} {}\n".format(lib.__name__, lib.__version__)
         sw_text += "- PyQt5 {}\n".format(QtCore.QT_VERSION_STR)
         sw_text += "\n Breeze icon theme by the KDE Community (LGPL)."
+        sw_text += "\n Font-Awesome icons by Fort Awesome (CC BY 4.0)."
         if hasattr(sys, 'frozen'):
             sw_text += "\nThis executable has been created using PyInstaller."
         QtWidgets.QMessageBox.information(self,

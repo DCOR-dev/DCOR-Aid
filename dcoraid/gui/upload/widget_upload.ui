@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>674</width>
+    <width>648</width>
     <height>492</height>
    </rect>
   </property>
@@ -69,7 +69,7 @@
         </column>
         <column>
          <property name="text">
-          <string>Progress</string>
+          <string>Upload progress</string>
          </property>
         </column>
         <column>

@@ -7,6 +7,7 @@ from ...upload import UploadQueue
 from ...settings import SettingsFile
 
 from .dlg_upload import UploadDialog
+from .widget_tablecell_actions import TableCellActions
 
 
 class UploadWidget(QtWidgets.QWidget):
@@ -76,10 +77,9 @@ class UploadTableWidget(QtWidgets.QTableWidget):
     @QtCore.pyqtSlot()
     def update_job_status(self):
         """Update UI with information from self.jobs (UploadJobList)"""
-        # make sure the length of the table is long enough
         # disable updates
         self.setUpdatesEnabled(False)
-        # rows'n'cols
+        # make sure the length of the table is long enough
         self.setRowCount(len(self.jobs))
         self.setColumnCount(6)
 
@@ -92,6 +92,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
             self.set_label_item(row, 4, job.get_rate_string())
             if status["state"] == "done":
                 self.on_upload_finished(job.dataset_id)
+            self.set_actions_item(row, 5, job)
 
         # spacing (did not work in __init__)
         header = self.horizontalHeader()
@@ -110,11 +111,17 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         item = self.item(row, col)
         if item is None:
             item = QtWidgets.QTableWidgetItem(label)
-            item .setFlags(QtCore.Qt.ItemIsEnabled)
+            item.setFlags(QtCore.Qt.ItemIsEnabled)
             self.setItem(row, col, item)
         else:
             if item.text() != label:
                 item.setText(label)
+
+    def set_actions_item(self, row, col, job):
+        wid = self.cellWidget(row, col)
+        if wid is None:
+            wid = TableCellActions()
+            self.setCellWidget(row, col, wid)
 
 
 class UpdateTriggerer(QtCore.QThread):
