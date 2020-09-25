@@ -112,17 +112,6 @@ def create_dataset(dataset_dict, server, api_key, resources=[],
     return data
 
 
-def resource_exists(dataset_id, filename, server, api_key):
-    """Check whether a resource exists in a dataset"""
-    api = CKANAPI(server=server, api_key=api_key)
-    pkg_dict = api.get("package_show", id=dataset_id)
-    for resource in pkg_dict["resources"]:
-        if resource["name"] == filename:
-            return True
-    else:
-        return False
-
-
 def remove_draft(dataset_id, server, api_key):
     """Remove a draft dataset
 
@@ -169,3 +158,14 @@ def remove_all_drafts(server, api_key):
         assert dd["state"] == "draft"
         remove_draft(dd["id"], server=server, api_key=api_key)
     return data["results"]
+
+
+def resource_exists(dataset_id, filename, server, api_key):
+    """Check whether a resource exists in a dataset"""
+    api = CKANAPI(server=server, api_key=api_key)
+    pkg_dict = api.get("package_show", id=dataset_id)
+    for resource in pkg_dict["resources"]:
+        if resource["name"] == filename:
+            return True
+    else:
+        return False

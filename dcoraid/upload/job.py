@@ -138,6 +138,7 @@ class UploadJob(object):
         if self.start_time is None:
             # not started yet
             rate = 0
+            self._last_bytes = 0
         elif self.end_time is None:
             # not finished yet
             if delta_time > resolution:
@@ -207,32 +208,43 @@ class UploadJob(object):
                 # Do the things to do and watch self.state while doing so
                 for ii, path in enumerate(self.paths):
                     self.index = ii
-                    try:
-                        dataset.add_resource(
-                            dataset_id=self.dataset_id,
-                            path=path,
-                            server=self.server,
-                            api_key=self.api_key,
-                            monitor_callback=self.monitor_callback)
-                        self.paths_uploaded.append(path)
-                    except api.APIConflictError:
-                        # We are currently retrying an upload. If the
-                        # resource exists, we have already uploaded it.
-                        pass
-                    except api.APIGatewayTimeoutError:
-                        # Workaround for large datasets (no server response)
-                        # just check whether the resource is there
-                        exists = dataset.resource_exists(
+                    exists = dataset.resource_exists(
                             dataset_id=self.dataset_id,
                             filename=path.name,
                             server=self.server,
                             api_key=self.api_key)
-                        if not exists:
-                            raise
-                    except SystemExit:
-                        # This thread has just been killed
-                        self.set_state("abort")
-                        return
+                    if exists:
+                        # We are currently retrying an upload. If the
+                        # resource exists, we have already uploaded it.
+                        self.file_bytes_uploaded[ii] = self.file_sizes[ii]
+                        continue
+                    if not exists:
+                        try:
+                            dataset.add_resource(
+                                dataset_id=self.dataset_id,
+                                path=path,
+                                server=self.server,
+                                api_key=self.api_key,
+                                monitor_callback=self.monitor_callback)
+                            self.paths_uploaded.append(path)
+                        except api.APIGatewayTimeoutError:
+                            # Workaround for large datasets (no response)
+                            # just check whether the resource is there
+                            exists = dataset.resource_exists(
+                                dataset_id=self.dataset_id,
+                                filename=path.name,
+                                server=self.server,
+                                api_key=self.api_key)
+                            if not exists:
+                                raise ValueError(
+                                    "Could not find resource {} in {}".format(
+                                        self.dataset_id, path.name))
+                        except SystemExit:
+                            # This thread has just been killed
+                            self.start_time = None
+                            self.file_bytes_uploaded[ii] = 0
+                            self.set_state("abort")
+                            return
                 self.end_time = time.perf_counter()
                 # finalize dataset
                 self.set_state("finalize")

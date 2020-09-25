@@ -1,7 +1,8 @@
 """https://github.com/munshigroup/kthread"""
-import threading
-import inspect
 import ctypes
+import inspect
+import threading
+import time
 
 
 def _async_raise(tid, exctype):
@@ -49,4 +50,6 @@ class KThread(threading.Thread):
         # WARNING: using terminate() can introduce instability in your
         # programs. It is worth noting that terminate() will NOT work if the
         # thread in question is blocked by a syscall (accept(), recv(), etc.).
-        self.raise_exc(SystemExit)
+        while self.is_alive():
+            self.raise_exc(SystemExit)
+            time.sleep(0.01)
