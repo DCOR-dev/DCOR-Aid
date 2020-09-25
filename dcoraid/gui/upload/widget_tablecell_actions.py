@@ -5,7 +5,8 @@ from PyQt5 import uic, QtCore, QtWidgets
 
 
 class TableCellActions(QtWidgets.QWidget):
-    upload_finished = QtCore.pyqtSignal()
+    abort_job = QtCore.pyqtSignal(str)
+    delete_job = QtCore.pyqtSignal(str)
 
     def __init__(self, job, *args, **kwargs):
         """Actions in a table cell"""
@@ -15,9 +16,19 @@ class TableCellActions(QtWidgets.QWidget):
         uic.loadUi(path_ui, self)
         self.job = job
         # signals and slots
+        self.tb_abort.clicked.connect(self.on_abort)
+        self.tb_delete.clicked.connect(self.on_delete)
         self.tb_error.clicked.connect(self.on_error)
         self.tb_retry.clicked.connect(self.on_retry)
         self.tb_view.clicked.connect(self.on_view)
+
+    @QtCore.pyqtSlot()
+    def on_abort(self):
+        self.abort_job.emit(self.job.dataset_id)
+
+    @QtCore.pyqtSlot()
+    def on_delete(self):
+        self.delete_job.emit(self.job.dataset_id)
 
     @QtCore.pyqtSlot()
     def on_error(self):
@@ -50,14 +61,22 @@ class TableCellActions(QtWidgets.QWidget):
         else:
             self.tb_view.hide()
 
-        if state == "error":
-            self.tb_error.show()
+        if state in ["abort", "error"]:
             self.tb_retry.show()
         else:
-            self.tb_error.hide()
             self.tb_retry.hide()
+
+        if state == "error":
+            self.tb_error.show()
+        else:
+            self.tb_error.hide()
 
         if state == "transfer":
             self.tb_abort.show()
         else:
             self.tb_abort.hide()
+
+        if state in ["init", "parcel", "done", "abort", "error"]:
+            self.tb_delete.show()
+        else:
+            self.tb_delete.hide()

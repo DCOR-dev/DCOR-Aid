@@ -117,7 +117,7 @@ def resource_exists(dataset_id, filename, server, api_key):
     api = CKANAPI(server=server, api_key=api_key)
     pkg_dict = api.get("package_show", id=dataset_id)
     for resource in pkg_dict["resources"]:
-        if resource.name == filename:
+        if resource["name"] == filename:
             return True
     else:
         return False

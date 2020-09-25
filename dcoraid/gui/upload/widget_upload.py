@@ -68,6 +68,12 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         # This is the actual initialization
         self.jobs = jobs
 
+    def on_job_abort(self, dataset_id):
+        self.jobs.abort_job(dataset_id)
+
+    def on_job_delete(self, dataset_id):
+        self.jobs.remove_job(dataset_id)
+
     def on_upload_finished(self, dataset_id):
         """Triggers upload_finished whenever an upload is finished"""
         if dataset_id not in self._finished_uploads:
@@ -121,6 +127,8 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         wid = self.cellWidget(row, col)
         if wid is None:
             wid = TableCellActions(job)
+            wid.delete_job.connect(self.on_job_delete)
+            wid.abort_job.connect(self.on_job_abort)
             self.setCellWidget(row, col, wid)
         wid.refresh_visibility(job)
 

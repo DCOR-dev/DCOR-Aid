@@ -55,6 +55,10 @@ class UploadJob(object):
         dcoraid_cache = pathlib.Path(appdirs.user_cache_dir()) / "dcoraid"
         self.cache_dir = dcoraid_cache / "compress-{}".format(self.dataset_id)
 
+    def cleanup(self):
+        # cleanup temporary files
+        shutil.rmtree(self.cache_dir, ignore_errors=True)
+
     def compress_resources(self):
         self.set_state("compress")
         for ii, path in enumerate(list(self.paths)):
@@ -225,6 +229,10 @@ class UploadJob(object):
                             api_key=self.api_key)
                         if not exists:
                             raise
+                    except SystemExit:
+                        # This thread has just been killed
+                        self.set_state("abort")
+                        return
                 self.end_time = time.perf_counter()
                 # finalize dataset
                 self.set_state("finalize")
@@ -233,8 +241,7 @@ class UploadJob(object):
                     dataset_id=self.dataset_id,
                     server=self.server,
                     api_key=self.api_key)
-                # cleanup temporary files
-                shutil.rmtree(self.cache_dir, ignore_errors=True)
+                self.cleanup()
                 self.set_state("done")
             except BaseException:
                 self.set_state("error")
@@ -243,13 +250,3 @@ class UploadJob(object):
             warnings.warn("Starting an upload only possible when state is "
                           + "'parcel', but current state is "
                           + "'{}'!".format(self.state))
-
-    def stop(self):
-        """Stop the upload
-
-        This only changes the `self.state` string.
-        """
-        self.set_state("abort")
-        raise NotImplementedError(
-            "I don't know how to implement this with "
-            + "'requests_toolbelt.MultipartEncoderMonitor'!")

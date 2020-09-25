@@ -1,7 +1,7 @@
-from threading import Thread
 import time
 
 from .job import UploadJob
+from .kthread import KThread
 
 
 class UploadQueue(object):
@@ -21,8 +21,14 @@ class UploadQueue(object):
         return len(self.jobs)
 
     def abort_job(self, dataset_id):
-        """Abort a running job"""
-        self.get_job(dataset_id).stop()
+        """Abort a running job but don't remove it from the queue"""
+        job = self.get_job(dataset_id)
+        if job.state == "transfer":
+            job.set_state("abort")
+            # https://github.com/requests/toolbelt/issues/297
+            self.upload_runner.terminate()
+            self.upload_runner = UploadRunner(self.jobs)
+            self.upload_runner.start()
 
     def add_job(self, dataset_dict, paths):
         """Add a job to the job list"""
@@ -43,6 +49,18 @@ class UploadQueue(object):
         """Return the status of an upload job"""
         self.get_job(dataset_id).get_status()
 
+    def remove_job(self, dataset_id):
+        """Remove a job from the queue and perform cleanup
+
+        It has not been tested what happens when a running job
+        is aborted. It will probably keep running and then complain
+        about resources that are expected to be there. Don't do it.
+        """
+        for ii, job in enumerate(list(self.jobs)):
+            if job.dataset_id == dataset_id:
+                self.jobs.pop(ii)
+                job.cleanup()
+
     def start(self):
         """Stop uploading"""
         self.compress_runner.state = "running"
@@ -56,7 +74,7 @@ class UploadQueue(object):
             job.stop()
 
 
-class CompressRunner(Thread):
+class CompressRunner(KThread):
     daemon = True  # We don't have to worry about ending this thread
 
     def __init__(self, jobs):
@@ -84,7 +102,7 @@ class CompressRunner(Thread):
                 job.compress_resources()
 
 
-class UploadRunner(Thread):
+class UploadRunner(KThread):
     daemon = True  # We don't have to worry about ending this thread
 
     def __init__(self, jobs):

@@ -50,8 +50,9 @@ icons = {
         "folder",
         "puzzle-piece",
         "redo",
+        "trash",
         "users",
-        ],
+    ],
 }
 
 # theme index file
@@ -74,7 +75,7 @@ web_roots = {
     "fontawesome": {
         "solid": "https://raw.githubusercontent.com/FortAwesome/"
                  + "Font-Awesome/master/svgs/solid/",
-        }}
+    }}
 
 
 # create a temporary directory

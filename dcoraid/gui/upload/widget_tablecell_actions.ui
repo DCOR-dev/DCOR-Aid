@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>132</width>
+    <width>164</width>
     <height>24</height>
    </rect>
   </property>
@@ -30,12 +30,25 @@
     <number>0</number>
    </property>
    <item>
+    <widget class="QToolButton" name="tb_delete">
+     <property name="toolTip">
+      <string>Remove from queue (DCOR data is not deleted)</string>
+     </property>
+     <property name="text">
+      <string>d</string>
+     </property>
+     <property name="icon">
+      <iconset theme="trash"/>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QToolButton" name="tb_abort">
      <property name="toolTip">
       <string>Abort job</string>
      </property>
      <property name="text">
-      <string>c</string>
+      <string>a</string>
      </property>
      <property name="icon">
       <iconset theme="ban"/>

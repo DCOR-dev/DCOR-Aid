@@ -2,7 +2,7 @@
  - fix: allow resuming when upload fails (#3)
  - fix: start even if DCOR is down
  - fix: do not display mean upload rate during upload
- - enh: functionalize most action buttons in upload
+ - enh: functionalize action buttons in upload
  - enh: increase verbosity of CKANAPI
  - enh: implement resource compression (#6)
  - ref: move connectivity check and user database update to separate
