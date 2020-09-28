@@ -50,7 +50,7 @@ after_test:
   - "python setup.py sdist"
   - ps: "ls dist"
   # Install pyinstaller (includes dependency for pywin32)
-  - "appveyor-retry pip install pyinstaller==3.6"
+  - "appveyor-retry pip install pyinstaller==4.0"
   # Run pyinstaller
   - "pyinstaller -y --log-level=WARN .appveyor\\dcoraid.spec"
   # Run the binary (the most simple test)

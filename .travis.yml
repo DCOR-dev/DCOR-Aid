@@ -43,7 +43,7 @@ script:
 - flake8 tests
 # build
 - python setup.py sdist bdist_wheel
-- pip install pyinstaller==3.6
+- pip install pyinstaller==4.0
 - bash ./.travis/${TRAVIS_OS_NAME}_build_app.sh DCOR-Aid $TRAVIS_TAG
 after_success:
 - codecov
