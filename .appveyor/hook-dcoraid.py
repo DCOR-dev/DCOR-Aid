@@ -13,5 +13,5 @@ from PyInstaller.utils.hooks import collect_data_files
 datas = collect_data_files("dcoraid", include_py_files=True)
 datas += collect_data_files("dcoraid", subdir="img")
 
-hiddenimports = ["dclab", "requests_toolbelt"]
+hiddenimports = ["dclab.cli", "requests_toolbelt"]
 
