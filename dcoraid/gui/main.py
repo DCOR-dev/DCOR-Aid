@@ -39,6 +39,11 @@ class DCORAid(QtWidgets.QMainWindow):
         path_ui = pkg_resources.resource_filename(
             "dcoraid.gui", "main.ui")
         uic.loadUi(path_ui, self)
+        # if "--version" was specified, print the version and exit
+        if "--version" in sys.argv:
+            print(__version__)
+            QtWidgets.QApplication.processEvents()
+            sys.exit(0)
         #: DCOR-Aid settings
         self.settings = settings.SettingsFile()
         # GUI
@@ -55,12 +60,6 @@ class DCORAid(QtWidgets.QMainWindow):
         # Help menu
         self.actionSoftware.triggered.connect(self.on_action_software)
         self.actionAbout.triggered.connect(self.on_action_about)
-        # if "--version" was specified, print the version and exit
-        if "--version" in sys.argv:
-            print(__version__)
-            QtWidgets.QApplication.processEvents()
-            sys.exit(0)
-
         # Display login status
         self.toolButton_user = QtWidgets.QToolButton()
         self.toolButton_user.setToolButtonStyle(
