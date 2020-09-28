@@ -12,7 +12,7 @@ environment:
     - PYTHON: "C:\\Python36"
     - PYTHON: "C:\\Python36-x64"
   DCOR_API_KEY:
-    secure: aSDdBj+EaOQdUW0/03/s3SCPbPDuMQQfSSMRHEliPI8r0UKCukUx5LWjuiNsNCMN
+    secure: fZWCZrKoGp2a/bNqd+quJRsVcRI5Jx774LLx3BX3jDuFAqHEAkGR3M/Wq7IwxXua
 
 init:
   - "ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH%"
