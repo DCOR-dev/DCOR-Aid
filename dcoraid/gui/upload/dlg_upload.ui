@@ -107,7 +107,7 @@
             </size>
            </property>
            <property name="placeholderText">
-            <string>Background information, sample details, etc.</string>
+            <string>General background information about the study being conducted.</string>
            </property>
           </widget>
          </item>
@@ -121,7 +121,7 @@
          <item row="5" column="1">
           <widget class="QLineEdit" name="lineEdit_tags">
            <property name="placeholderText">
-            <string>HL60, CD66, Hoechst</string>
+            <string>e.g. HL60, cell-cycle</string>
            </property>
           </widget>
          </item>
@@ -156,13 +156,6 @@
           <widget class="QComboBox" name="comboBox_vis"/>
          </item>
         </layout>
-       </item>
-       <item>
-        <widget class="QToolButton" name="toolButton">
-         <property name="text">
-          <string>Add custom field</string>
-         </property>
-        </widget>
        </item>
       </layout>
      </widget>

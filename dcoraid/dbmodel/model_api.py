@@ -69,6 +69,10 @@ class APIInterrogator(DBInterrogator):
                       + "not yet implemented!")
         return []
 
+    def get_license_list(self):
+        """Return the servers license list"""
+        return self.api.get_license_list()
+
     @ttl_cache(seconds=3600)
     def get_user_data(self):
         """Return the current user data dictionary"""

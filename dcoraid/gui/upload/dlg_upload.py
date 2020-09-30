@@ -31,15 +31,18 @@ class UploadDialog(QtWidgets.QMainWindow):
 
         self.setWindowTitle("DCOR Upload {}".format(self.identifier))
 
+        # Initialize api
+        settings = SettingsFile()
+        api_key = settings.get_string("api key")
+        server = settings.get_string("server")
+        self.api = CKANAPI(server=server, api_key=api_key)
+
         # Set license choices
-        licenses = [
-            ("CC0-1.0", "Creative Commons Public Domain Dedication"),
-            ("CC-BY-4.0", "Creative Commons Attribution 4.0"),
-            ("CC-BY-SA-4.0", "Creative Commons Attribution Share-Alike 4.0"),
-            ("CC-BY-NC-4.0", "Creative Commons Attribution-NonCommercial 4.0"),
-        ]
-        for key, title in licenses:
-            self.comboBox_license.addItem(title, key)
+        licenses = self.api.get_license_list()
+        for lic in licenses:
+            if lic["domain_data"]:  # just some identifier to exclude "none"
+                self.comboBox_license.addItem(
+                    "{} ({})".format(lic["title"], lic["id"]), lic["id"])
 
         # Set circle choices
         circles = UploadDialog.get_user_circle_dicts()
@@ -112,12 +115,10 @@ class UploadDialog(QtWidgets.QMainWindow):
         on DCOR. Then, the job is enqueued in the parent
         """
         self.setHidden(True)
-        # Initiate API
-        settings = SettingsFile()
         # Try to create the dataset and display any issues with the metadata
         data = create_dataset(dataset_dict=self.assemble_metadata(),
-                              server=settings.get_string("server"),
-                              api_key=settings.get_string("api key")
+                              server=self.api.api_url,
+                              api_key=self.api.api_key
                               )
         # Remember the dataset identifier
         self.dataset_dict = data

@@ -3,6 +3,9 @@ import json
 
 import requests
 
+#: List of license lists for each DCOR server
+SERVER_LICENCES = {}
+
 
 class APIError(BaseException):
     pass
@@ -99,6 +102,32 @@ class CKANAPI():
                 + "Reason: {} ({})".format(req.reason, data["error"]))
         return data["result"]
 
+    def get_license_list(self):
+        """Return the servers license list
+
+        License lists are cached in :const:`SERVER_LICENCES`.
+        """
+        if self.api_url not in SERVER_LICENCES:
+            SERVER_LICENCES[self.api_url] = self.get("license_list")
+        return copy.deepcopy(SERVER_LICENCES[self.api_url])
+
+    def get_user_dict(self):
+        """Return the current user data dictionary
+
+        The user name is inferred from the API key.
+        """
+        # Workaround for https://github.com/ckan/ckan/issues/5490
+        # Get the user that has a matching API key
+        data = self.get("user_list")
+        for user in data:
+            if user.get("apikey") == self.api_key:
+                userdata = user
+                break
+        else:
+            raise APIKeyError(
+                "Could not determine user data. Please check API key.")
+        return userdata
+
     def post(self, api_call, data, dump_json=True, headers={}):
         """POST request
 
@@ -159,20 +188,3 @@ class CKANAPI():
                 "Could not run API call '{}'! ".format(url_call)
                 + "Reason: {} ({})".format(req.reason, data["error"]))
         return data["result"]
-
-    def get_user_dict(self):
-        """Return the current user data dictionary
-
-        The user name is inferred from the API key.
-        """
-        # Workaround for https://github.com/ckan/ckan/issues/5490
-        # Get the user that has a matching API key
-        data = self.get("user_list")
-        for user in data:
-            if user.get("apikey") == self.api_key:
-                userdata = user
-                break
-        else:
-            raise APIKeyError(
-                "Could not determine user data. Please check API key.")
-        return userdata

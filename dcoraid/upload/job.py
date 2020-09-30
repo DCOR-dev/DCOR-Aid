@@ -209,10 +209,10 @@ class UploadJob(object):
                 for ii, path in enumerate(self.paths):
                     self.index = ii
                     exists = dataset.resource_exists(
-                            dataset_id=self.dataset_id,
-                            filename=path.name,
-                            server=self.server,
-                            api_key=self.api_key)
+                        dataset_id=self.dataset_id,
+                        filename=path.name,
+                        server=self.server,
+                        api_key=self.api_key)
                     if exists:
                         # We are currently retrying an upload. If the
                         # resource exists, we have already uploaded it.
