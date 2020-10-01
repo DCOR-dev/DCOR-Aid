@@ -1,3 +1,5 @@
+from functools import lru_cache
+import hashlib
 import pathlib
 import shutil
 import time
@@ -18,6 +20,8 @@ JOB_STATES = [
     "parcel",  # ready for upload
     "transfer",  # upload in progress
     "finalize",  # CKAN dataset is being activated
+    "online",  # dataset has been transferred
+    "verify",  # perform SHA256 sum verification
     "done",  # job finished
     "abort",  # user aborted
     "error",  # error occured
@@ -29,8 +33,8 @@ class UploadJob(object):
         """Wrapper for resource uploads
 
         This job is meant to be run from a separate thread.
-        The function `compress_resources` ensures that all
-        resources are compressed. The function `upload_resources`
+        The function `task_compress_resources` ensures that all
+        resources are compressed. The function `task_upload_resources`
         performs the actual upload. During upload, the progress
         is monitored and can be read from other threads
         using the e.g. `get_status` function.
@@ -59,21 +63,6 @@ class UploadJob(object):
         # cleanup temporary files
         shutil.rmtree(self.cache_dir, ignore_errors=True)
 
-    def compress_resources(self):
-        self.set_state("compress")
-        for ii, path in enumerate(list(self.paths)):
-            if path.suffix in [".rtdc", ".dc"]:  # do we have an .rtdc file?
-                # check for compression
-                with IntegrityChecker(path) as ic:
-                    cdata = ic.check_compression()[0].data
-                if cdata["uncompressed"]:  # (partially) not compressed?
-                    res_dir = self.cache_dir / "{}".format(ii)
-                    res_dir.mkdir(exist_ok=True, parents=True)
-                    path_out = res_dir / path.name
-                    compress(path_out=path_out, path_in=path)
-                    self.paths[ii] = path_out
-        self.set_state("parcel")
-
     def get_dataset_url(self):
         """Return a link to the dataset on DCOR"""
         return "{}/dataset/{}".format(self.server, self.dataset_id)
@@ -91,7 +80,7 @@ class UploadJob(object):
                 status["bytes uploaded"]/status["bytes total"]*100,
                 status["files uploaded"]+1,
                 status["files total"])
-        elif state in ["finalize", "done"]:
+        elif state in ["finalize", "online", "verify", "done"]:
             progress = "100% ({} file{})".format(status["files total"],
                                                  plural)
         elif state in ["abort", "error"]:
@@ -194,7 +183,22 @@ class UploadJob(object):
             raise ValueError("Unknown state: '{}'".format(state))
         self.state = state
 
-    def upload_resources(self):
+    def task_compress_resources(self):
+        self.set_state("compress")
+        for ii, path in enumerate(list(self.paths)):
+            if path.suffix in [".rtdc", ".dc"]:  # do we have an .rtdc file?
+                # check for compression
+                with IntegrityChecker(path) as ic:
+                    cdata = ic.check_compression()[0].data
+                if cdata["uncompressed"]:  # (partially) not compressed?
+                    res_dir = self.cache_dir / "{}".format(ii)
+                    res_dir.mkdir(exist_ok=True, parents=True)
+                    path_out = res_dir / path.name
+                    compress(path_out=path_out, path_in=path)
+                    self.paths[ii] = path_out
+        self.set_state("parcel")
+
+    def task_upload_resources(self):
         """Start the upload
 
         The progress of the upload is monitored and written
@@ -251,8 +255,7 @@ class UploadJob(object):
                     dataset_id=self.dataset_id,
                     server=self.server,
                     api_key=self.api_key)
-                self.cleanup()
-                self.set_state("done")
+                self.set_state("online")
             except BaseException:
                 self.set_state("error")
                 self.traceback = tb.format_exc()
@@ -260,3 +263,48 @@ class UploadJob(object):
             warnings.warn("Starting an upload only possible when state is "
                           + "'parcel', but current state is "
                           + "'{}'!".format(self.state))
+
+    def task_verify_resources(self):
+        """Perform SHA256 verification"""
+        if self.state == "online":
+            # First check whether all SHA256 sums are already available online
+            sha256dict = dataset.resource_sha256_sums(
+                dataset_id=self.dataset_id,
+                server=self.server,
+                api_key=self.api_key)
+            if sum([sha256dict[name] is None for name in sha256dict]) != 0:
+                # only start verification if all SHA256 sums are available
+                pass
+            else:
+                self.set_state("verify")
+                for path in self.paths:
+                    # compute SHA256 sum
+                    sha = sha256sum(path)
+                    if sha != sha256dict[path.name]:
+                        self.set_state("error")
+                        self.traceback = "SHA256 sum failed for resource " \
+                            + "'{}' ({} vs. {})!".format(path.name,
+                                                         sha,
+                                                         sha256dict[path.name])
+                        break
+                else:
+                    self.cleanup()
+                    self.set_state("done")
+        else:
+            warnings.warn("Resource verification is only possible when state "
+                          + "is 'online', but current state is "
+                          + "'{}'!".format(self.state))
+
+
+@lru_cache(maxsize=2000)
+def sha256sum(path):
+    block_size = 2**20
+    path = pathlib.Path(path)
+    file_hash = hashlib.sha256()
+    with path.open("rb") as fd:
+        while True:
+            data = fd.read(block_size)
+            if not data:
+                break
+            file_hash.update(data)
+    return file_hash.hexdigest()

@@ -9,10 +9,9 @@ class UploadQueue(object):
         self.server = server
         self.api_key = api_key
         self.jobs = []
-        self.compress_runner = CompressRunner(self.jobs)
-        self.compress_runner.start()
-        self.upload_runner = UploadRunner(self.jobs)
-        self.upload_runner.start()
+        self.daemon_compress = CompressDaemon(self.jobs)
+        self.daemon_upload = UploadDaemon(self.jobs)
+        self.daemon_verify = VerifyDaemon(self.jobs)
 
     def __getitem__(self, index):
         return self.jobs[index]
@@ -26,9 +25,8 @@ class UploadQueue(object):
         if job.state == "transfer":
             job.set_state("abort")
             # https://github.com/requests/toolbelt/issues/297
-            self.upload_runner.terminate()
-            self.upload_runner = UploadRunner(self.jobs)
-            self.upload_runner.start()
+            self.dameon_upload.terminate()
+            self.daemon_upload = UploadDaemon(self.jobs)
 
     def add_job(self, dataset_dict, paths):
         """Add a job to the job list"""
@@ -61,27 +59,18 @@ class UploadQueue(object):
                 self.jobs.pop(ii)
                 job.cleanup()
 
-    def start(self):
-        """Stop uploading"""
-        self.compress_runner.state = "running"
-        self.upload_runner.state = "running"
 
-    def stop(self):
-        """Stop uploading"""
-        self.compress_runner.state = "paused"
-        self.upload_runner.state = "paused"
-        for job in self.jobs:
-            job.stop()
-
-
-class CompressRunner(KThread):
+class Daemon(KThread):
     daemon = True  # We don't have to worry about ending this thread
 
-    def __init__(self, jobs):
-        """This compress runner is constantly running in the background"""
-        self.jobs = jobs
+    def __init__(self, queue, job_trigger_state, job_function_name):
+        """Daemon base class"""
+        self.queue = queue
         self.state = "running"
-        super(CompressRunner, self).__init__()
+        self.job_trigger_state = job_trigger_state
+        self.job_function_name = job_function_name
+        super(Daemon, self).__init__()
+        self.start()
 
     def run(self):
         while True:
@@ -90,42 +79,41 @@ class CompressRunner(KThread):
                 time.sleep(.1)
                 continue
             else:
-                # Get the first job that has not been started
-                for job in list(self.jobs):
-                    if job.state == "init":
+                # Get the first job that is in the trigger state
+                for job in self.queue:
+                    if job.state == self.job_trigger_state:
                         break
                 else:
                     # Nothing to do, sleep a little to avoid 100% CPU
                     time.sleep(.1)
                     continue
-                # Perform data compression.
-                job.compress_resources()
+                # Perform daemon task
+                task = getattr(job, self.job_function_name)
+                task()
 
 
-class UploadRunner(KThread):
-    daemon = True  # We don't have to worry about ending this thread
-
+class CompressDaemon(Daemon):
     def __init__(self, jobs):
-        """This upload runner is constantly running in the background"""
-        self.jobs = jobs
-        self.state = "running"
-        super(UploadRunner, self).__init__()
+        """Compression daemon"""
+        super(CompressDaemon, self).__init__(
+            jobs,
+            job_trigger_state="init",
+            job_function_name="task_compress_resources")
 
-    def run(self):
-        while True:
-            if self.state != "running":
-                # Don't do anything
-                time.sleep(.1)
-                continue
-            else:
-                # Get the first job that is in the parcel state
-                for job in list(self.jobs):
-                    if job.state == "parcel":
-                        break
-                else:
-                    # Nothing to do, sleep a little to avoid 100% CPU
-                    time.sleep(.1)
-                    continue
-                # Start the job. This will block this thread until the
-                # job aborts itself or is finished.
-                job.upload_resources()
+
+class UploadDaemon(Daemon):
+    def __init__(self, jobs):
+        """Upload daemon"""
+        super(UploadDaemon, self).__init__(
+            jobs,
+            job_trigger_state="parcel",
+            job_function_name="task_upload_resources")
+
+
+class VerifyDaemon(Daemon):
+    def __init__(self, jobs):
+        """Verify daemon"""
+        super(VerifyDaemon, self).__init__(
+            jobs,
+            job_trigger_state="online",
+            job_function_name="task_verify_resources")

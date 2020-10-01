@@ -169,3 +169,13 @@ def resource_exists(dataset_id, filename, server, api_key):
             return True
     else:
         return False
+
+
+def resource_sha256_sums(dataset_id, server, api_key):
+    """Return a dictionary of resources with the SHA256 sums as values"""
+    api = CKANAPI(server=server, api_key=api_key)
+    pkg_dict = api.get("package_show", id=dataset_id)
+    sha256dict = {}
+    for resource in pkg_dict["resources"]:
+        sha256dict[resource["name"]] = resource.get("sha256", None)
+    return sha256dict
