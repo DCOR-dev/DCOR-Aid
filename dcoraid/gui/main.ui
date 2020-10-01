@@ -17,10 +17,16 @@
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
      <widget class="QTabWidget" name="tabWidget">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_browse">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <attribute name="title">
         <string>Public Data</string>
        </attribute>
@@ -137,6 +143,9 @@
        </layout>
       </widget>
       <widget class="QWidget" name="tab_user">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <attribute name="title">
         <string>My Data</string>
        </attribute>
@@ -232,7 +241,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="tab_upload">
        <attribute name="title">
         <string>Uploads</string>
        </attribute>
@@ -254,7 +263,10 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_2">
+      <widget class="QWidget" name="tab_share">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <attribute name="title">
         <string>Sharing</string>
        </attribute>
@@ -387,7 +399,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_3">
+      <widget class="QWidget" name="tab_maintain">
        <attribute name="title">
         <string>Maintenance</string>
        </attribute>

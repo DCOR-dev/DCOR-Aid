@@ -5,6 +5,7 @@ import sys
 import traceback as tb
 
 import appdirs
+import dclab
 import requests
 import requests_toolbelt
 
@@ -62,13 +63,18 @@ class DCORAid(QtWidgets.QMainWindow):
         self.actionAbout.triggered.connect(self.on_action_about)
         # Display login status
         self.toolButton_user = QtWidgets.QToolButton()
+        self.toolButton_user.setText("Initialization...")
         self.toolButton_user.setToolButtonStyle(
             QtCore.Qt.ToolButtonTextBesideIcon)
         self.toolButton_user.setAutoRaise(True)
         self.tabWidget.setCornerWidget(self.toolButton_user)
-        self.toolButton_user.setText("Not logged in!")
         self.toolButton_user.clicked.connect(self.dlg_pref.on_show_server)
+        self.tabWidget.currentChanged.connect(self.refresh_login_status)
         self.refresh_login_status()
+        # Call refresh_login status regularly
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.refresh_login_status)
+        self.timer.start(300000)
         # Update private data tab
         self.refresh_private_data()
         # If a new dataset has been uploaded, refresh private data
@@ -82,6 +88,7 @@ class DCORAid(QtWidgets.QMainWindow):
 
     def on_action_software(self):
         libs = [appdirs,
+                dclab,
                 requests,
                 requests_toolbelt,
                 ]
@@ -102,33 +109,36 @@ class DCORAid(QtWidgets.QMainWindow):
     @run_async
     @QtCore.pyqtSlot()
     def refresh_login_status(self):
-        self.toolButton_user.setText("Attempting to connect...")
-        self.toolButton_user.setToolTip("Please wait")
         api_key = self.settings.get_string("api key")
         server = self.settings.get_string("server")
         api = CKANAPI(server=server, api_key=api_key)
         if not api.is_available():
-            text = "No connection to '{}'.".format(server)
+            text = "No connection"
             tip = "Can you access {} via a browser?".format(server)
+            icon = "hourglass"
         else:
             if not api_key:
-                text = "No API key."
+                text = "Anonymous"
                 tip = "Click here to enter your API key."
+                icon = "user"
             else:
                 try:
                     user_data = api.get_user_dict()
                 except APIKeyError:
-                    text = "API key not valid for '{}'.".format(server)
+                    text = "Login failed"
                     tip = "Click here to update your API key."
+                    icon = "user-times"
                 else:
                     fullname = user_data["fullname"]
                     name = user_data["name"]
                     if not fullname:
                         fullname = name
-                    text = "logged in as: {}".format(fullname)
+                    text = "{}".format(fullname)
                     tip = "user '{}'".format(name)
+                    icon = "user-lock"
         self.toolButton_user.setText(text)
         self.toolButton_user.setToolTip(tip)
+        self.toolButton_user.setIcon(QtGui.QIcon.fromTheme(icon))
 
     @run_async
     @QtCore.pyqtSlot()
