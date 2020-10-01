@@ -2,7 +2,7 @@ import os
 import pathlib
 import time
 
-from dcoraid.upload import UploadJob, UploadQueue, create_dataset
+from dcoraid.upload import UploadQueue, create_dataset
 
 import common
 
