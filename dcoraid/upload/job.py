@@ -248,13 +248,6 @@ class UploadJob(object):
                             self.set_state("abort")
                             return
                 self.end_time = time.perf_counter()
-                # finalize dataset
-                self.set_state("finalize")
-                # draft -> active
-                dataset.activate_dataset(
-                    dataset_id=self.dataset_id,
-                    server=self.server,
-                    api_key=self.api_key)
                 self.set_state("online")
             except BaseException:
                 self.set_state("error")
@@ -289,6 +282,13 @@ class UploadJob(object):
                         break
                 else:
                     self.cleanup()
+                    # finalize dataset
+                    self.set_state("finalize")
+                    # draft -> active
+                    dataset.activate_dataset(
+                        dataset_id=self.dataset_id,
+                        server=self.server,
+                        api_key=self.api_key)
                     self.set_state("done")
         else:
             warnings.warn("Resource verification is only possible when state "

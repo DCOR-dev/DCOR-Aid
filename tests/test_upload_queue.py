@@ -44,7 +44,7 @@ def test_queue_create_dataset_with_resource():
     joblist.add_job(dataset_dict=data,
                     paths=[dpath])
     for _ in range(600):  # 60 seconds to upload
-        if joblist[0].state in ["online", "done"]:
+        if joblist[0].state == "done":
             break
         time.sleep(.1)
     else:
