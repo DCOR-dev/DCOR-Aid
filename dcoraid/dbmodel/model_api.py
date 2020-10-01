@@ -73,6 +73,10 @@ class APIInterrogator(DBInterrogator):
         """Return the servers license list"""
         return self.api.get_license_list()
 
+    def get_supplementary_resource_schema(self):
+        """Return the servers supplementary resource schema"""
+        return self.api.get_supplementary_resource_schema()
+
     @ttl_cache(seconds=3600)
     def get_user_data(self):
         """Return the current user data dictionary"""

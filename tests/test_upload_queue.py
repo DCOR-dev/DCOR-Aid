@@ -2,7 +2,7 @@ import os
 import pathlib
 import time
 
-from dcoraid.upload import UploadQueue, create_dataset
+from dcoraid.upload import UploadJob, UploadQueue, create_dataset
 
 import common
 
@@ -33,7 +33,7 @@ def make_dataset_dict(hint=""):
     return dataset_dict
 
 
-def test_create_dataset_with_resource():
+def test_queue_create_dataset_with_resource():
     # create some metadata
     dataset_dict = make_dataset_dict(hint="create-with-resource")
     # post dataset creation request

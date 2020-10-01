@@ -48,9 +48,11 @@ icons = {
         "exclamation-triangle",
         "filter",
         "folder",
+        "globe",
         "puzzle-piece",
         "redo",
         "trash",
+        "trash-alt",
         "users",
     ],
 }

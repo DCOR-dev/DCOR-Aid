@@ -2,10 +2,13 @@ import os
 import pathlib
 import time
 
-from dcoraid.upload import create_dataset, remove_draft
-from dcoraid.api import CKANAPI
+from dcoraid.upload import dataset
+from dcoraid import api
 
 import common
+
+
+dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
 
 
 def get_api_key():
@@ -36,26 +39,51 @@ def test_dataset_creation():
     # create some metadata
     dataset_dict = make_dataset_dict(hint="basic_test")
     # post dataset creation request
-    data = create_dataset(dataset_dict=dataset_dict,
-                          server=common.SERVER,
-                          api_key=get_api_key())
+    data = dataset.create_dataset(dataset_dict=dataset_dict,
+                                  server=common.SERVER,
+                                  api_key=get_api_key())
     # simple test
     assert "authors" in data
     assert data["authors"] == common.USER_NAME
     assert data["state"] == "draft"
     # remove draft dataset
-    remove_draft(dataset_id=data["id"],
-                 server=common.SERVER,
-                 api_key=get_api_key(),
-                 )
+    dataset.remove_draft(dataset_id=data["id"],
+                         server=common.SERVER,
+                         api_key=get_api_key(),
+                         )
     # make sure it is gone
-    api = CKANAPI(server=common.SERVER, api_key=get_api_key())
+    api = api.CKANAPI(server=common.SERVER, api_key=get_api_key())
     try:
         api.get("package_show", id=data["id"])
     except BaseException:
         pass
     else:
         assert False
+
+
+def test_dataset_create_same_resource():
+    """There should be an error when a resource is added twice"""
+    # create some metadata
+    dataset_dict = make_dataset_dict(hint="create-with-same-resource")
+    # post dataset creation request
+    data = dataset.create_dataset(dataset_dict=dataset_dict,
+                                  server=common.SERVER,
+                                  api_key=get_api_key())
+    dataset.add_resource(dataset_id=data["id"],
+                         path=dpath,
+                         server=common.SERVER,
+                         api_key=get_api_key(),
+                         )
+    try:
+        dataset.add_resource(dataset_id=data["id"],
+                             path=dpath,
+                             server=common.SERVER,
+                             api_key=get_api_key(),
+                             )
+    except api.APIConflictError:
+        pass
+    else:
+        assert False, "Should not be able to upload same resource twice"
 
 
 if __name__ == "__main__":

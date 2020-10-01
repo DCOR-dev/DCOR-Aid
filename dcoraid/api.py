@@ -6,6 +6,9 @@ import requests
 #: List of license lists for each DCOR server
 SERVER_LICENCES = {}
 
+#: List of of supplementary resource schema dictionaries
+SERVER_RSS = {}
+
 
 class APIError(BaseException):
     pass
@@ -110,6 +113,15 @@ class CKANAPI():
         if self.api_url not in SERVER_LICENCES:
             SERVER_LICENCES[self.api_url] = self.get("license_list")
         return copy.deepcopy(SERVER_LICENCES[self.api_url])
+
+    def get_supplementary_resource_schema(self):
+        """Return the servers supplementary resource schema
+
+        License lists are cached in :const:`SERVER_LICENCES`.
+        """
+        if self.api_url not in SERVER_RSS:
+            SERVER_RSS[self.api_url] = self.get("resource_schema_supplements")
+        return copy.deepcopy(SERVER_RSS[self.api_url])
 
     def get_user_dict(self):
         """Return the current user data dictionary

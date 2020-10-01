@@ -44,6 +44,10 @@ class UploadDialog(QtWidgets.QMainWindow):
                 self.comboBox_license.addItem(
                     "{} ({})".format(lic["title"], lic["id"]), lic["id"])
 
+        # Set supplementary resource schema
+        rss = self.api.get_supplementary_resource_schema()
+        self.widget_schema.populate_schema(rss)
+
         # Set circle choices
         circles = UploadDialog.get_user_circle_dicts()
         for ci in circles:
