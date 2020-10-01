@@ -23,11 +23,13 @@ def activate_dataset(dataset_id, server, api_key):
     api_key: str
         API key of the CKAN/DCOR user
     """
-    # TODO: use package_revise instead
+    # TODO: use package_revise instead (does not work like that):
+    # revise_dict={
+    # "match": {"id": dataset_id},
+    # "update": {"state": "active"}}
+    # res = api.post("package_revise", revise_dict)
     api = CKANAPI(server=server, api_key=api_key)
-    data = api.get("package_show", id=dataset_id)
-    data["state"] = "active"
-    res = api.post("package_update", data)
+    res = api.post("package_patch", {"id": dataset_id, "state": "active"})
     assert res["state"] == "active"
 
 
