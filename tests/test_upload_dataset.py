@@ -34,33 +34,6 @@ def make_dataset_dict(hint=""):
     return dataset_dict
 
 
-def test_dataset_creation():
-    """Just test whether we can create (and remove) a draft dataset"""
-    # create some metadata
-    dataset_dict = make_dataset_dict(hint="basic_test")
-    # post dataset creation request
-    data = dataset.create_dataset(dataset_dict=dataset_dict,
-                                  server=common.SERVER,
-                                  api_key=get_api_key())
-    # simple test
-    assert "authors" in data
-    assert data["authors"] == common.USER_NAME
-    assert data["state"] == "draft"
-    # remove draft dataset
-    dataset.remove_draft(dataset_id=data["id"],
-                         server=common.SERVER,
-                         api_key=get_api_key(),
-                         )
-    # make sure it is gone
-    api = api.CKANAPI(server=common.SERVER, api_key=get_api_key())
-    try:
-        api.get("package_show", id=data["id"])
-    except BaseException:
-        pass
-    else:
-        assert False
-
-
 def test_dataset_create_same_resource():
     """There should be an error when a resource is added twice"""
     # create some metadata
@@ -84,6 +57,33 @@ def test_dataset_create_same_resource():
         pass
     else:
         assert False, "Should not be able to upload same resource twice"
+
+
+def test_dataset_creation():
+    """Just test whether we can create (and remove) a draft dataset"""
+    # create some metadata
+    dataset_dict = make_dataset_dict(hint="basic_test")
+    # post dataset creation request
+    data = dataset.create_dataset(dataset_dict=dataset_dict,
+                                  server=common.SERVER,
+                                  api_key=get_api_key())
+    # simple test
+    assert "authors" in data
+    assert data["authors"] == common.USER_NAME
+    assert data["state"] == "draft"
+    # remove draft dataset
+    dataset.remove_draft(dataset_id=data["id"],
+                         server=common.SERVER,
+                         api_key=get_api_key(),
+                         )
+    # make sure it is gone
+    tapi = api.CKANAPI(server=common.SERVER, api_key=get_api_key())
+    try:
+        tapi.get("package_show", id=data["id"])
+    except BaseException:
+        pass
+    else:
+        assert False
 
 
 if __name__ == "__main__":
