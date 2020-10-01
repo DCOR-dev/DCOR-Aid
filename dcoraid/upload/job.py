@@ -19,9 +19,9 @@ JOB_STATES = [
     "compress",  # compression (only for DC data)
     "parcel",  # ready for upload
     "transfer",  # upload in progress
-    "finalize",  # CKAN dataset is being activated
     "online",  # dataset has been transferred
     "verify",  # perform SHA256 sum verification
+    "finalize",  # CKAN dataset is being activated
     "done",  # job finished
     "abort",  # user aborted
     "error",  # error occured
