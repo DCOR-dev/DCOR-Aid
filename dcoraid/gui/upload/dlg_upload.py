@@ -135,7 +135,8 @@ class UploadDialog(QtWidgets.QMainWindow):
         """Get all the metadata from the form"""
         tags = []
         for tt in self.lineEdit_tags.text().replace(" ", "").split(","):
-            tags.append({"name": tt})
+            if tt:
+                tags.append({"name": tt})
 
         dataset_dict = {
             "title": self.lineEdit_title.text(),
