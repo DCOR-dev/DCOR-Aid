@@ -342,7 +342,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>432</width>
-                <height>546</height>
+                <height>544</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -377,11 +377,41 @@
      </layout>
     </item>
     <item>
-     <widget class="QPushButton" name="pushButton_proceed">
-      <property name="text">
-       <string>Proceed with upload / Enqueue job</string>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <property name="spacing">
+       <number>15</number>
       </property>
-     </widget>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_cancel">
+        <property name="text">
+         <string>Cancel</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_proceed">
+        <property name="text">
+         <string>Proceed with upload / Enqueue job</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -395,5 +425,22 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>pushButton_cancel</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>999</x>
+     <y>774</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>655</x>
+     <y>398</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

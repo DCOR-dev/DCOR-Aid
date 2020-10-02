@@ -43,6 +43,7 @@ icons = {
     "fontawesome": [
         "ban",
         "book",
+        "check-double",
         "circle",
         "eye",
         "exclamation-triangle",

@@ -41,7 +41,8 @@
         <string>a</string>
        </property>
        <property name="icon">
-        <iconset theme="globe"/>
+        <iconset theme="check-double">
+         <normaloff>.</normaloff>.</iconset>
        </property>
       </widget>
      </item>
@@ -54,7 +55,8 @@
         <string>c</string>
        </property>
        <property name="icon">
-        <iconset theme="trash-alt"/>
+        <iconset theme="trash-alt">
+         <normaloff>.</normaloff>.</iconset>
        </property>
       </widget>
      </item>
