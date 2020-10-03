@@ -14,6 +14,7 @@ from . import dataset
 from .. import api
 
 
+#: Valid job states (in more or less chronological order)
 JOB_STATES = [
     "init",  # inital
     "compress",  # compression (only for DC data)
@@ -29,7 +30,8 @@ JOB_STATES = [
 
 
 class UploadJob(object):
-    def __init__(self, dataset_dict, paths, server, api_key):
+    def __init__(self, dataset_dict, paths, server, api_key,
+                 resource_names=None, supplements=None):
         """Wrapper for resource uploads
 
         This job is meant to be run from a separate thread.
@@ -44,6 +46,13 @@ class UploadJob(object):
         self.server = server
         self.api_key = api_key
         self.paths = paths
+        if resource_names is None:
+            resource_names = [pathlib.Path(pp).name for pp in paths]
+        #: Important supplementary resource schema meta data that will
+        #: be formatted to composite {"sp:section:key" = value} an appended
+        #: to the resource metadata.
+        self.supplements = supplements
+        self.resource_names = resource_names
         self.paths_uploaded = []
         self.set_state("init")
         self.traceback = None
@@ -60,8 +69,17 @@ class UploadJob(object):
         self.cache_dir = dcoraid_cache / "compress-{}".format(self.dataset_id)
 
     def cleanup(self):
-        # cleanup temporary files
+        """cleanup temporary files in the user's cache directory"""
         shutil.rmtree(self.cache_dir, ignore_errors=True)
+
+    def get_composite_supplements(self, resource_index):
+        """Return the composite supplements "sp:section:key" for a resource"""
+        sp_dict = self.supplements[resource_index]
+        sp = {}
+        for sec in sp_dict:
+            for key in sp_dict[sec]:
+                sp["sp:{}:{}".format(sec, key)] = sp_dict[sec][key]
+        return sp
 
     def get_dataset_url(self):
         """Return a link to the dataset on DCOR"""
@@ -179,11 +197,20 @@ class UploadJob(object):
             raise ValueError("Can only retry upload in error state!")
 
     def set_state(self, state):
+        """Set the current job state
+
+        The state is checked against :const:`JOB_STATES`
+        """
         if state not in JOB_STATES:
             raise ValueError("Unknown state: '{}'".format(state))
         self.state = state
 
     def task_compress_resources(self):
+        """Compress resources if they are not fully compressed
+
+        Data are stored in the user's cache directory and
+        deleted after upload is complete.
+        """
         self.set_state("compress")
         for ii, path in enumerate(list(self.paths)):
             if path.suffix in [".rtdc", ".dc"]:  # do we have an .rtdc file?
@@ -212,9 +239,11 @@ class UploadJob(object):
                 # Do the things to do and watch self.state while doing so
                 for ii, path in enumerate(self.paths):
                     self.index = ii
+                    resource_name = self.resource_names[ii]
+                    resource_supplement = self.get_composite_supplements(ii)
                     exists = dataset.resource_exists(
                         dataset_id=self.dataset_id,
-                        filename=path.name,
+                        resource_name=resource_name,
                         server=self.server,
                         api_key=self.api_key)
                     if exists:
@@ -227,6 +256,8 @@ class UploadJob(object):
                             dataset.add_resource(
                                 dataset_id=self.dataset_id,
                                 path=path,
+                                resource_name=resource_name,
+                                resource_dict=resource_supplement,
                                 server=self.server,
                                 api_key=self.api_key,
                                 monitor_callback=self.monitor_callback)
@@ -236,7 +267,7 @@ class UploadJob(object):
                             # just check whether the resource is there
                             exists = dataset.resource_exists(
                                 dataset_id=self.dataset_id,
-                                filename=path.name,
+                                resource_name=resource_name,
                                 server=self.server,
                                 api_key=self.api_key)
                             if not exists:
@@ -270,15 +301,15 @@ class UploadJob(object):
                 pass
             else:
                 self.set_state("verify")
-                for path in self.paths:
+                for ii, path in enumerate(self.paths):
+                    resource_name = self.resource_names[ii]
                     # compute SHA256 sum
                     sha = sha256sum(path)
-                    if sha != sha256dict[path.name]:
+                    if sha != sha256dict[resource_name]:
                         self.set_state("error")
                         self.traceback = "SHA256 sum failed for resource " \
-                            + "'{}' ({} vs. {})!".format(path.name,
-                                                         sha,
-                                                         sha256dict[path.name])
+                            + "'{}' ({} vs. {})!".format(
+                                resource_name, sha, sha256dict[resource_name])
                         break
                 else:
                     self.cleanup()
@@ -298,6 +329,7 @@ class UploadJob(object):
 
 @lru_cache(maxsize=2000)
 def sha256sum(path):
+    """Compute the SHA256 sum of a file on disk"""
     block_size = 2**20
     path = pathlib.Path(path)
     file_hash = hashlib.sha256()

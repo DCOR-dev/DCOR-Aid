@@ -77,6 +77,10 @@ class APIInterrogator(DBInterrogator):
         """Return the servers supplementary resource schema"""
         return self.api.get_supplementary_resource_schema()
 
+    def get_supported_resource_suffixes(self):
+        """Return the servers supported resource suffixes"""
+        return self.api.get_supported_resource_suffixes()
+
     @ttl_cache(seconds=3600)
     def get_user_data(self):
         """Return the current user data dictionary"""

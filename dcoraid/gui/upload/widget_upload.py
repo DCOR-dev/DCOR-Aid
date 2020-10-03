@@ -1,5 +1,5 @@
+import pathlib
 import pkg_resources
-import time
 
 from PyQt5 import uic, QtCore, QtWidgets
 
@@ -35,6 +35,11 @@ class UploadWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_draft_upload(self):
+        """Guides the user through the process of creating a dataset
+
+        A draft dataset is created to which the resources are then
+        uploaded.
+        """
         dlg = UploadDialog(self)
         dlg.finished.connect(self.on_run_upload)
         self._upload_dialogs.append(dlg)
@@ -42,10 +47,25 @@ class UploadWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(object)
     def on_run_upload(self, upload_dialog):
-        files = upload_dialog.get_file_list()
+        """Proceed with resource upload as defined by `update_dialog`
+
+        `update_dialog` is an instance of `dlg_upload.UploadDialog`
+        and contains all information necessary to run the resource
+        upload. Supplementary resource metadata is extracted here
+        as well.
+        """
+        rdata = upload_dialog.rvmodel.get_all_data()
+        paths = []
+        names = []
+        supps = []
+        for path in rdata:
+            paths.append(pathlib.Path(path))
+            names.append(rdata[path]["file"]["filename"])
+            supps.append(rdata[path]["supplement"])
         dataset_dict = upload_dialog.dataset_dict
         # add the entry to the job list
-        self.jobs.add_job(dataset_dict, files)
+        self.jobs.add_job(dataset_dict, paths=paths, resource_names=names,
+                          supplements=supps)
 
 
 class UploadTableWidget(QtWidgets.QTableWidget):
@@ -54,9 +74,9 @@ class UploadTableWidget(QtWidgets.QTableWidget):
     def __init__(self, *args, **kwargs):
         super(UploadTableWidget, self).__init__(*args, **kwargs)
         self.jobs = []  # Will become UploadJobList with self.set_job_list
-        self.watcher = UpdateTriggerer()
-        self.watcher.trigger.connect(self.update_job_status)
-        self.watcher.start()
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.update_job_status)
+        self.timer.start(30)
         self._finished_uploads = []
 
     def set_job_list(self, jobs):
@@ -124,6 +144,10 @@ class UploadTableWidget(QtWidgets.QTableWidget):
                 item.setText(label)
 
     def set_actions_item(self, row, col, job):
+        """Set/Create a TableCellActions widget in the table
+
+        Refreshes the widget and also connects signals.
+        """
         wid = self.cellWidget(row, col)
         if wid is None:
             wid = TableCellActions(job)
@@ -131,12 +155,3 @@ class UploadTableWidget(QtWidgets.QTableWidget):
             wid.abort_job.connect(self.on_job_abort)
             self.setCellWidget(row, col, wid)
         wid.refresh_visibility(job)
-
-
-class UpdateTriggerer(QtCore.QThread):
-    trigger = QtCore.pyqtSignal()
-
-    def run(self):
-        while True:
-            self.trigger.emit()
-            time.sleep(1/30)

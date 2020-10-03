@@ -28,15 +28,19 @@ class UploadQueue(object):
             self.dameon_upload.terminate()
             self.daemon_upload = UploadDaemon(self.jobs)
 
-    def add_job(self, dataset_dict, paths):
+    def add_job(self, dataset_dict, paths, resource_names=None,
+                supplements=None):
         """Add a job to the job list"""
         job = UploadJob(dataset_dict=dataset_dict,
                         paths=paths,
+                        resource_names=resource_names,
+                        supplements=supplements,
                         server=self.server,
                         api_key=self.api_key)
         self.jobs.append(job)
 
     def get_job(self, dataset_id):
+        """Return the job instance belonging to the dataset ID"""
         for job in self.jobs:
             if job.dataset_id == dataset_id:
                 return job

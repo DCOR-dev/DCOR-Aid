@@ -2,6 +2,7 @@
  - fix: allow resuming when upload fails (#3)
  - fix: start even if DCOR is down
  - fix: do not display mean upload rate during upload
+ - enh: resource upload supports supplementary resource schemas
  - enh: stick to package_revise when finalizing dataset
  - enh: verify resource uploads via SHA256 sum (#7)
  - enh: fetch license list directly from server

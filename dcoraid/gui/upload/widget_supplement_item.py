@@ -1,47 +1,109 @@
 import pkg_resources
 
-from PyQt5 import uic, QtWidgets
+from PyQt5 import uic, QtCore, QtWidgets
 
 
 class RSSItem(QtWidgets.QWidget):
+    value_changed = QtCore.pyqtSignal()
+
     def __init__(self, rss_dict, *args, **kwargs):
         """Represents an item in the supplementary resource schema"""
         super(RSSItem, self).__init__(*args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "dcoraid.gui.upload", "widget_supplement_item.ui")
         uic.loadUi(path_ui, self)
-        self.apply_schema(rss_dict)
+        self.rss_dict = rss_dict
+        self.apply_schema()
 
-    def apply_schema(self, rss_dict):
+        # signals
+        self.checkBox.clicked.connect(self.on_value_changed)
+        self.spinBox.valueChanged.connect(self.on_value_changed)
+        self.doubleSpinBox.valueChanged.connect(self.on_value_changed)
+        self.lineEdit.textChanged.connect(self.on_value_changed)
+        self.plainTextEdit.textChanged.connect(self.on_value_changed)
+        self.comboBox.currentTextChanged.connect(self.on_value_changed)
+
+    def apply_schema(self):
+        """Initialize the item schema according to self.rss_dict"""
+        rss_dict = self.rss_dict
         self.checkBox.setText(rss_dict["name"])
         self.checkBox.setToolTip(rss_dict.get("hint", None))
 
+        widget = self.get_data_widget()
+        self.show_only_data_widget()
         if "choices" in rss_dict:  # combobox
-            self.show_only_edit_widget(self.comboBox)
+            assert widget is self.comboBox
             self.comboBox.insertItems(0, rss_dict["choices"])
             editable = "choices fixed" not in rss_dict.get("options", [])
             self.comboBox.setEditable(editable)
+        else:
+            example = rss_dict.get("example", None)
+            if example:
+                widget.setToolTip("e.g. {}".format(example))
+
+    def check(self, b):
+        """Check the check box"""
+        self.checkBox.setChecked(b)
+
+    def get_value(self):
+        """Return the value of the current data widget"""
+        _, value = self.get_data_widget(retval=True)
+        return value
+
+    def set_value(self, value):
+        """Set the widget value with the appropriate function"""
+        widget = self.get_data_widget()
+        if widget is self.lineEdit:
+            self.lineEdit.setText(value)
+        elif widget is self.comboBox:
+            self.comboBox.setCurrentText(value)
+        elif widget is self.spinBox or widget is self.doubleSpinBox:
+            widget.setValue(value)
+        elif widget is self.plainTextEdit:
+            widget.setPlainText(value)
+
+    def get_data_widget(self, retval=False):
+        """Return the widget the holds the data according to self.rss_dict"""
+        self.blockSignals(True)
+        rss_dict = self.rss_dict
+        if "choices" in rss_dict:  # combobox
+            widget = self.comboBox
+            value = self.comboBox.currentText()
         else:
             itemtype = rss_dict.get("type", "string")
             if itemtype == "string":
                 if "text" in rss_dict.get("options", []):
                     widget = self.plainTextEdit
+                    value = self.plainTextEdit.toPlainText()
                 else:
                     widget = self.lineEdit
+                    value = self.lineEdit.text()
             elif itemtype == "list":
                 widget = self.lineEdit
+                value = self.lineEdit.text()
             elif itemtype == "float":
                 widget = self.doubleSpinBox
+                value = self.doubleSpinBox.value()
             elif itemtype == "integer":
                 widget = self.spinBox
+                value = self.spinBox.value()
             else:
                 raise ValueError("No rule to process item {}".format(rss_dict))
-            self.show_only_edit_widget(widget)
-            example = rss_dict.get("example", None)
-            if example:
-                widget.setToolTip("e.g. {}".format(example))
+        self.blockSignals(False)
+        if retval:
+            return widget, value
+        else:
+            return widget
 
-    def show_only_edit_widget(self, widget):
+    @QtCore.pyqtSlot()
+    def on_value_changed(self):
+        """If checkbox is set, emit value_changed signal"""
+        if self.checkBox.isChecked():
+            self.value_changed.emit()
+
+    def show_only_data_widget(self):
+        """Convenience function that hides all but the data widget"""
+        widget = self.get_data_widget()
         for ww in [self.comboBox,
                    self.doubleSpinBox,
                    self.lineEdit,

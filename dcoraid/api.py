@@ -6,8 +6,11 @@ import requests
 #: List of license lists for each DCOR server
 SERVER_LICENCES = {}
 
-#: List of of supplementary resource schema dictionaries
+#: List of supplementary resource schema dictionaries
 SERVER_RSS = {}
+
+#: List of supported resource suffixes
+SERVER_RSUFFIX = {}
 
 
 class APIError(BaseException):
@@ -88,22 +91,27 @@ class CKANAPI():
             api_call += "?" + "&".join(kwv)
         url_call = self.api_url + api_call
         req = requests.get(url_call, headers=self.headers)
-        if not req.ok:
-            if req.reason == "NOT FOUND":
-                raise APINotFoundError("Not found: '{}'".format(url_call))
-            else:
-                raise ConnectionError(
-                    "Could not run API call '{}'! ".format(url_call)
-                    + "Reason: {}".format(req.reason))
-        data = req.json()
-        if isinstance(data, str):
+        try:
+            rdata = req.json()
+        except BaseException:
+            rdata = {}
+        if isinstance(rdata, str):
             raise ValueError(
-                "Command did not succeed, output: '{}'".format(data))
-        elif not data["success"]:
+                "Command did not succeed, output: '{}'".format(rdata))
+        if not req.ok:
+            error = rdata.get("error", {})
+            etype = error.get("__type", req.reason)
+            etext = "; ".join(error.get("name", []))
+            msg = "{}: {} (for '{}')".format(etype, etext, api_call)
+            if req.reason == "NOT FOUND":
+                raise APINotFoundError(msg)
+            else:
+                raise ConnectionError(msg)
+        elif not rdata["success"]:
             raise ConnectionError(
                 "Could not run API call '{}'! ".format(url_call)
-                + "Reason: {} ({})".format(req.reason, data["error"]))
-        return data["result"]
+                + "Reason: {} ({})".format(req.reason, rdata["error"]))
+        return rdata["result"]
 
     def get_license_list(self):
         """Return the servers license list
@@ -117,11 +125,21 @@ class CKANAPI():
     def get_supplementary_resource_schema(self):
         """Return the servers supplementary resource schema
 
-        License lists are cached in :const:`SERVER_LICENCES`.
+        Schemas are cached in :const:`SERVER_RSS`.
         """
         if self.api_url not in SERVER_RSS:
             SERVER_RSS[self.api_url] = self.get("resource_schema_supplements")
         return copy.deepcopy(SERVER_RSS[self.api_url])
+
+    def get_supported_resource_suffixes(self):
+        """Return the servers supported resource suffixes
+
+        Suffix lists are cached in :const:`SERVER_RSUFFIX`.
+        """
+        if self.api_url not in SERVER_RSUFFIX:
+            SERVER_RSUFFIX[self.api_url] = self.get(
+                "supported_resource_suffixes")
+        return copy.deepcopy(SERVER_RSUFFIX[self.api_url])
 
     def get_user_dict(self):
         """Return the current user data dictionary
@@ -180,23 +198,30 @@ class CKANAPI():
         req = requests.post(url_call,
                             data=data,
                             headers=new_headers)
+        try:
+            rdata = req.json()
+        except BaseException:
+            rdata = {}
+        if isinstance(rdata, str):
+            raise ValueError(
+                "Command did not succeed, output: '{}'".format(rdata))
         if not req.ok:
+            error = rdata.get("error", {})
+            etype = error.get("__type", req.reason)
+            etext = "; ".join(error.get("name", []))
+            msg = "{}: {} (for '{}')".format(etype, etext, api_call)
             if req.reason == "NOT FOUND":
-                raise APINotFoundError("{}: {}".format(api_call, data))
+                raise APINotFoundError(msg)
             elif req.reason == "CONFLICT":
-                raise APIConflictError("{}: {}".format(api_call, data))
+                raise APIConflictError(msg)
             elif req.reason == "Gateway Time-out":
-                raise APIGatewayTimeoutError("{}: {}".format(api_call, data))
+                raise APIGatewayTimeoutError(msg)
             elif req.reason == "Bad Gateway":
-                raise APIBadGatewayError("{}: {}".format(api_call, data))
+                raise APIBadGatewayError(msg)
             else:
-                raise ConnectionError(
-                    "Could not run API call '{}'! ".format(url_call)
-                    + "Reason: '{}' ".format(req.reason)
-                    + "Data: '{}'".format(data))
-        data = req.json()
-        if not data["success"]:
+                raise ConnectionError(msg)
+        if not rdata["success"]:
             raise ConnectionError(
                 "Could not run API call '{}'! ".format(url_call)
-                + "Reason: {} ({})".format(req.reason, data["error"]))
-        return data["result"]
+                + "Reason: {} ({})".format(req.reason, rdata["error"]))
+        return rdata["result"]

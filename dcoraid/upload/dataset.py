@@ -31,7 +31,8 @@ def activate_dataset(dataset_id, server, api_key):
     assert res["package"]["state"] == "active", "{}".format(res)
 
 
-def add_resource(dataset_id, path, server, api_key, monitor_callback=None):
+def add_resource(dataset_id, path, server, api_key, resource_name=None,
+                 resource_dict={}, monitor_callback=None):
     """Add a resource to a dataset
 
     Parameters
@@ -44,6 +45,11 @@ def add_resource(dataset_id, path, server, api_key, monitor_callback=None):
         server domain name
     api_key: str
         API key of the CKAN/DCOR user
+    resource_name: str
+        Alternate resource name, if not set `path.name` is used
+    resource_dict: dict
+        Dictionary of resource meta data (used for supplementary
+        resource schemas "sp:section:key")
     monitor_callback: None or callable
         This callable is used to monitor the upload progress. It must
         accept one argument: a
@@ -55,17 +61,25 @@ def add_resource(dataset_id, path, server, api_key, monitor_callback=None):
         An implementation of an upload job that monitors progress.
     """
     path = pathlib.Path(path)
+    if resource_name is None:
+        resource_name = path.name
     api = CKANAPI(server=server, api_key=api_key)
-    e = MultipartEncoder(
-        fields={'package_id': dataset_id,
-                'name': path.name,
-                'upload': (path.name, path.open('rb'))}
-    )
+    e = MultipartEncoder(fields={
+        'package_id': dataset_id,
+        'name': resource_name,
+        'upload': (resource_name, path.open('rb'))})
     m = MultipartEncoderMonitor(e, monitor_callback)
-    api.post("resource_create",
-             data=m,
-             dump_json=False,
-             headers={"Content-Type": m.content_type})
+    # perform upload
+    data = api.post("resource_create",
+                    data=m,
+                    dump_json=False,
+                    headers={"Content-Type": m.content_type})
+    if resource_dict:
+        # add resource_dict
+        revise_dict = {
+            "match": {"id": dataset_id},
+            "update__resources__{}".format(data["id"]): resource_dict}
+        api.post("package_revise", revise_dict)
 
 
 def create_dataset(dataset_dict, server, api_key, resources=[],
@@ -160,12 +174,12 @@ def remove_all_drafts(server, api_key):
     return data["results"]
 
 
-def resource_exists(dataset_id, filename, server, api_key):
+def resource_exists(dataset_id, resource_name, server, api_key):
     """Check whether a resource exists in a dataset"""
     api = CKANAPI(server=server, api_key=api_key)
     pkg_dict = api.get("package_show", id=dataset_id)
     for resource in pkg_dict["resources"]:
-        if resource["name"] == filename:
+        if resource["name"] == resource_name:
             return True
     else:
         return False

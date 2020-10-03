@@ -1,12 +1,15 @@
 from functools import lru_cache
 import pathlib
 import pkg_resources
+import traceback as tb
 
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
 from ...api import CKANAPI
 from ...upload import create_dataset
 from ...settings import SettingsFile
+
+from .resources_model import ResourcesModel
 
 
 class UploadDialog(QtWidgets.QMainWindow):
@@ -62,10 +65,23 @@ class UploadDialog(QtWidgets.QMainWindow):
             QtGui.QKeySequence("Ctrl+Alt+Shift+T"), self)
         self.shortcut.activated.connect(self._autofill_for_testing)
 
+        # Setup resources view
+        self.rvmodel = ResourcesModel()
+        self.listView_resources.setModel(self.rvmodel)
+        self.selModel = self.listView_resources.selectionModel()
+
+        # Effectively hide resource schema options initially
+        self.on_selection_changed()
+
         # signal slots
         self.toolButton_add.clicked.connect(self.on_add_resources)
         self.toolButton_rem.clicked.connect(self.on_rem_resources)
         self.pushButton_proceed.clicked.connect(self.on_proceed)
+        self.lineEdit_res_filename.textChanged.connect(
+            self.on_update_resources_model)
+        self.widget_schema.schema_changed.connect(
+            self.on_update_resources_model)
+        self.selModel.selectionChanged.connect(self.on_selection_changed)
 
     def _autofill_for_testing(self, **kwargs):
         self.lineEdit_title.setText(kwargs.get("title", "Dataset Title"))
@@ -83,7 +99,7 @@ class UploadDialog(QtWidgets.QMainWindow):
         relpath = "../../../tests/data/calibration_beads_47.rtdc"
         path = pathlib.Path(__file__).resolve().parent / relpath
         if path.exists():
-            self.listWidget_resources.addItem(str(path.resolve()))
+            self.on_add_resources([str(path.resolve())])
 
     @classmethod
     @lru_cache(maxsize=1)
@@ -95,44 +111,9 @@ class UploadDialog(QtWidgets.QMainWindow):
                           permission="create_dataset")
         return circles
 
-    @QtCore.pyqtSlot()
-    def on_add_resources(self):
-        """Ask the user to specify files to add"""
-        files, _ = QtWidgets.QFileDialog.getOpenFileNames(
-            self, "Resources to upload", ".", "")
-        for ff in files:
-            self.listWidget_resources.addItem(ff)
-
-    @QtCore.pyqtSlot()
-    def on_rem_resources(self):
-        """Remove the selected resources"""
-        sel = self.listWidget_resources.selectedItems()
-        for item in sel:
-            row = self.listWidget_resources.row(item)
-            self.listWidget_resources.takeItem(row)
-
-    @QtCore.pyqtSlot()
-    def on_proceed(self):
-        """User is done and clicked the proceed button
-
-        This will first trigger a creation of the draft dataset
-        on DCOR. Then, the job is enqueued in the parent
-        """
-        self.setHidden(True)
-        # Try to create the dataset and display any issues with the metadata
-        data = create_dataset(dataset_dict=self.assemble_metadata(),
-                              server=self.api.api_url,
-                              api_key=self.api.api_key
-                              )
-        # Remember the dataset identifier
-        self.dataset_dict = data
-        self.dataset_id = data["id"]
-        # signal that we are clear to proceed
-        self.finished.emit(self)
-        self.close()
-
     def assemble_metadata(self):
         """Get all the metadata from the form"""
+        # Dataset
         tags = []
         for tt in self.lineEdit_tags.text().replace(" ", "").split(","):
             if tt:
@@ -151,10 +132,113 @@ class UploadDialog(QtWidgets.QMainWindow):
         }
         return dataset_dict
 
-    def get_file_list(self):
-        """Return the paths of the files to be uploaded"""
-        files = []
-        for ii in range(self.listWidget_resources.count()):
-            files.append(
-                pathlib.Path(self.listWidget_resources.item(ii).text()))
-        return files
+    @QtCore.pyqtSlot()
+    def on_add_resources(self, files=None):
+        """Ask the user to specify files to add"""
+        if files is None:
+            suffixes = self.api.get_supported_resource_suffixes()
+            files, _ = QtWidgets.QFileDialog.getOpenFileNames(
+                self, "Resources to upload", ".",
+                "Supported file types ({})".format(
+                    " ".join(["*{}".format(s) for s in suffixes])))
+        self.rvmodel.add_resources(files)
+
+    @QtCore.pyqtSlot()
+    def on_selection_changed(self):
+        """User changed the ListView selection; Refresh side panel"""
+        sel = self.listView_resources.selectedIndexes()
+        seltype = self.rvmodel.get_indexes_types(sel)
+        # Resource options
+        if len(sel) == 1:  # a single resource; show resource options
+            self.groupBox_res_info.show()
+            # populate
+            path, data = self.rvmodel.get_data_for_index(sel[0])
+            self.lineEdit_res_filename.blockSignals(True)
+            self.lineEdit_res_filename.setText(data["file"]["filename"])
+            self.lineEdit_res_filename.blockSignals(False)
+            self.lineEdit_res_path.setText(path)
+        else:  # hide resource options
+            self.groupBox_res_info.hide()
+        # Supplement options
+        if seltype in ["dc", "mixed"]:
+            self.widget_supplement.show()
+            # populate
+            common = self.rvmodel.get_common_supplements_from_indexes(sel)
+            self.widget_schema.set_schema(common)
+        else:
+            self.widget_supplement.hide()
+
+    @QtCore.pyqtSlot()
+    def on_proceed(self):
+        """User is done and clicked the proceed button
+
+        This will first trigger a creation of the draft dataset
+        on DCOR. Then, the job is enqueued in the parent
+        """
+        # Checking for duplicate resources is the responsibility of
+        # DCOR-Aid, because we are skipping existing resources in
+        # dcoraid.upload.job.UploadJob..taks_upload_resources.
+        if not self.rvmodel.filenames_are_unique():
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Critical)
+            msg.setText("Please make sure that all resources have a unique "
+                        "file name. Resources with identical file names are "
+                        "not supported by DCOR.")
+            msg.setWindowTitle("Resource names not unique")
+            msg.exec_()
+            return
+        # Try to create the dataset and display any issues with the metadata
+        try:
+            data = create_dataset(dataset_dict=self.assemble_metadata(),
+                                  server=self.api.api_url,
+                                  api_key=self.api.api_key
+                                  )
+        except BaseException:
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Critical)
+            msg.setText("It was not possible to create a dataset draft. "
+                        "If this is not a connection problem, please consider "
+                        "creating an <a href='"
+                        "https://github.com/DCOR-dev/DCOR-Aid/issues"
+                        "'>issue on GitHub</a>.")
+            msg.setWindowTitle("Dataset creation failed")
+            msg.setDetailedText(tb.format_exc())
+            msg.exec_()
+            return
+        self.setHidden(True)
+        # Remember the dataset identifier
+        self.dataset_dict = data
+        self.dataset_id = data["id"]
+        # signal that we are clear to proceed
+        self.finished.emit(self)
+        self.close()
+
+    @QtCore.pyqtSlot()
+    def on_rem_resources(self):
+        """Remove the selected resources"""
+        sel = self.listView_resources.selectedIndexes()
+        self.rvmodel.rem_resources(sel)
+        self.listView_resources.clearSelection()
+
+    @QtCore.pyqtSlot()
+    def on_update_resources_model(self):
+        """Assemble metadata dictionary and update self.rvmodel"""
+        data_dict = {}
+        sel = self.listView_resources.selectedIndexes()
+        if len(sel) == 0:  # nothing to do
+            return
+        elif len(sel) == 1:  # update file name
+            path = pathlib.Path(self.rvmodel.get_data_for_index(sel[0])[0])
+            suffix = path.suffix
+            # prevent users from changing the suffix
+            fn = self.lineEdit_res_filename.text()
+            if not fn.endswith(suffix):
+                fn += suffix
+                self.lineEdit_res_filename.blockSignals(True)
+                self.lineEdit_res_filename.setText(fn)
+                self.lineEdit_res_filename.blockSignals(False)
+            data_dict["file"] = {"filename": fn}
+        # collect supplementary resource data
+        schema = self.widget_schema.get_current_schema()
+        data_dict["supplement"] = schema
+        self.rvmodel.update_resources(sel, data_dict)

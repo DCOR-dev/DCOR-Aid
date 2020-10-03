@@ -56,7 +56,7 @@ class TableCellActions(QtWidgets.QWidget):
         self.job = job
         state = job.state
 
-        if state in ["finalize", "verify", "online", "done"]:
+        if state in ["online", "verify", "finalize", "done"]:
             self.tb_view.show()
         else:
             self.tb_view.hide()
@@ -76,8 +76,7 @@ class TableCellActions(QtWidgets.QWidget):
         else:
             self.tb_abort.hide()
 
-        if state in ["init", "parcel", "verify", "online", "done", "abort",
-                     "error"]:
+        if state not in ["compress", "transfer"]:
             self.tb_delete.show()
         else:
             self.tb_delete.hide()
