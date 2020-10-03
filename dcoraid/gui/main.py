@@ -50,8 +50,6 @@ class DCORAid(QtWidgets.QMainWindow):
         # GUI
         # Preferences dialog
         self.dlg_pref = PreferencesDialog()
-        self.dlg_pref.server_changed.connect(self.refresh_private_data)
-        self.dlg_pref.server_changed.connect(self.refresh_login_status)
         # Window title
         self.setWindowTitle("DCOR-Aid {}".format(__version__))
         # Disable native menubar (e.g. on Mac)

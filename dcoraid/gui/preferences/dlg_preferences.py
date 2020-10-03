@@ -11,7 +11,6 @@ from ..tools import show_wait_cursor
 class PreferencesDialog(QtWidgets.QMainWindow):
     show_server = QtCore.pyqtSignal()
     show_user = QtCore.pyqtSignal()
-    server_changed = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         """Create a new window for preferences
@@ -28,17 +27,46 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         self.toolButton_user_update.clicked.connect(self.on_update_user)
         self.toolButton_server_update.clicked.connect(self.on_update_server)
         self.toolButton_api_key_purge.clicked.connect(self.on_api_key_purge)
-        self.server_changed.connect(self.show_server)
+        self.toolButton_eye.clicked.connect(self.on_toggle_api_password_view)
 
         self.settings = SettingsFile()
         if self.settings.get_string("api key"):
             # hidden initially if user already entered an API key
             self.hide()
 
+    def ask_change_server_or_api_key(self):
+        """Ask user whether he really wants to change things
+
+        ...because it implies a restart of DCOR-Aid.
+        """
+        buttonReply = QtWidgets.QMessageBox.question(
+            self,
+            'DCOR-Aid restart required',
+            "Changing the server or API key requires a restart of "
+            + "DCOR-Aid. If you choose 'No', then the original server "
+            + "and API key are NOT changed. Do you really want to quit "
+            + "DCOR-Aid?",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            QtWidgets.QMessageBox.No)
+        if buttonReply == QtWidgets.QMessageBox.Yes:
+            return True
+        else:
+            return False
+
+    @QtCore.pyqtSlot()
+    def on_toggle_api_password_view(self):
+        cur_em = self.lineEdit_api_key.echoMode()
+        if cur_em == QtWidgets.QLineEdit.Normal:
+            new_em = QtWidgets.QLineEdit.PasswordEchoOnEdit
+        else:
+            new_em = QtWidgets.QLineEdit.Normal
+        self.lineEdit_api_key.setEchoMode(new_em)
+
     @QtCore.pyqtSlot()
     def on_api_key_purge(self):
-        self.settings.delete_key("api key")
-        self.server_changed.emit()
+        if self.ask_change_server_or_api_key():
+            self.settings.delete_key("api key")
+            QtWidgets.QApplication.quit()
 
     @QtCore.pyqtSlot()
     def on_show_server(self):
@@ -48,6 +76,8 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         self.comboBox_server.setCurrentText(self.settings.get_string("server"))
         self.lineEdit_api_key.setText(self.settings.get_string("api key"))
         self.tabWidget.setCurrentIndex(0)  # server settings
+        self.lineEdit_api_key.setEchoMode(
+            QtWidgets.QLineEdit.PasswordEchoOnEdit)
         self.show()
         self.activateWindow()
 
@@ -106,6 +136,8 @@ class PreferencesDialog(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     @show_wait_cursor
     def on_update_server(self):
+        old_server = self.settings.get_string("server"),
+        old_api_key = self.settings.get_string("api key")
         api_key = self.lineEdit_api_key.text()
         api_key = "".join([ch for ch in api_key if ch in "0123456789abcdef-"])
         server = self.comboBox_server.currentText().strip()
@@ -121,6 +153,8 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             msg.setDetailedText(tb.format_exc())
             msg.exec_()
         else:
-            self.settings.set_string("api key", api_key)
-            self.settings.set_string("server", server)
-            self.server_changed.emit()
+            if old_server != server or old_api_key != api_key:
+                if self.ask_change_server_or_api_key():
+                    self.settings.set_string("api key", api_key)
+                    self.settings.set_string("server", server)
+                    QtWidgets.QApplication.quit()
