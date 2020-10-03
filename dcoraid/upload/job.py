@@ -74,11 +74,12 @@ class UploadJob(object):
 
     def get_composite_supplements(self, resource_index):
         """Return the composite supplements "sp:section:key" for a resource"""
-        sp_dict = self.supplements[resource_index]
         sp = {}
-        for sec in sp_dict:
-            for key in sp_dict[sec]:
-                sp["sp:{}:{}".format(sec, key)] = sp_dict[sec][key]
+        if self.supplements:
+            sp_dict = self.supplements[resource_index]
+            for sec in sp_dict:
+                for key in sp_dict[sec]:
+                    sp["sp:{}:{}".format(sec, key)] = sp_dict[sec][key]
         return sp
 
     def get_dataset_url(self):
