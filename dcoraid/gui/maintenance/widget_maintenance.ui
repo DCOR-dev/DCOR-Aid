@@ -16,8 +16,24 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QToolButton" name="toolButton_drafts">
+     <property name="toolTip">
+      <string>Remove all draft datasets created on DCOR (these might have been the result of failed uploads)</string>
+     </property>
      <property name="text">
-      <string>Remove Draft datasets</string>
+      <string>Remove DCOR draft datasets</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QToolButton" name="toolButton">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="toolTip">
+      <string>Remove the local DCOR-Aid cache directory (this directory might contain compressed resource files from unexpectedly interrupted uploads)</string>
+     </property>
+     <property name="text">
+      <string>Clear local upload cache</string>
      </property>
     </widget>
    </item>
