@@ -9,16 +9,16 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="105.76839mm"
-   height="43.964176mm"
-   viewBox="0 0 105.7684 43.964177"
+   width="400"
+   height="170"
+   viewBox="0 0 105.83334 44.979167"
    version="1.1"
    id="svg1125"
    inkscape:version="0.92.3 (2405546, 2018-03-11)"
    sodipodi:docname="splash.svg"
    inkscape:export-filename="/home/paul/repos/DCOR-Aid/dcoraid/img/splash.png"
-   inkscape:export-xdpi="94.81073"
-   inkscape:export-ydpi="94.81073">
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96">
   <defs
      id="defs1119">
     <clipPath
@@ -126,16 +126,16 @@
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1.0"
+     bordercolor="#ff0000"
+     borderopacity="1"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4142136"
-     inkscape:cx="162.09112"
-     inkscape:cy="126.43122"
+     inkscape:zoom="2.3723433"
+     inkscape:cx="205.24983"
+     inkscape:cy="34.812391"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
-     showgrid="false"
+     showgrid="true"
      fit-margin-top="0"
      fit-margin-left="0"
      fit-margin-right="0"
@@ -145,7 +145,24 @@
      inkscape:window-x="57"
      inkscape:window-y="27"
      inkscape:window-maximized="1"
-     inkscape:snap-global="false" />
+     inkscape:snap-global="true"
+     units="px"
+     inkscape:snap-page="true"
+     showguides="false"
+     inkscape:snap-others="true"
+     inkscape:object-nodes="false"
+     inkscape:snap-nodes="false"
+     inkscape:snap-bbox="true"
+     inkscape:bbox-nodes="true"
+     inkscape:pagecheckerboard="false"
+     borderlayer="false"
+     inkscape:showpageshadow="false">
+    <inkscape:grid
+       type="xygrid"
+       id="grid836"
+       empspacing="1"
+       dotted="true" />
+  </sodipodi:namedview>
   <metadata
      id="metadata1122">
     <rdf:RDF>
@@ -162,14 +179,23 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-82.086403,-107.08311)">
+     transform="translate(-82.086403,-106.06812)">
     <rect
-       style="opacity:1;fill:#ffffff;fill-opacity:0.76213594;fill-rule:nonzero;stroke:#000000;stroke-width:0.31141612;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers stroke fill"
-       id="rect832-3"
-       width="105.45698"
-       height="43.65276"
-       x="82.242111"
-       y="107.23882" />
+       style="opacity:1;fill:#ffffff;fill-opacity:0.77927929;fill-rule:nonzero;stroke:none;stroke-width:0.26458332;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.99099097;paint-order:markers stroke fill"
+       id="rect4542-4"
+       width="105.83334"
+       height="44.979164"
+       x="82.086403"
+       y="106.06812"
+       ry="0" />
+    <rect
+       style="opacity:1;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#616161;stroke-width:0.26458333;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.990991;paint-order:markers stroke fill"
+       id="rect4542"
+       width="105.56875"
+       height="44.714584"
+       x="82.218697"
+       y="106.20041"
+       ry="0" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.49122858px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.06273993;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;filter:url(#filter1296-7)"
@@ -187,14 +213,15 @@
    id="tspan840">Aid</tspan></tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.49122858px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#393939;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="159.03586"
-       y="148.59517"
-       id="text1001"><tspan
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.1376729px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#393939;fill-opacity:1;stroke:none;stroke-width:0.26458329"
+       x="173.34007"
+       y="147.21173"
+       id="text1001"
+       transform="scale(0.98495145,1.0152785)"><tspan
          sodipodi:role="line"
          id="tspan999"
-         x="159.03586"
-         y="148.59517"
-         style="fill:#393939;fill-opacity:1;stroke-width:0.26458332">initializing...</tspan></text>
+         x="173.34007"
+         y="147.21173"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.74546337px;line-height:3.92209077px;font-family:sans-serif;-inkscape-font-specification:sans-serif;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#393939;fill-opacity:1;stroke-width:0.26458329">initializing...</tspan></text>
   </g>
 </svg>
