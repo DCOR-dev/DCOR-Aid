@@ -61,6 +61,11 @@ class RSSItem(QtWidgets.QWidget):
             widget.setValue(value)
         elif widget is self.plainTextEdit:
             widget.setPlainText(value)
+        elif widget is self.widget_bool:
+            if value:
+                self.radioButton_yes.setChecked(True)
+            else:
+                self.radioButton_no.setChecked(True)
 
     def get_data_widget(self, retval=False):
         """Return the widget the holds the data according to self.rss_dict"""
@@ -87,6 +92,9 @@ class RSSItem(QtWidgets.QWidget):
             elif itemtype == "integer":
                 widget = self.spinBox
                 value = self.spinBox.value()
+            elif itemtype == "boolean":
+                widget = self.widget_bool
+                value = self.radioButton_yes.isChecked()
             else:
                 raise ValueError("No rule to process item {}".format(rss_dict))
         self.blockSignals(False)
@@ -108,6 +116,7 @@ class RSSItem(QtWidgets.QWidget):
                    self.doubleSpinBox,
                    self.lineEdit,
                    self.plainTextEdit,
-                   self.spinBox]:
+                   self.spinBox,
+                   self.widget_bool]:
             if ww is not widget:
                 ww.hide()
