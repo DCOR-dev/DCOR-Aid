@@ -22,6 +22,8 @@ class RSSItem(QtWidgets.QWidget):
         self.lineEdit.textChanged.connect(self.on_value_changed)
         self.plainTextEdit.textChanged.connect(self.on_value_changed)
         self.comboBox.currentTextChanged.connect(self.on_value_changed)
+        self.radioButton_yes.clicked.connect(self.on_value_changed)
+        self.radioButton_no.clicked.connect(self.on_value_changed)
 
     def apply_schema(self):
         """Initialize the item schema according to self.rss_dict"""
@@ -40,6 +42,8 @@ class RSSItem(QtWidgets.QWidget):
             example = rss_dict.get("example", None)
             if example:
                 widget.setToolTip("e.g. {}".format(example))
+        if "unit" in rss_dict:
+            self.doubleSpinBox.setSuffix(" " + rss_dict["unit"])
 
     def check(self, b):
         """Check the check box"""
@@ -105,9 +109,13 @@ class RSSItem(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_value_changed(self):
-        """If checkbox is set, emit value_changed signal"""
-        if self.checkBox.isChecked():
-            self.value_changed.emit()
+        """Activate checkbox and emit value_changed signal"""
+        if self.sender() == self.checkBox and not self.checkBox.isChecked():
+            # Do not check the checkBox again if the user unchecks it
+            pass
+        else:
+            self.checkBox.setChecked(True)
+        self.value_changed.emit()
 
     def show_only_data_widget(self):
         """Convenience function that hides all but the data widget"""
