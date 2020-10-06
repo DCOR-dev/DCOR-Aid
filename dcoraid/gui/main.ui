@@ -21,7 +21,7 @@
        <bool>true</bool>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_browse">
        <property name="enabled">
@@ -434,6 +434,7 @@
      <string>File</string>
     </property>
     <addaction name="separator"/>
+    <addaction name="actionSetupWizard"/>
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
@@ -470,6 +471,11 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionSetupWizard">
+   <property name="text">
+    <string>Setup wizard</string>
    </property>
   </action>
  </widget>

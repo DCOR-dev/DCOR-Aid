@@ -101,7 +101,10 @@ class CKANAPI():
         if not req.ok:
             error = rdata.get("error", {})
             etype = error.get("__type", req.reason)
-            etext = "; ".join(error.get("name", []))
+            etext = ""
+            for key in error:
+                if not key.startswith("_"):
+                    etext += "{}: {}".format(key, error[key])
             msg = "{}: {} (for '{}')".format(etype, etext, api_call)
             if req.reason == "NOT FOUND":
                 raise APINotFoundError(msg)
@@ -208,7 +211,10 @@ class CKANAPI():
         if not req.ok:
             error = rdata.get("error", {})
             etype = error.get("__type", req.reason)
-            etext = "; ".join(error.get("name", []))
+            etext = ""
+            for key in error:
+                if not key.startswith("_"):
+                    etext += "{}: {}".format(key, error[key])
             msg = "{}: {} (for '{}')".format(etype, etext, api_call)
             if req.reason == "NOT FOUND":
                 raise APINotFoundError(msg)

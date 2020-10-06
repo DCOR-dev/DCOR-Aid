@@ -2,9 +2,9 @@
 Name=DCORAidMix
 Comment=Mix of themes for DCOR-Aid
 
-Directories=shapeout2,breeze/actions/16,breeze/actions/22,breeze/actions/24,breeze/actions/32,breeze/status/16,breeze/status/22,breeze/status/24,breeze/status/64,fontawesome/solid
+Directories=dcoraid,breeze/actions/16,breeze/actions/22,breeze/actions/24,breeze/actions/32,breeze/status/16,breeze/status/22,breeze/status/24,breeze/status/64,fontawesome/solid
 
-[shapeout2]
+[dcoraid]
 Size=16
 Type=Fixed
 

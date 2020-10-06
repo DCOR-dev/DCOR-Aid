@@ -18,6 +18,7 @@ from .._version import version as __version__
 
 from .preferences import PreferencesDialog
 from .tools import run_async
+from .wizard import SetupWizard
 
 # set Qt icon theme search path
 QtGui.QIcon.setThemeSearchPaths([
@@ -56,6 +57,7 @@ class DCORAid(QtWidgets.QMainWindow):
         self.menubar.setNativeMenuBar(False)
         # File menu
         self.actionPreferences.triggered.connect(self.dlg_pref.show_server)
+        self.actionSetupWizard.triggered.connect(self.on_wizard)
         # Help menu
         self.actionSoftware.triggered.connect(self.on_action_software)
         self.actionAbout.triggered.connect(self.on_action_about)
@@ -77,6 +79,9 @@ class DCORAid(QtWidgets.QMainWindow):
         self.refresh_private_data()
         # If a new dataset has been uploaded, refresh private data
         self.panel_upload.upload_finished.connect(self.refresh_private_data)
+        if not self.settings.get_string("api key"):
+            # User has not done anything yet
+            self.on_wizard()
 
     def on_action_about(self):
         about_text = "GUI for managing data on DCOR."
@@ -103,6 +108,10 @@ class DCORAid(QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.information(self,
                                           "Software",
                                           sw_text)
+
+    def on_wizard(self):
+        self.wizard = SetupWizard(self)
+        self.wizard.exec_()
 
     @run_async
     @QtCore.pyqtSlot()

@@ -44,7 +44,10 @@ icons = {
         "ban",
         "book",
         "check-double",
+        "child",
         "circle",
+        "clinic-medical",
+        "cogs",
         "eye",
         "exclamation-triangle",
         "filter",
@@ -149,9 +152,9 @@ if __name__ == "__main__":
     with (here / "index.theme").open("w") as fd:
         directories = sorted(set(directories))
         fd.write(index.format(directories=",".join(
-            ["shapeout2"] + directories)))
+            ["dcoraid"] + directories)))
         # Shape-Out icons
-        fd.write(index_item.format(directory="shapeout2", res="16"))
+        fd.write(index_item.format(directory="dcoraid", res="16"))
         # theme icons
         for dd in directories:
             for res in ["16", "22", "24", "32", "64", "128"]:

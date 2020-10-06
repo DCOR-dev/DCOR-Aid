@@ -30,9 +30,8 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         self.toolButton_eye.clicked.connect(self.on_toggle_api_password_view)
 
         self.settings = SettingsFile()
-        if self.settings.get_string("api key"):
-            # hidden initially if user already entered an API key
-            self.hide()
+        # hidden initially
+        self.hide()
 
     def ask_change_server_or_api_key(self):
         """Ask user whether he really wants to change things
@@ -136,7 +135,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     @show_wait_cursor
     def on_update_server(self):
-        old_server = self.settings.get_string("server"),
+        old_server = self.settings.get_string("server")
         old_api_key = self.settings.get_string("api key")
         api_key = self.lineEdit_api_key.text()
         api_key = "".join([ch for ch in api_key if ch in "0123456789abcdef-"])
