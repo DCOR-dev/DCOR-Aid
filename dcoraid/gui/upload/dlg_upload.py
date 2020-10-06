@@ -52,7 +52,7 @@ class UploadDialog(QtWidgets.QMainWindow):
         self.widget_schema.populate_schema(rss)
 
         # Set circle choices
-        circles = UploadDialog.get_user_circle_dicts()
+        circles = self.get_user_circle_dicts()
         for ci in circles:
             self.comboBox_circles.addItem(ci["title"], ci["name"])
 
@@ -101,14 +101,35 @@ class UploadDialog(QtWidgets.QMainWindow):
         if path.exists():
             self.on_add_resources([str(path.resolve())])
 
-    @classmethod
     @lru_cache(maxsize=1)
-    def get_user_circle_dicts(cls):
-        settings = SettingsFile()
-        api = CKANAPI(server=settings.get_string("server"),
-                      api_key=settings.get_string("api key"))
-        circles = api.get("organization_list_for_user",
-                          permission="create_dataset")
+    def get_user_circle_dicts(self):
+        circles = self.api.get("organization_list_for_user",
+                               permission="create_dataset")
+        if not circles:
+            # Ask the user whether he would like to create a circle.
+            ud = self.api.get_user_dict()
+            name = ud["fullname"] if ud["fullname"] else ud["name"]
+            text, okPressed = QtWidgets.QInputDialog.getText(
+                self,
+                "Circle required",
+                "You do not have access to any existing Circles. To upload\n"
+                + "datasets, you need to be either Editor or Admin in\n"
+                + "a Circle. You may create a Circle now or cancel and ask\n"
+                + "a colleague to add you to a Circle (Your user name is "
+                + "'{}').".format(ud["name"])
+                + "\n\nTo proceed with Circle creation, please choose a name:",
+                QtWidgets.QLineEdit.Normal,
+                "{}'s Circle".format(name))
+            if okPressed and text != '':
+                cname = "user-circle-{}".format(ud["name"])
+                cdict = self.api.post("organization_create",
+                                      data={"name": cname,
+                                            "title": text.strip(),
+                                            })
+                circles.append(cdict)
+            else:
+                self.deleteLater()
+                self.close()
         return circles
 
     def assemble_metadata(self):

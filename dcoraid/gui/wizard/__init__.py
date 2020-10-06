@@ -39,7 +39,7 @@ def get_dcor_dev_api_key():
             + "to view your private datasets online. If you would like "
             + "to test private datasets, please record this: "
             + "\n\n user: {}\n password: {}".format(usr, pwd)
-            + "\n\n alternatively, you could at any point set a valid "
+            + "\n\nAlternatively, you could at any point set a valid "
             + "email address in the user preferences.")
     return api_key
 

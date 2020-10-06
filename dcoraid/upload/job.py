@@ -84,6 +84,7 @@ class UploadJob(object):
 
     def get_dataset_url(self):
         """Return a link to the dataset on DCOR"""
+        # The API prepends missing "https://"
         cpi = api.CKANAPI(server=self.server, api_key=self.api_key)
         return "{}/dataset/{}".format(cpi.server, self.dataset_id)
 

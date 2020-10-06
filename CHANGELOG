@@ -3,6 +3,7 @@
  - fix: start even if DCOR is down
  - fix: do not display mean upload rate during upload
  - fix: require restart when server is changed
+ - enh: ask user to create a Circle when the user is not member of any 
  - enh: add basic wizard functionalities
  - enh: resource upload supports supplementary resource schemas
  - enh: stick to package_revise when finalizing dataset

@@ -112,6 +112,7 @@ class DCORAid(QtWidgets.QMainWindow):
     def on_wizard(self):
         self.wizard = SetupWizard(self)
         self.wizard.exec_()
+        self.refresh_login_status()
 
     @run_async
     @QtCore.pyqtSlot()
