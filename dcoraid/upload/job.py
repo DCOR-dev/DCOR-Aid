@@ -84,7 +84,8 @@ class UploadJob(object):
 
     def get_dataset_url(self):
         """Return a link to the dataset on DCOR"""
-        return "{}/dataset/{}".format(self.server, self.dataset_id)
+        cpi = api.CKANAPI(server=self.server, api_key=self.api_key)
+        return "{}/dataset/{}".format(cpi.server, self.dataset_id)
 
     def get_progress_string(self):
         """Return a nice string representation of the progress"""

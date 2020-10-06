@@ -41,6 +41,7 @@ class CKANAPI():
     def __init__(self, server, api_key):
         """User-convenient interface to the CKAN API"""
         self.api_key = api_key
+        self.server = self._make_server_url(server)
         self.api_url = self._make_api_url(server)
         self.headers = {"Authorization": api_key}
 
@@ -48,12 +49,21 @@ class CKANAPI():
         """Generate a complete CKAN API URL
 
         Any given string is changed to yield the
-        form "https://domain.name/api/2/action".
+        form "https://domain.name/api/3/action".
+        """
+        url = self._make_server_url(url)
+        if not url.endswith("/action/"):
+            url = url.rstrip("/") + "/api/3/action/"
+        return url
+
+    def _make_server_url(self, url):
+        """Generate a complete CKAN server URL
+
+        Any given string is changed to yield the
+        form "https://domain.name/".
         """
         if not url.count("//"):
             url = "https://" + url
-        if not url.endswith("/action/"):
-            url = url.rstrip("/") + "/api/3/action/"
         return url
 
     def is_available(self):
