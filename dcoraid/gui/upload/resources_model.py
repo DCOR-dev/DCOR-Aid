@@ -138,7 +138,7 @@ class ResourcesModel(QtCore.QAbstractListModel):
                 self.resources.pop(pp)
         self.layoutChanged.emit()
 
-    def rowCount(self, index):
+    def rowCount(self, index=None):
         """Return number of resources"""
         return len(self.resources)
 

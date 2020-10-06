@@ -312,7 +312,8 @@
                    <string>r</string>
                   </property>
                   <property name="icon">
-                   <iconset theme="undo"/>
+                   <iconset theme="undo">
+                    <normaloff>.</normaloff>.</iconset>
                   </property>
                  </widget>
                 </item>
@@ -460,5 +461,22 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>pushButton_cancel</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>999</x>
+     <y>774</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>655</x>
+     <y>398</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

@@ -196,6 +196,14 @@ class UploadDialog(QtWidgets.QMainWindow):
         This will first trigger a creation of the draft dataset
         on DCOR. Then, the job is enqueued in the parent
         """
+        # We should only proceed if we have resources
+        if self.rvmodel.rowCount() == 0:
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Critical)
+            msg.setText("Please add at least one resource.")
+            msg.setWindowTitle("No resources selected")
+            msg.exec_()
+            return
         # Checking for duplicate resources is the responsibility of
         # DCOR-Aid, because we are skipping existing resources in
         # dcoraid.upload.job.UploadJob..taks_upload_resources.
