@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtWidgets
 
-from .widget_supplement_item import RSSItem, RSSTagsItem
+from .widget_supplement_item import RSSItem, RSSTagsItem, TitleItem
 
 
 #: These items displayed differently to the user and may populate other keys
@@ -66,29 +66,50 @@ class SchemaWidget(QtWidgets.QWidget):
                         schema[sec][key] = widget.get_value()
         return schema
 
+    @QtCore.pyqtSlot(str, str, object, bool)
+    def on_hide_show_items(self, section, key, value, enabled):
+        """Send a value_changed signal to all widgets
+
+        ...so they can decide whether they are visible or not.
+        """
+        for sec in self.schema_widgets:
+            for item in self.schema_widgets[sec]:
+                item.on_schema_key_toggled(section, key, value, enabled)
+        for label in self.schema_title_widgets:
+            label.on_schema_key_toggled(section, key, value, enabled)
+
     def populate_schema(self, schema_dict):
         """Create all widgets corresponding to the schema
 
         Omits any :const:`HIDDEN_ITEMS` and creates special widgets
         for :const:`MAGIC_ITEMS`.
         """
+        self.schema_title_widgets = []
         for sec in schema_dict:
             widget_list = []
-            label = QtWidgets.QLabel(sec.capitalize())
+            label = TitleItem(schema_dict[sec].get("requires", {}),
+                              schema_dict[sec]["name"])
+            self.schema_title_widgets.append(label)
             self.verticalLayout.addWidget(label)
             for item in schema_dict[sec]["items"]:
                 key = item["key"]
+                # Update item requirements with section requirements
+                if "requires" not in item:
+                    item["requires"] = schema_dict[sec].get("requires", {})
                 if sec in MAGIC_ITEMS and key in MAGIC_ITEMS[sec]:
                     # is a special widget (e.g. tags)
-                    wrss = MAGIC_ITEMS[sec][key]["widget"](item, self)
+                    wrss = MAGIC_ITEMS[sec][key]["widget"](item,
+                                                           section=sec,
+                                                           parent=self)
                 elif sec in HIDDEN_ITEMS and key in HIDDEN_ITEMS[sec]:
                     # should not be displayed
                     continue
                 else:
-                    wrss = RSSItem(item, self)
+                    wrss = RSSItem(item, section=sec, parent=self)
                 self.verticalLayout.addWidget(wrss)
                 widget_list.append(wrss)
                 wrss.value_changed.connect(self.schema_changed)
+                wrss.value_changed.connect(self.on_hide_show_items)
             self.schema_widgets[sec] = widget_list
 
     def set_schema(self, schema_dict):
@@ -114,3 +135,15 @@ class SchemaWidget(QtWidgets.QWidget):
                         value = schema_dict[sec][key]
                     wrss.set_value(value)
         self.blockSignals(False)
+        self.update_visible_widgets()
+
+    def update_visible_widgets(self):
+        """Cause all schema data widgets to emit their values
+
+        This effectively updates the visibility of all schema
+        widgets (including titles).
+        """
+        # Force all updates
+        for sec in self.schema_widgets:
+            for widget in self.schema_widgets[sec]:
+                widget.emit_value()
