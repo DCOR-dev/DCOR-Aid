@@ -38,10 +38,12 @@ class RSSItem(QtWidgets.QWidget):
             self.comboBox.insertItems(0, rss_dict["choices"])
             editable = "choices fixed" not in rss_dict.get("options", [])
             self.comboBox.setEditable(editable)
+            if editable:
+                self.comboBox.setToolTip("You may also type your own choice.")
         else:
             example = rss_dict.get("example", None)
-            if example:
-                widget.setToolTip("e.g. {}".format(example))
+            if example and hasattr(widget, "setPlaceholderText"):
+                widget.setPlaceholderText("e.g. {}".format(example))
         if "unit" in rss_dict:
             self.doubleSpinBox.setSuffix(" " + rss_dict["unit"])
 
