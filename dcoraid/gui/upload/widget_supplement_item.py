@@ -3,6 +3,93 @@ import pkg_resources
 from PyQt5 import uic, QtCore, QtWidgets
 
 
+class RSSTagsItem(QtWidgets.QWidget):
+    value_changed = QtCore.pyqtSignal()
+
+    def __init__(self, rss_dict, *args, **kwargs):
+        """Represents an item in the supplementary resource schema"""
+        super(RSSTagsItem, self).__init__(*args, **kwargs)
+        path_ui = pkg_resources.resource_filename(
+            "dcoraid.gui.upload", "widget_supplement_tags.ui")
+        uic.loadUi(path_ui, self)
+        self.rss_dict = rss_dict
+        self.tableWidget.setRowCount(3)
+        self.on_assert_row_count()
+
+        # signals
+        self.tableWidget.itemChanged.connect(self.on_value_changed)
+        self.tableWidget.itemChanged.connect(self.on_assert_row_count)
+
+    def check(self, b):
+        """Check the check box"""
+        self.checkBox.setChecked(b)
+
+    def get_compounds(self):
+        """Get the compounds labels (1st column)"""
+        return " ".join([it[0] for it in self.get_value() if it]).strip()
+
+    def get_labels(self):
+        """Get the fluorescence labels (2nd column)"""
+        return " ".join([it[1] for it in self.get_value() if it]).strip()
+
+    def get_tags(self):
+        """Return the tags (antibodies and fluorphores connected with dash)"""
+        tags = []
+        for it in self.get_value():
+            if it[0] and it[1]:
+                tags.append("{}-{}".format(*it))
+        return " ".join(tags).strip()
+
+    def get_value(self):
+        """Return the items of the QTableWidget
+
+        This is not used by DCOR, but only internally by DCOR-Aid.
+        """
+        self.on_assert_row_count()
+        value = []
+        for ii in range(self.tableWidget.rowCount()):
+            it0 = self.tableWidget.item(ii, 0).text().strip()
+            it1 = self.tableWidget.item(ii, 1).text().strip()
+            if it0 or it1:
+                value.append((it0, it1))
+        return value
+
+    def set_value(self, value):
+        """Set the value"""
+        self.on_assert_row_count()
+        self.tableWidget.setRowCount(len(value))
+        for ii, it in enumerate(value):
+            self.tableWidget.item(ii, 0).setText(it[0])
+            self.tableWidget.item(ii, 1).setText(it[1])
+
+    @QtCore.pyqtSlot()
+    def on_assert_row_count(self):
+        """Increase row count by one if last item has data"""
+        nrow = self.tableWidget.rowCount()
+        it0 = self.tableWidget.item(nrow-1, 0)
+        it1 = self.tableWidget.item(nrow-1, 1)
+        if (it0 and it0.text().strip() or it1 and it1.text().strip()):
+            nrow += 1
+            self.tableWidget.setRowCount(nrow)
+        # populate empty items
+        for ii in range(nrow):
+            for jj in [0, 1]:
+                it = self.tableWidget.item(ii, jj)
+                if it is None:
+                    self.tableWidget.setItem(ii, jj,
+                                             QtWidgets.QTableWidgetItem())
+
+    @QtCore.pyqtSlot()
+    def on_value_changed(self):
+        """Activate checkbox and emit value_changed signal"""
+        if self.sender() == self.checkBox and not self.checkBox.isChecked():
+            # Do not check the checkBox again if the user unchecks it
+            pass
+        else:
+            self.check(True)
+        self.value_changed.emit()
+
+
 class RSSItem(QtWidgets.QWidget):
     value_changed = QtCore.pyqtSignal()
 
@@ -116,7 +203,7 @@ class RSSItem(QtWidgets.QWidget):
             # Do not check the checkBox again if the user unchecks it
             pass
         else:
-            self.checkBox.setChecked(True)
+            self.check(True)
         self.value_changed.emit()
 
     def show_only_data_widget(self):

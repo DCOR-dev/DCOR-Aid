@@ -54,7 +54,9 @@ class UploadWidget(QtWidgets.QWidget):
         upload. Supplementary resource metadata is extracted here
         as well.
         """
-        rdata = upload_dialog.rvmodel.get_all_data()
+        # Remove all magic keys from the schema data (they are
+        # only used internally by DCOR-Aid and don't belong on DCOR).
+        rdata = upload_dialog.rvmodel.get_all_data(magic_keys=False)
         paths = []
         names = []
         supps = []

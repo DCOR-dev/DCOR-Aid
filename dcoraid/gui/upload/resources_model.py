@@ -10,7 +10,10 @@ slash = QtGui.QIcon.fromTheme("slash").pixmap(16, 16)
 
 
 class ResourcesModel(QtCore.QAbstractListModel):
-    """Handle resources and their metadata selected in the UI"""
+    """Handle resources and their metadata selected in the UI
+
+    This is the "Model" component of the QListView.
+    """
 
     def __init__(self, *args, **kwargs):
         super(ResourcesModel, self).__init__(*args, **kwargs)
@@ -59,11 +62,11 @@ class ResourcesModel(QtCore.QAbstractListModel):
         filen = self.get_file_list()[index.row()]
         return bool(self.resources[filen])
 
-    def get_all_data(self):
+    def get_all_data(self, magic_keys=True):
         """Return dictionary with complete information for all resources"""
         data = {}
         for ii, path in enumerate(self.resources.keys()):
-            data[path] = self.get_data_for_row(ii)[1]
+            data[path] = self.get_data_for_row(ii, magic_keys=magic_keys)[1]
         return data
 
     def get_common_supplements_from_indexes(self, indexes):
@@ -88,17 +91,22 @@ class ResourcesModel(QtCore.QAbstractListModel):
         """Return the complete resource dictionary for this index"""
         return self.get_data_for_row(index.row())
 
-    def get_data_for_row(self, row):
+    def get_data_for_row(self, row, magic_keys=True):
         """Return the complete information dictionary for this row index"""
-        key = self.get_file_list()[row]
-        data = copy.deepcopy(self.resources[key])
+        rfile = self.get_file_list()[row]
+        data = copy.deepcopy(self.resources[rfile])
         if "file" not in data:
             data["file"] = {}
         if "filename" not in data["file"]:
-            data["file"]["filename"] = pathlib.Path(key).name
+            data["file"]["filename"] = pathlib.Path(rfile).name
         if "supplement" not in data:
             data["supplement"] = {}
-        return key, data
+        if not magic_keys:
+            for sec in list(data["supplement"].keys()):
+                for key in list(data["supplement"][sec].keys()):
+                    if key.startswith("MAGIC_"):
+                        data["supplement"][sec].pop(key)
+        return rfile, data
 
     def get_file_list(self):
         """Return the list of paths in the model"""
