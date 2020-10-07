@@ -1,4 +1,5 @@
 import os
+import pathlib
 import pkg_resources
 import signal
 import sys
@@ -25,6 +26,53 @@ QtGui.QIcon.setThemeSearchPaths([
     os.path.join(pkg_resources.resource_filename("dcoraid", "img"),
                  "icon-theme")])
 QtGui.QIcon.setThemeName(".")
+
+
+class StatusWidget(QtWidgets.QWidget):
+    clicked = QtCore.pyqtSignal()
+
+    def __init__(self, *args, **kwargs):
+        super(StatusWidget, self).__init__(*args, **kwargs)
+        self.layout = QtWidgets.QHBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(0)
+
+        self.flabel = QtWidgets.QLabel(self)
+        self.layout.addWidget(self.flabel)
+
+        self.toolButton_user = QtWidgets.QToolButton()
+        self.toolButton_user.setText("Initialization...")
+        self.toolButton_user.setToolButtonStyle(
+            QtCore.Qt.ToolButtonTextBesideIcon)
+        self.toolButton_user.setAutoRaise(True)
+        self.layout.addWidget(self.toolButton_user)
+        self.toolButton_user.clicked.connect(self.clicked)
+
+    def get_favicon(self, server):
+        dldir = pathlib.Path(appdirs.user_cache_dir("dcoraid"))
+        favname = dldir / (server.split("://")[1] + "_favicon.ico")
+        if not favname.exists():
+            try:
+                r = requests.get(server + "/favicon.ico")
+                if r.ok:
+                    with favname.open("wb") as fd:
+                        fd.write(r.content)
+                else:
+                    raise ValueError("No favicon!")
+                favicon = QtGui.QIcon(str(favname))
+            except BaseException:
+                favicon = QtGui.QIcon()
+        else:
+            favicon = QtGui.QIcon(str(favname))
+        return favicon
+
+    def set_status(self, text, tooltip, icon, server):
+        favicon = self.get_favicon(server)
+        self.flabel.setPixmap(favicon.pixmap(16, 16))
+        self.flabel.setToolTip(server)
+        self.toolButton_user.setText(text)
+        self.toolButton_user.setToolTip(tooltip)
+        self.toolButton_user.setIcon(QtGui.QIcon.fromTheme(icon))
 
 
 class DCORAid(QtWidgets.QMainWindow):
@@ -62,13 +110,9 @@ class DCORAid(QtWidgets.QMainWindow):
         self.actionSoftware.triggered.connect(self.on_action_software)
         self.actionAbout.triggered.connect(self.on_action_about)
         # Display login status
-        self.toolButton_user = QtWidgets.QToolButton()
-        self.toolButton_user.setText("Initialization...")
-        self.toolButton_user.setToolButtonStyle(
-            QtCore.Qt.ToolButtonTextBesideIcon)
-        self.toolButton_user.setAutoRaise(True)
-        self.tabWidget.setCornerWidget(self.toolButton_user)
-        self.toolButton_user.clicked.connect(self.dlg_pref.on_show_server)
+        self.status_widget = StatusWidget(self)
+        self.tabWidget.setCornerWidget(self.status_widget)
+        self.status_widget.clicked.connect(self.dlg_pref.on_show_server)
         self.tabWidget.currentChanged.connect(self.refresh_login_status)
         self.refresh_login_status()
         # Call refresh_login status regularly
@@ -144,9 +188,10 @@ class DCORAid(QtWidgets.QMainWindow):
                     text = "{}".format(fullname)
                     tip = "user '{}'".format(name)
                     icon = "user-lock"
-        self.toolButton_user.setText(text)
-        self.toolButton_user.setToolTip(tip)
-        self.toolButton_user.setIcon(QtGui.QIcon.fromTheme(icon))
+        self.status_widget.set_status(text=text,
+                                      tooltip=tip,
+                                      icon=icon,
+                                      server=api.server)
 
     @run_async
     @QtCore.pyqtSlot()
