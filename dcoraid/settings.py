@@ -4,8 +4,9 @@ import pathlib
 
 import appdirs
 
-#: default settings file name
+#: application name
 NAME = "DCOR-Aid"
+#: application author
 ORG = "DCOR"
 
 #: default configuration parameters
@@ -30,7 +31,7 @@ class SettingsFile(object):
         """Initialize settings file (create if it does not exist)"""
         if directory is None:
             directory = appdirs.user_config_dir(appname=name, appauthor=org)
-        fname = pathlib.Path(directory) / (name.lower() + ".cfg")
+        fname = pathlib.Path(directory) / (name.replace(" ", "_") + ".cfg")
         # create file if not existent
         if not fname.exists():
             fname.parent.mkdir(exist_ok=True, parents=True)
