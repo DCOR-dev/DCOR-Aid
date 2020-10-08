@@ -5,8 +5,8 @@
 #define MyAppNameSimple "DCOR-Aid"
 #define MyzmAppName "DCOR-Aid"
 #define MyAppVersion "0.1.0"
-#define MyAppPublisher "ZELLMECHANIK DRESDEN"
-#define MyAppURL "http://zellmechanik.com"
+#define MyAppPublisher "DCOR"
+#define MyAppURL "https://dcor.mpl.mpg.de"
 #define MyAppPlatform "win32"
 #define MyAppExeName "DCOR-Aid.exe"
 
@@ -22,8 +22,9 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={localappdata}\{#MyAppName}
+DefaultDirName={localappdata}\{#MyAppPublisher}\{#MyAppName}
 DisableDirPage=yes
+UsePreviousAppDir=false
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputBaseFilename={#MyAppNameSimple}_{#MyAppVersion}_{#MyAppPlatform}_setup
