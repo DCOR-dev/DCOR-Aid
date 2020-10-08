@@ -49,7 +49,7 @@ class StatusWidget(QtWidgets.QWidget):
         self.toolButton_user.clicked.connect(self.clicked)
 
     def get_favicon(self, server):
-        dldir = pathlib.Path(appdirs.user_cache_dir("DCOR-Aid"))
+        dldir = pathlib.Path(appdirs.user_cache_dir())
         dldir.mkdir(exist_ok=True, parents=True)
         favname = dldir / (server.split("://")[1] + "_favicon.ico")
         if not favname.exists():
