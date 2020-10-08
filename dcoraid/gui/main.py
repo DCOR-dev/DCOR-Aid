@@ -49,7 +49,8 @@ class StatusWidget(QtWidgets.QWidget):
         self.toolButton_user.clicked.connect(self.clicked)
 
     def get_favicon(self, server):
-        dldir = pathlib.Path(appdirs.user_cache_dir("dcoraid"))
+        dldir = pathlib.Path(appdirs.user_cache_dir("DCOR-Aid"))
+        dldir.mkdir(exist_ok=True, parents=True)
         favname = dldir / (server.split("://")[1] + "_favicon.ico")
         if not favname.exists():
             try:
@@ -113,7 +114,6 @@ class DCORAid(QtWidgets.QMainWindow):
         self.status_widget = StatusWidget(self)
         self.tabWidget.setCornerWidget(self.status_widget)
         self.status_widget.clicked.connect(self.dlg_pref.on_show_server)
-        self.tabWidget.currentChanged.connect(self.refresh_login_status)
         self.refresh_login_status()
         # Call refresh_login status regularly
         self.timer = QtCore.QTimer()

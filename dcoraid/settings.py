@@ -5,7 +5,7 @@ import pathlib
 import appdirs
 
 #: default settings file name
-NAME = "dcoraid.cfg"
+NAME = "DCOR-Aid"
 
 #: default configuration parameters
 DEFAULTS = {
@@ -28,10 +28,11 @@ class SettingsFile(object):
     def __init__(self, name=NAME, defaults=DEFAULTS, directory=None):
         """Initialize settings file (create if it does not exist)"""
         if directory is None:
-            directory = appdirs.user_config_dir()
-        fname = pathlib.Path(directory) / name
+            directory = appdirs.user_config_dir(name)
+        fname = pathlib.Path(directory) / (name.lower() + ".cfg")
         # create file if not existent
         if not fname.exists():
+            fname.parent.mkdir(exist_ok=True, parents=True)
             # Create the file
             fname.open("w").close()
 
