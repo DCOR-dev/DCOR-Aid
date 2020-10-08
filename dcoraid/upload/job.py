@@ -44,6 +44,8 @@ class UploadJob(object):
         self.dataset_dict = dataset_dict
         self.dataset_id = dataset_dict["id"]
         self.server = server
+        if not api_key:
+            raise ValueError("API key is empty!")
         self.api_key = api_key
         self.paths = paths
         if resource_names is None:

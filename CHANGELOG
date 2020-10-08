@@ -1,3 +1,5 @@
+0.0.8
+ - fix: force restart of DCOR-Aid upon wizard end
 0.0.7
  - fix: allow resuming when upload fails (#3)
  - fix: start even if DCOR is down

@@ -123,9 +123,13 @@ class DCORAid(QtWidgets.QMainWindow):
         self.refresh_private_data()
         # If a new dataset has been uploaded, refresh private data
         self.panel_upload.upload_finished.connect(self.refresh_private_data)
+
         if not self.settings.get_string("api key"):
             # User has not done anything yet
             self.on_wizard()
+
+        self.show()
+        self.raise_()
 
     def on_action_about(self):
         about_text = "GUI for managing data on DCOR."
@@ -153,10 +157,10 @@ class DCORAid(QtWidgets.QMainWindow):
                                           "Software",
                                           sw_text)
 
+    @QtCore.pyqtSlot()
     def on_wizard(self):
         self.wizard = SetupWizard(self)
         self.wizard.exec_()
-        self.refresh_login_status()
 
     @run_async
     @QtCore.pyqtSlot()

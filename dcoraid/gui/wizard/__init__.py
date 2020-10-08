@@ -1,4 +1,5 @@
 import pkg_resources
+import sys
 import uuid
 
 from PyQt5 import uic, QtWidgets
@@ -40,7 +41,8 @@ def get_dcor_dev_api_key():
             + "to test private datasets, please record this: "
             + "\n\n user: {}\n password: {}".format(usr, pwd)
             + "\n\nAlternatively, you could at any point set a valid "
-            + "email address in the user preferences.")
+            + "email address in the user preferences and request a "
+            + "password reset link via the web interface.")
     return api_key
 
 
@@ -123,25 +125,40 @@ class SetupWizard(QtWidgets.QWizard):
 
     def _finalize(self):
         """Update settings"""
+        server = self.get_server()
+        api_key = self.get_api_key()
         settings = SettingsFile()
-        if settings.get_string("api key"):
-            buttonReply = QtWidgets.QMessageBox.question(
-                self,
-                'DCOR-Aid restart required',
-                "Changing the server or API key requires a restart of "
-                + "DCOR-Aid. If you choose 'No', then the original server "
-                + "and API key are NOT changed. Do you really want to quit "
-                + "DCOR-Aid?",
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                QtWidgets.QMessageBox.No)
-            if buttonReply == QtWidgets.QMessageBox.Yes:
-                proceed = True
-            else:
-                proceed = False
-        else:
-            proceed = True
+        old_api_key = settings.get_string("api key")
+        old_server = settings.get_string("server")
 
-        if proceed:
-            settings.set_string("user scenario", self.get_user_scenario())
-            settings.set_string("server", self.get_server())
-            settings.set_string("api key", self.get_api_key())
+        if old_api_key != api_key or old_server != server:
+            if old_api_key:
+                msg = "Changing the server or API key requires a restart of " \
+                      + "DCOR-Aid. If you choose 'No', then the original " \
+                      + "server and API key are NOT changed. Do you really " \
+                      + "want to quit DCOR-Aid?"
+                buttonReply = QtWidgets.QMessageBox.question(
+                    self,
+                    'DCOR-Aid restart required',
+                    msg,
+                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                    QtWidgets.QMessageBox.No)
+                if buttonReply == QtWidgets.QMessageBox.Yes:
+                    proceed = True
+                else:
+                    proceed = False
+            else:
+                QtWidgets.QMessageBox.information(
+                    self,
+                    "DCOR-Aid restart requires",
+                    "Please restart DCOR-Aid to proceed."
+                )
+                proceed = True
+
+            if proceed:
+                settings.set_string("user scenario", self.get_user_scenario())
+                settings.set_string("server", server)
+                settings.set_string("api key", api_key)
+                QtWidgets.QApplication.processEvents()
+                QtWidgets.QApplication.quit()
+                sys.exit(0)  # if the above does not work
