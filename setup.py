@@ -27,7 +27,7 @@ setup(
     install_requires=["appdirs",
                       "dclab>=0.28.0",
                       "pyqt5",
-                      "requests",
+                      "requests>=2.13",
                       "requests_toolbelt",  # multipart uploads with progress
                       ],
     python_requires='>=3.6, <4',

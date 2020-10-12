@@ -3,6 +3,9 @@ import json
 
 import requests
 
+from ._version import version
+
+
 #: List of license lists for each DCOR server
 SERVER_LICENCES = {}
 
@@ -43,7 +46,9 @@ class CKANAPI():
         self.api_key = api_key
         self.server = self._make_server_url(server)
         self.api_url = self._make_api_url(server)
-        self.headers = {"Authorization": api_key}
+        self.headers = {"Authorization": api_key,
+                        "user-agent": "DCOR-Aid/{}".format(version)
+                        }
 
     def _make_api_url(self, url):
         """Generate a complete CKAN API URL
