@@ -51,7 +51,7 @@ after_test:
   # Install pyinstaller (includes dependency for pywin32)
   - appveyor-retry pip install pyinstaller==4.1
   # Run pyinstaller
-  - pyinstaller -y --log-level=WARN .appveyor\\dcoraid.spe
+  - pyinstaller -y --log-level=WARN .appveyor\\dcoraid.spec
   # Run the binary (the most simple test)
   - dist\\DCOR-Aid\\DCOR-Aid.exe --version
   # Create InnoSetup installers
