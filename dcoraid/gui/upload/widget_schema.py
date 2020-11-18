@@ -42,7 +42,7 @@ class SchemaWidget(QtWidgets.QWidget):
         self.schema_widgets = {}
 
     def get_current_schema(self):
-        """Return the current schema which will can stored in the model
+        """Return the current schema dict for storage in the model
 
         The schema also contains magic items (see :const:`MAGIC_ITEMS`)
         which are super-items that contain information about more than

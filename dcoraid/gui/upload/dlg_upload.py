@@ -9,6 +9,7 @@ from ...api import CKANAPI
 from ...upload import create_dataset
 
 from .resources_model import ResourcesModel
+from .resource_schema_preset import PersistentResourceSchemaPresets
 
 
 class UploadDialog(QtWidgets.QMainWindow):
@@ -72,6 +73,10 @@ class UploadDialog(QtWidgets.QMainWindow):
         # Effectively hide resource schema options initially
         self.on_selection_changed()
 
+        # Presets for user convenience
+        self.presets = PersistentResourceSchemaPresets()
+        self.comboBox_preset.addItems(sorted(self.presets.keys()))
+
         # Signals and slots
         # general buttons
         self.toolButton_add.clicked.connect(self.on_add_resources)
@@ -86,9 +91,19 @@ class UploadDialog(QtWidgets.QMainWindow):
         # do not allow to proceed without a title
         self.lineEdit_authors.textChanged.connect(self.on_authors_edited)
         self.on_authors_edited("")  # initial state
+        # if the user changes the preset combobox text, offer him
+        # to save it as a preset
+        self.comboBox_preset.editTextChanged.connect(
+            self.on_preset_text_edited)
+        # also offer the user to save the preset if the schema changed
+        self.widget_schema.schema_changed.connect(
+            self.on_preset_text_edited)
+        self.on_preset_text_edited()  # empty string means no preset
+        # store/load a preset
+        self.toolButton_preset_load.clicked.connect(self.on_preset_load)
+        self.toolButton_preset_store.clicked.connect(self.on_preset_store)
 
     def _autofill_for_testing(self, **kwargs):
-        print("ASD")
         self.lineEdit_title.setText(kwargs.get("title", "Dataset Title"))
         self.lineEdit_authors.setText(kwargs.get("authors", "John Doe"))
         self.lineEdit_doi.setText(kwargs.get("doi", ""))
@@ -182,29 +197,57 @@ class UploadDialog(QtWidgets.QMainWindow):
         self.rvmodel.add_resources(files)
 
     @QtCore.pyqtSlot()
-    def on_selection_changed(self):
-        """User changed the ListView selection; Refresh side panel"""
-        sel = self.listView_resources.selectedIndexes()
-        seltype = self.rvmodel.get_indexes_types(sel)
-        # Resource options
-        if len(sel) == 1:  # a single resource; show resource options
-            self.groupBox_res_info.show()
-            # populate
-            path, data = self.rvmodel.get_data_for_index(sel[0])
-            self.lineEdit_res_filename.blockSignals(True)
-            self.lineEdit_res_filename.setText(data["file"]["filename"])
-            self.lineEdit_res_filename.blockSignals(False)
-            self.lineEdit_res_path.setText(path)
-        else:  # hide resource options
-            self.groupBox_res_info.hide()
-        # Supplement options
-        if seltype in ["dc", "mixed"]:
-            self.widget_supplement.show()
-            # populate
-            common = self.rvmodel.get_common_supplements_from_indexes(sel)
-            self.widget_schema.set_schema(common)
+    def on_preset_load(self):
+        """Load the preset with the current name"""
+        curtext = self.comboBox_preset.currentText()
+
+        # Load from presets (must come before UI logic)
+        self.widget_schema.set_schema(self.presets[curtext])
+
+        # UI logic
+        self.toolButton_preset_store.setEnabled(False)
+        self.toolButton_preset_load.setEnabled(False)
+
+    @QtCore.pyqtSlot()
+    def on_preset_store(self):
+        """Store the current preset"""
+        curtext = self.comboBox_preset.currentText()
+
+        # Store preset
+        preset = self.widget_schema.get_current_schema()
+        self.presets[curtext] = preset
+        self.on_update_resources_model()
+
+        # UI logic
+        items = []
+        for ii in range(self.comboBox_preset.count()):
+            items.append(self.comboBox_preset.itemText(ii))
+        items = sorted(set(items + [curtext]))
+        self.comboBox_preset.blockSignals(True)
+        self.comboBox_preset.clear()
+        self.comboBox_preset.addItems(items)
+        self.comboBox_preset.setCurrentIndex(items.index(curtext))
+        self.comboBox_preset.blockSignals(False)
+        self.toolButton_preset_store.setEnabled(False)
+        self.toolButton_preset_load.setEnabled(False)
+
+    @QtCore.pyqtSlot()
+    def on_preset_text_edited(self):
+        """The preset combobox text was edited by the user
+
+        Give or take a away from the user the option to load or save
+        a preset.
+        """
+        # UI logic only
+        curtext = self.comboBox_preset.currentText()
+        if curtext:
+            self.toolButton_preset_store.setEnabled(True)
         else:
-            self.widget_supplement.hide()
+            self.toolButton_preset_store.setEnabled(False)
+        if curtext in self.presets:
+            self.toolButton_preset_load.setEnabled(True)
+        else:
+            self.toolButton_preset_load.setEnabled(False)
 
     @QtCore.pyqtSlot()
     def on_proceed(self):
@@ -265,6 +308,34 @@ class UploadDialog(QtWidgets.QMainWindow):
         sel = self.listView_resources.selectedIndexes()
         self.rvmodel.rem_resources(sel)
         self.listView_resources.clearSelection()
+
+    @QtCore.pyqtSlot()
+    def on_selection_changed(self):
+        """User changed the ListView selection; Refresh side panel"""
+        sel = self.listView_resources.selectedIndexes()
+        seltype = self.rvmodel.get_indexes_types(sel)
+        # Resource options
+        if len(sel) == 1:  # a single resource; show resource options
+            self.groupBox_res_info.show()
+            # populate
+            path, data = self.rvmodel.get_data_for_index(sel[0])
+            self.lineEdit_res_filename.blockSignals(True)
+            self.lineEdit_res_filename.setText(data["file"]["filename"])
+            self.lineEdit_res_filename.blockSignals(False)
+            self.lineEdit_res_path.setText(path)
+        else:  # hide resource options
+            self.groupBox_res_info.hide()
+        # Supplement options
+        if seltype in ["dc", "mixed"]:
+            self.widget_supplement.show()
+            # populate
+            common = self.rvmodel.get_common_supplements_from_indexes(sel)
+            self.widget_schema.set_schema(common)
+        else:
+            self.widget_supplement.hide()
+
+        # also reset the preset combo box string
+        self.comboBox_preset.setCurrentText("")
 
     @QtCore.pyqtSlot()
     def on_update_resources_model(self):

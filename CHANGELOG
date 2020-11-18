@@ -1,4 +1,5 @@
 0.1.0
+ - feat: implement persistent upload resource schema presets (#9)
  - fix: do not allow user to proceed with upload unless 'authors'
    is specified (to avoid cryptic error message)
  - enh: enable DCOR usage (anonymous and registered users)
