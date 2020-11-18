@@ -2,9 +2,8 @@ import pkg_resources
 import sys
 import uuid
 
-from PyQt5 import uic, QtWidgets
+from PyQt5 import uic, QtCore, QtWidgets
 
-from ...settings import SettingsFile
 from ...api import APIKeyError, CKANAPI
 
 
@@ -14,8 +13,8 @@ def get_dcor_dev_api_key():
     If there are no credentials available in the settings file,
     then a new user is created on DCOR-dev.
     """
-    settings = SettingsFile()
-    api_key = settings.get_string("api key")
+    settings = QtCore.QSettings()
+    api_key = settings.value("auth/api key", "")
     api = CKANAPI(server="https://dcor-dev.mpl.mpg.de",
                   api_key=api_key)
     try:
@@ -127,9 +126,9 @@ class SetupWizard(QtWidgets.QWizard):
         """Update settings"""
         server = self.get_server()
         api_key = self.get_api_key()
-        settings = SettingsFile()
-        old_api_key = settings.get_string("api key")
-        old_server = settings.get_string("server")
+        settings = QtCore.QSettings()
+        old_api_key = settings.value("auth/api key", "")
+        old_server = settings.value("auth/server", "")
 
         if old_api_key != api_key or old_server != server:
             if old_api_key:
@@ -137,13 +136,13 @@ class SetupWizard(QtWidgets.QWizard):
                       + "DCOR-Aid. If you choose 'No', then the original " \
                       + "server and API key are NOT changed. Do you really " \
                       + "want to quit DCOR-Aid?"
-                buttonReply = QtWidgets.QMessageBox.question(
+                button_reply = QtWidgets.QMessageBox.question(
                     self,
                     'DCOR-Aid restart required',
                     msg,
                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
                     QtWidgets.QMessageBox.No)
-                if buttonReply == QtWidgets.QMessageBox.Yes:
+                if button_reply == QtWidgets.QMessageBox.Yes:
                     proceed = True
                 else:
                     proceed = False
@@ -156,9 +155,10 @@ class SetupWizard(QtWidgets.QWizard):
                 proceed = True
 
             if proceed:
-                settings.set_string("user scenario", self.get_user_scenario())
-                settings.set_string("server", server)
-                settings.set_string("api key", api_key)
+                settings.setValue("general/user scenario",
+                                  self.get_user_scenario())
+                settings.setValue("auth/server", server)
+                settings.setValue("auth/api key", api_key)
                 QtWidgets.QApplication.processEvents()
                 QtWidgets.QApplication.quit()
                 sys.exit(0)  # if the above does not work

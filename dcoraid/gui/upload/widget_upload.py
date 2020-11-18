@@ -4,7 +4,6 @@ import pkg_resources
 from PyQt5 import uic, QtCore, QtWidgets
 
 from ...upload import UploadQueue
-from ...settings import SettingsFile
 
 from .dlg_upload import UploadDialog
 from .widget_tablecell_actions import TableCellActions
@@ -25,9 +24,10 @@ class UploadWidget(QtWidgets.QWidget):
         self._upload_dialogs = []
 
         # Underlying upload class
-        settings = SettingsFile()
-        self.jobs = UploadQueue(server=settings.get_string("server"),
-                                api_key=settings.get_string("api key"))
+        settings = QtCore.QSettings()
+        self.jobs = UploadQueue(server=settings.value("auth/server",
+                                                      "dcor.mpl.mpg.de"),
+                                api_key=settings.value("auth/api key", ""))
         self.widget_jobs.set_job_list(self.jobs)
 
         # upload finished signal

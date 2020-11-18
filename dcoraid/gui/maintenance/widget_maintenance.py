@@ -2,7 +2,6 @@ import pkg_resources
 
 from PyQt5 import uic, QtCore, QtWidgets
 
-from ...settings import SettingsFile
 from ...upload.dataset import remove_all_drafts
 
 from ..tools import ShowWaitCursor
@@ -21,10 +20,11 @@ class MaintenanceWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_remove_drafts(self):
-        settings = SettingsFile()
+        settings = QtCore.QSettings()
         with ShowWaitCursor():
-            data = remove_all_drafts(server=settings.get_string("server"),
-                                     api_key=settings.get_string("api key"))
+            data = remove_all_drafts(
+                server=settings.value("auth/server", "dcor.mpl.mpg.de"),
+                api_key=settings.value("auth/api key", ""))
         msg = QtWidgets.QMessageBox()
         msg.setIcon(QtWidgets.QMessageBox.Information)
         if len(data):

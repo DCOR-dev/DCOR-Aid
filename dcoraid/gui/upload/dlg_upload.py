@@ -7,7 +7,6 @@ from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
 from ...api import CKANAPI
 from ...upload import create_dataset
-from ...settings import SettingsFile
 
 from .resources_model import ResourcesModel
 
@@ -35,9 +34,9 @@ class UploadDialog(QtWidgets.QMainWindow):
         self.setWindowTitle("DCOR Upload {}".format(self.identifier))
 
         # Initialize api
-        settings = SettingsFile()
-        api_key = settings.get_string("api key")
-        server = settings.get_string("server")
+        settings = QtCore.QSettings()
+        api_key = settings.value("auth/api key", "")
+        server = settings.value("auth/server", "dcor.mpl.mpg.de")
         self.api = CKANAPI(server=server, api_key=api_key)
 
         # Set license choices

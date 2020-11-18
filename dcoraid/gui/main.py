@@ -14,7 +14,6 @@ from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
 from ..api import APIKeyError, CKANAPI
 from ..dbmodel import APIModel
-from .. import settings
 from .._version import version as __version__
 
 from .preferences import PreferencesDialog
@@ -96,8 +95,16 @@ class DCORAid(QtWidgets.QMainWindow):
             print(__version__)
             QtWidgets.QApplication.processEvents()
             sys.exit(0)
+        # Settings are stored in the .ini file format. Even though
+        # `self.settings` may return integer/bool in the same session,
+        # in the next session, it will reliably return strings. Lists
+        # of strings (comma-separated) work nicely though.
+        QtCore.QCoreApplication.setOrganizationName("DCOR")
+        QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+        QtCore.QCoreApplication.setApplicationName("dcoraid")
+        QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
         #: DCOR-Aid settings
-        self.settings = settings.SettingsFile()
+        self.settings = QtCore.QSettings()
         # GUI
         # Preferences dialog
         self.dlg_pref = PreferencesDialog()
@@ -125,7 +132,7 @@ class DCORAid(QtWidgets.QMainWindow):
         # If a new dataset has been uploaded, refresh private data
         self.panel_upload.upload_finished.connect(self.refresh_private_data)
 
-        if not self.settings.get_string("api key"):
+        if not self.settings.value("auth/api key", ""):
             # User has not done anything yet
             self.on_wizard()
 
@@ -166,8 +173,8 @@ class DCORAid(QtWidgets.QMainWindow):
     @run_async
     @QtCore.pyqtSlot()
     def refresh_login_status(self):
-        api_key = self.settings.get_string("api key")
-        server = self.settings.get_string("server")
+        api_key = self.settings.value("auth/api key", "")
+        server = self.settings.value("auth/server", "dcor.mpl.mpg.de")
         api = CKANAPI(server=server, api_key=api_key)
         if not api.is_available():
             text = "No connection"
@@ -204,8 +211,8 @@ class DCORAid(QtWidgets.QMainWindow):
         self.tab_user.setCursor(QtCore.Qt.WaitCursor)
         # TODO:
         # - what happens if the user changes the server? Ask to restart?
-        api_key = self.settings.get_string("api key")
-        server = self.settings.get_string("server")
+        api_key = self.settings.value("auth/api key", "")
+        server = self.settings.value("auth/server", "dcor.mpl.mpg.de")
         try:
             am = APIModel(url=server, api_key=api_key)
             if am.api.is_available():
