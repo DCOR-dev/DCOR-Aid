@@ -141,7 +141,16 @@ class DCORAid(QtWidgets.QMainWindow):
         self.raise_()
 
     def on_action_about(self):
-        about_text = "GUI for managing data on DCOR."
+        dcor = "https://dcor.mpl.mpg.de"
+        gh = "DCOR-dev/DCOR-Aid"
+        rtd = "dc.readthedocs.io"
+        about_text = "This is the client for the <a href='{}'>".format(dcor) \
+            + "Deformability Cytometry Open Repository (DCOR)</a>.<br><br>" \
+            + "Author: Paul Müller<br>" \
+            + "GitHub: " \
+            + "<a href='https://github.com/{gh}'>{gh}</a><br>".format(gh=gh) \
+            + "Documentation: " \
+            + "<a href='https://{rtd}'>{rtd}</a><br>".format(rtd=rtd)
         QtWidgets.QMessageBox.about(self,
                                     "DCOR-Aid {}".format(__version__),
                                     about_text)
