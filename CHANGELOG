@@ -1,6 +1,8 @@
 0.1.0
- - ref: migrate preferences to QSettings
+ - fix: do not allow user to proceed with upload unless 'authors'
+   is specified (to avoid cryptic error message)
  - enh: enable DCOR usage (anonymous and registered users)
+ - ref: migrate preferences to QSettings
 0.0.9
  - enh: send DCOR-Aid user-agent string
 0.0.8

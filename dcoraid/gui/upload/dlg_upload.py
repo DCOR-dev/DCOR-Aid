@@ -61,7 +61,7 @@ class UploadDialog(QtWidgets.QMainWindow):
 
         # Shortcut for testing
         self.shortcut = QtWidgets.QShortcut(
-            QtGui.QKeySequence("Ctrl+Alt+Shift+T"), self)
+            QtGui.QKeySequence("Ctrl+Alt+Shift+E"), self)
         self.shortcut.activated.connect(self._autofill_for_testing)
 
         # Setup resources view
@@ -72,17 +72,23 @@ class UploadDialog(QtWidgets.QMainWindow):
         # Effectively hide resource schema options initially
         self.on_selection_changed()
 
-        # signal slots
+        # Signals and slots
+        # general buttons
         self.toolButton_add.clicked.connect(self.on_add_resources)
         self.toolButton_rem.clicked.connect(self.on_rem_resources)
         self.pushButton_proceed.clicked.connect(self.on_proceed)
+        # resource-related signals
         self.lineEdit_res_filename.textChanged.connect(
             self.on_update_resources_model)
         self.widget_schema.schema_changed.connect(
             self.on_update_resources_model)
         self.selModel.selectionChanged.connect(self.on_selection_changed)
+        # do not allow to proceed without a title
+        self.lineEdit_authors.textChanged.connect(self.on_authors_edited)
+        self.on_authors_edited("")  # initial state
 
     def _autofill_for_testing(self, **kwargs):
+        print("ASD")
         self.lineEdit_title.setText(kwargs.get("title", "Dataset Title"))
         self.lineEdit_authors.setText(kwargs.get("authors", "John Doe"))
         self.lineEdit_doi.setText(kwargs.get("doi", ""))
@@ -151,6 +157,18 @@ class UploadDialog(QtWidgets.QMainWindow):
             "owner_org": self.comboBox_circles.currentData(),
         }
         return dataset_dict
+
+    @QtCore.pyqtSlot(str)
+    def on_authors_edited(self, newtext):
+        """Enable proceed button if authors text is set"""
+        if newtext:
+            enabled = True
+            tooltip = "Proceed with upload"
+        else:
+            enabled = False
+            tooltip = "Set 'Authors' to proceed with upload"
+        self.pushButton_proceed.setEnabled(enabled)
+        self.pushButton_proceed.setToolTip(tooltip)
 
     @QtCore.pyqtSlot()
     def on_add_resources(self, files=None):
