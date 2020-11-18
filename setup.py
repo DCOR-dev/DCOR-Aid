@@ -24,8 +24,8 @@ setup(
     license="GPL v3",
     description=description,
     long_description=open('README.rst').read() if exists('README.rst') else '',
-    install_requires=["appdirs",
-                      "dclab>=0.28.0",
+    install_requires=["appdirs",  # cache directory for data compression
+                      "dclab[dcor]>=0.28.0",
                       "pyqt5",
                       "requests>=2.13",
                       "requests_toolbelt",  # multipart uploads with progress
