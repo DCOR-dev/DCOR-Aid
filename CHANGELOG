@@ -1,5 +1,6 @@
 0.1.0
  - ref: migrate preferences to QSettings
+ - enh: enable DCOR usage (anonymous and registered users)
 0.0.9
  - enh: send DCOR-Aid user-agent string
 0.0.8

@@ -132,7 +132,8 @@ class DCORAid(QtWidgets.QMainWindow):
         # If a new dataset has been uploaded, refresh private data
         self.panel_upload.upload_finished.connect(self.refresh_private_data)
 
-        if not self.settings.value("auth/api key", ""):
+        if ((self.settings.value("user scenario", "") != "anonymous")
+                and not self.settings.value("auth/api key", "")):
             # User has not done anything yet
             self.on_wizard()
 
@@ -239,7 +240,7 @@ def excepthook(etype, value, trace):
     vinfo = "Unhandled exception in DCOR-Aid version {}:\n".format(
         __version__)
     tmp = tb.format_exception(etype, value, trace)
-    exception = "".join([vinfo]+tmp)
+    exception = "".join([vinfo] + tmp)
 
     errorbox = QtWidgets.QMessageBox()
     errorbox.setIcon(QtWidgets.QMessageBox.Critical)

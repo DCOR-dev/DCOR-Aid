@@ -46,9 +46,6 @@
     </item>
     <item>
      <widget class="QRadioButton" name="radioButton_dcor">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
       <property name="font">
        <font>
         <weight>75</weight>
@@ -59,7 +56,8 @@
        <string>DCOR</string>
       </property>
       <property name="icon">
-       <iconset theme="dcor"/>
+       <iconset theme="dcor">
+        <normaloff>.</normaloff>.</iconset>
       </property>
       <property name="iconSize">
        <size>
@@ -123,7 +121,8 @@
        <string>Health facility</string>
       </property>
       <property name="icon">
-       <iconset theme="clinic-medical"/>
+       <iconset theme="clinic-medical">
+        <normaloff>.</normaloff>.</iconset>
       </property>
       <property name="iconSize">
        <size>
@@ -178,7 +177,8 @@
        <string>Playground</string>
       </property>
       <property name="icon">
-       <iconset theme="child"/>
+       <iconset theme="child">
+        <normaloff>.</normaloff>.</iconset>
       </property>
       <property name="iconSize">
        <size>
@@ -232,9 +232,6 @@
     </item>
     <item>
      <widget class="QRadioButton" name="radioButton_anonym">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
       <property name="font">
        <font>
         <weight>75</weight>
@@ -245,7 +242,8 @@
        <string>Anonymous</string>
       </property>
       <property name="icon">
-       <iconset theme="user"/>
+       <iconset theme="user">
+        <normaloff>.</normaloff>.</iconset>
       </property>
       <property name="iconSize">
        <size>
@@ -300,7 +298,8 @@
        <string>Custom</string>
       </property>
       <property name="icon">
-       <iconset theme="cogs"/>
+       <iconset theme="cogs">
+        <normaloff>.</normaloff>.</iconset>
       </property>
       <property name="iconSize">
        <size>
@@ -425,7 +424,7 @@
     <item>
      <widget class="QLabel" name="label_8">
       <property name="text">
-       <string>Please locate the SSL certificate that you reveived from your local DCOR administrator.</string>
+       <string>Please locate the SSL certificate that you received from your local DCOR administrator.</string>
       </property>
       <property name="wordWrap">
        <bool>true</bool>
@@ -512,12 +511,76 @@
    <slot>restart()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>262</x>
-     <y>265</y>
+     <x>280</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
      <x>262</x>
      <y>283</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_anonym</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>Wizard</receiver>
+   <slot>restart()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>102</x>
+     <y>350</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>165</x>
+     <y>353</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_dcor</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>Wizard</receiver>
+   <slot>restart()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>96</x>
+     <y>118</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>138</x>
+     <y>116</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_med</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>Wizard</receiver>
+   <slot>restart()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>121</x>
+     <y>185</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>87</x>
+     <y>187</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_custom</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>Wizard</receiver>
+   <slot>restart()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>76</x>
+     <y>416</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>124</x>
+     <y>414</y>
     </hint>
    </hints>
   </connection>

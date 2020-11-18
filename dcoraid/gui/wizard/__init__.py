@@ -104,18 +104,21 @@ class SetupWizard(QtWidgets.QWizard):
 
     def nextId(self):
         """Determine the next page based on the current page data"""
+        user_scenario = self.get_user_scenario()
         page = self.currentPage()
         page_dict = {}
         for ii in self.pageIds():
             page_dict[self.page(ii)] = ii
         if page == self.page_welcome:
-            if self.radioButton_dcor.isChecked():
+            if user_scenario == "dcor":
                 return page_dict[self.page_dcor]
-            elif self.radioButton_med.isChecked():
+            elif user_scenario == "medical":
                 return page_dict[self.page_med]
-            elif self.radioButton_play.isChecked():
+            elif user_scenario == "dcor-dev":
                 return -1
-            elif self.radioButton_custom.isChecked():
+            elif user_scenario == "anonymous":
+                return -1
+            elif user_scenario == "custom":
                 return page_dict[self.page_custom]
             else:
                 raise ValueError("No Rule!")
@@ -124,13 +127,16 @@ class SetupWizard(QtWidgets.QWizard):
 
     def _finalize(self):
         """Update settings"""
+        user_scenario = self.get_user_scenario()
         server = self.get_server()
         api_key = self.get_api_key()
         settings = QtCore.QSettings()
-        old_api_key = settings.value("auth/api key", "")
         old_server = settings.value("auth/server", "")
-
-        if old_api_key != api_key or old_server != server:
+        old_api_key = settings.value("auth/api key", "")
+        old_user_scenario = settings.value("user scenario", "")
+        if (user_scenario != old_user_scenario
+            or old_api_key != api_key
+                or old_server != server):
             if old_api_key:
                 msg = "Changing the server or API key requires a restart of " \
                       + "DCOR-Aid. If you choose 'No', then the original " \
@@ -149,16 +155,17 @@ class SetupWizard(QtWidgets.QWizard):
             else:
                 QtWidgets.QMessageBox.information(
                     self,
-                    "DCOR-Aid restart requires",
+                    "DCOR-Aid restart required",
                     "Please restart DCOR-Aid to proceed."
                 )
                 proceed = True
 
             if proceed:
-                settings.setValue("general/user scenario",
+                settings.setValue("user scenario",
                                   self.get_user_scenario())
                 settings.setValue("auth/server", server)
                 settings.setValue("auth/api key", api_key)
+                settings.sync()
                 QtWidgets.QApplication.processEvents()
                 QtWidgets.QApplication.quit()
                 sys.exit(0)  # if the above does not work

@@ -69,7 +69,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def on_show_server(self):
         self.comboBox_server.clear()
-        for server in self.settings.value("general/server list",
+        for server in self.settings.value("server list",
                                           ["dcor.mpl.mpg.de"]):
             self.comboBox_server.addItem(server)
         self.comboBox_server.setCurrentText(
