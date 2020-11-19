@@ -258,24 +258,43 @@ class UploadDialog(QtWidgets.QMainWindow):
         """
         # We should only proceed if we have resources
         if self.rvmodel.rowCount() == 0:
-            msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Critical)
-            msg.setText("Please add at least one resource.")
-            msg.setWindowTitle("No resources selected")
-            msg.exec_()
+            QtWidgets.QMessageBox.critical(self, "No resources selected",
+                                           "Please add at least one resource.")
             return
         # Checking for duplicate resources is the responsibility of
         # DCOR-Aid, because we are skipping existing resources in
-        # dcoraid.upload.job.UploadJob..taks_upload_resources.
+        # dcoraid.upload.job.UploadJob.task_upload_resources.
         if not self.rvmodel.filenames_are_unique():
-            msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Critical)
-            msg.setText("Please make sure that all resources have a unique "
-                        "file name. Resources with identical file names are "
-                        "not supported by DCOR.")
-            msg.setWindowTitle("Resource names not unique")
-            msg.exec_()
+            QtWidgets.QMessageBox.critical(
+                self,
+                "Resource names not unique",
+                "Please make sure that all resources have a unique file name. "
+                + "Resources with identical file names are not supported by "
+                + "DCOR.")
             return
+        if not self.rvmodel.filenames_were_edited():
+            choice = QtWidgets.QMessageBox.question(
+                self,
+                "Only raw file names",
+                "You did not rename any of the resource file names. Was this "
+                + "intentional? Using generic file names is discouraged. "
+                + "Please select 'No' if you would like to change things. "
+                + "Select 'Yes' to proceed without changes - be aware that "
+                + "you will not be able to change anything later on.")
+            if choice != QtWidgets.QMessageBox.Yes:
+                return
+        if not self.rvmodel.supplements_were_edited():
+            choice = QtWidgets.QMessageBox.question(
+                self,
+                "No resource schema supplements",
+                "You did not specify any supplementary resource information. "
+                + "Would you like to proceed anyway? The editing options "
+                + "appear when you click on a resource. Please select 'No' "
+                + "if you would like to go back (recommended). Select 'Yes' "
+                + "to proceed without changes (no future changes possible).")
+            if choice != QtWidgets.QMessageBox.Yes:
+                return
+
         # Try to create the dataset and display any issues with the metadata
         try:
             data = create_dataset(dataset_dict=self.assemble_metadata(),

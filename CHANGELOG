@@ -5,6 +5,8 @@
  - fix: minor issue of visualizing whether user changed
    supplementary resource information
  - enh: enable DCOR usage (anonymous and registered users)
+ - enh: make sure the user really wants to upload datasets without
+   editing any metadata (#10)
  - ref: migrate preferences to QSettings
 0.0.9
  - enh: send DCOR-Aid user-agent string

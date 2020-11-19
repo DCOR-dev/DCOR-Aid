@@ -49,6 +49,15 @@ class ResourcesModel(QtCore.QAbstractListModel):
         names = [data[dd]["file"]["filename"] for dd in data]
         return len(names) == len(list(set(names)))
 
+    def filenames_were_edited(self):
+        """Return number of filenames that have been edited"""
+        data = self.get_all_data()
+        counter = 0
+        for key in data:
+            if pathlib.Path(key).name != data[key]["file"]["filename"]:
+                counter += 1
+        return counter
+
     def index_is_dc(self, index):
         """Does the given index instance belong to an RT-DC file?"""
         path = pathlib.Path(self.get_file_list()[index.row()])
@@ -61,6 +70,15 @@ class ResourcesModel(QtCore.QAbstractListModel):
         """Is there a modification of the list entry of this index instance?"""
         filen = self.get_file_list()[index.row()]
         return bool(self.resources[filen])
+
+    def supplements_were_edited(self):
+        """Return number of resource supplements that have been edited"""
+        data = self.get_all_data()
+        counter = 0
+        for key in data:
+            if data[key]["supplement"]:
+                counter += 1
+        return counter
 
     def get_all_data(self, magic_keys=True):
         """Return dictionary with complete information for all resources"""
