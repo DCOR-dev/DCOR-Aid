@@ -27,6 +27,9 @@
        <property name="enabled">
         <bool>false</bool>
        </property>
+       <attribute name="icon">
+        <iconset theme="globe"/>
+       </attribute>
        <attribute name="title">
         <string>Public Data</string>
        </attribute>
@@ -146,6 +149,9 @@
        <property name="enabled">
         <bool>false</bool>
        </property>
+       <attribute name="icon">
+        <iconset theme="street-view"/>
+       </attribute>
        <attribute name="title">
         <string>My Data</string>
        </attribute>
@@ -242,6 +248,9 @@
        </layout>
       </widget>
       <widget class="QWidget" name="tab_upload">
+       <attribute name="icon">
+        <iconset theme="upload"/>
+       </attribute>
        <attribute name="title">
         <string>Uploads</string>
        </attribute>
@@ -267,6 +276,9 @@
        <property name="enabled">
         <bool>false</bool>
        </property>
+       <attribute name="icon">
+        <iconset theme="people-arrows"/>
+       </attribute>
        <attribute name="title">
         <string>Sharing</string>
        </attribute>
@@ -400,6 +412,9 @@
        </layout>
       </widget>
       <widget class="QWidget" name="tab_maintain">
+       <attribute name="icon">
+        <iconset theme="broom"/>
+       </attribute>
        <attribute name="title">
         <string>Maintenance</string>
        </attribute>
@@ -433,8 +448,8 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="separator"/>
     <addaction name="actionSetupWizard"/>
+    <addaction name="separator"/>
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
@@ -444,6 +459,9 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionSoftware">
+   <property name="icon">
+    <iconset theme="code-branch"/>
+   </property>
    <property name="text">
     <string>Software</string>
    </property>
@@ -454,6 +472,9 @@
    </property>
   </action>
   <action name="actionQuit">
+   <property name="icon">
+    <iconset theme="times-circle"/>
+   </property>
    <property name="text">
     <string>Quit</string>
    </property>
@@ -464,16 +485,25 @@
    </property>
   </action>
   <action name="actionPreferences">
+   <property name="icon">
+    <iconset theme="cogs"/>
+   </property>
    <property name="text">
     <string>Preferences...</string>
    </property>
   </action>
   <action name="actionAbout">
+   <property name="icon">
+    <iconset theme="info"/>
+   </property>
    <property name="text">
     <string>About</string>
    </property>
   </action>
   <action name="actionSetupWizard">
+   <property name="icon">
+    <iconset theme="hat-wizard"/>
+   </property>
    <property name="text">
     <string>Setup wizard...</string>
    </property>

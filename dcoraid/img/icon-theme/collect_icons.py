@@ -10,6 +10,7 @@ This script must be run on a linux machine. Please make sure
 that `local_root` is correct.
 """
 import atexit
+import collections
 import pathlib
 import shutil
 import tempfile
@@ -43,24 +44,31 @@ icons = {
     "fontawesome": [
         "ban",
         "book",
+        "broom",
         "check-double",
         "child",
         "circle",
         "clinic-medical",
+        "code-branch",
         "cogs",
         "eye",
         "exclamation-triangle",
         "filter",
         "folder",
         "globe",
+        "hat-wizard",
         "hourglass",
+        "info",
+        "people-arrows",
         "puzzle-piece",
         "redo",
         "slash",
+        "street-view",
         "tag",
         "trash",
         "trash-alt",
         "undo",
+        "upload",
         "user",
         "user-lock",
         "user-times",
@@ -85,10 +93,10 @@ Type=Fixed
 
 local_root = pathlib.Path("/usr/share/icons")
 web_roots = {
-    "fontawesome": {
-        "solid": "https://raw.githubusercontent.com/FortAwesome/"
-                 + "Font-Awesome/master/svgs/solid/",
-    }}
+    "fontawesome": collections.OrderedDict(
+        solid="https://raw.githubusercontent.com/FortAwesome/"
+              + "Font-Awesome/master/svgs/solid/"
+    )}
 
 
 # create a temporary directory
@@ -125,6 +133,7 @@ def find_icons(name, theme):
                     f.write(svgdata)
                 relp = path.parent.relative_to(tmpdir)
                 cands.append([path, relp])
+                break  # we only need one icon
     else:  # use local icons
         svgs = sorted((local_root / theme).rglob("{}.svg".format(name)))
         pngs = sorted((local_root / theme).rglob("{}.png".format(name)))

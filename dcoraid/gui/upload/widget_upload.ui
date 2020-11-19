@@ -19,7 +19,13 @@
      <item>
       <widget class="QToolButton" name="toolButton_new_upload">
        <property name="text">
-        <string>New Upload</string>
+        <string>Upload new dataset</string>
+       </property>
+       <property name="icon">
+        <iconset theme="folder"/>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
        </property>
       </widget>
      </item>
