@@ -100,7 +100,7 @@ def process_svg(svgdata):
     """Set svg color to gray and add a 10% margin"""
     parsed = minidom.parseString(svgdata).childNodes[0]
     # grey color
-    parsed.setAttribute("fill", "#4D4D4D")
+    parsed.setAttribute("fill", "#232629")
     # larger viewbox
     vb = [int(it) for it in parsed.getAttribute("viewBox").split()]
     margin = vb[2] // 10
