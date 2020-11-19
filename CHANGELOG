@@ -2,6 +2,8 @@
  - feat: implement persistent upload resource schema presets (#9)
  - fix: do not allow user to proceed with upload unless 'authors'
    is specified (to avoid cryptic error message)
+ - fix: minor issue of visualizing whether user changed
+   supplementary resource information
  - enh: enable DCOR usage (anonymous and registered users)
  - ref: migrate preferences to QSettings
 0.0.9

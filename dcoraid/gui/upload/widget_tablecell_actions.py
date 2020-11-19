@@ -9,7 +9,10 @@ class TableCellActions(QtWidgets.QWidget):
     delete_job = QtCore.pyqtSignal(str)
 
     def __init__(self, job, *args, **kwargs):
-        """Actions in a table cell"""
+        """Actions in a table cell
+
+        Used for the "Running Uploads" table in the "Uploads" tab.
+        """
         super(TableCellActions, self).__init__(*args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "dcoraid.gui.upload", "widget_tablecell_actions.ui")

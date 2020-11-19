@@ -354,8 +354,10 @@ class UploadDialog(QtWidgets.QMainWindow):
                 self.lineEdit_res_filename.blockSignals(True)
                 self.lineEdit_res_filename.setText(fn)
                 self.lineEdit_res_filename.blockSignals(False)
-            data_dict["file"] = {"filename": fn}
+            if fn != path.name:  # only update filename if user changed it
+                data_dict["file"] = {"filename": fn}
         # collect supplementary resource data
         schema = self.widget_schema.get_current_schema()
-        data_dict["supplement"] = schema
+        if schema:  # only update supplement if user made changes
+            data_dict["supplement"] = schema
         self.rvmodel.update_resources(sel, data_dict)
