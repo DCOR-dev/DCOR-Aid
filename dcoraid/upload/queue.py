@@ -7,6 +7,7 @@ from .kthread import KThread
 class UploadQueue(object):
     def __init__(self, server, api_key):
         self.server = server
+        assert api_key, "API key not set!"
         self.api_key = api_key
         self.jobs = []
         self.daemon_compress = CompressDaemon(self.jobs)

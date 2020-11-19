@@ -86,6 +86,16 @@ class DCORAid(QtWidgets.QMainWindow):
         application will print the version after initialization
         and exit.
         """
+        # Settings are stored in the .ini file format. Even though
+        # `self.settings` may return integer/bool in the same session,
+        # in the next session, it will reliably return strings. Lists
+        # of strings (comma-separated) work nicely though.
+        QtCore.QCoreApplication.setOrganizationName("DCOR")
+        QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+        QtCore.QCoreApplication.setApplicationName("dcoraid")
+        QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+        # Some promoted widgets need the above constants set in order
+        # to access the settings upon initialization.
         QtWidgets.QMainWindow.__init__(self)
         path_ui = pkg_resources.resource_filename(
             "dcoraid.gui", "main.ui")
@@ -95,14 +105,6 @@ class DCORAid(QtWidgets.QMainWindow):
             print(__version__)
             QtWidgets.QApplication.processEvents()
             sys.exit(0)
-        # Settings are stored in the .ini file format. Even though
-        # `self.settings` may return integer/bool in the same session,
-        # in the next session, it will reliably return strings. Lists
-        # of strings (comma-separated) work nicely though.
-        QtCore.QCoreApplication.setOrganizationName("DCOR")
-        QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
-        QtCore.QCoreApplication.setApplicationName("dcoraid")
-        QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
         #: DCOR-Aid settings
         self.settings = QtCore.QSettings()
         # GUI
