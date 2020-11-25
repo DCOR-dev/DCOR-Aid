@@ -221,7 +221,7 @@
            <item>
             <widget class="QLabel" name="label_11">
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click &lt;span style=&quot; font-style:italic;&quot;&gt;Add data files&lt;/span&gt; below to add resources (.rtdc measurements, .so2 session files, images). Then, select one or multiple files to modify the supplementary resource meta data.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click &lt;span style=&quot; font-style:italic;&quot;&gt;Add data files&lt;/span&gt; below to add resources (.rtdc measurements, .so2 session files, images). Then, select one or multiple files to modify the supplementary resource metadata.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="wordWrap">
               <bool>true</bool>
@@ -356,7 +356,7 @@
               <item>
                <widget class="QGroupBox" name="groupBox_3">
                 <property name="title">
-                 <string>Supplementary resource meta data</string>
+                 <string>Supplementary resource metadata</string>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_7">
                  <property name="spacing">
