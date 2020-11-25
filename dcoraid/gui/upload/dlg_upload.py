@@ -26,7 +26,7 @@ class UploadDialog(QtWidgets.QDialog):
 
         # Dialog box buttons
         self.pushButton_proceed = self.buttonBox.button(
-            QtWidgets.QDialogButtonBox.Ok)
+            QtWidgets.QDialogButtonBox.Apply)
         self.pushButton_proceed.setText("Proceed with upload / Enqueue job")
         self.pushButton_cancel = self.buttonBox.button(
             QtWidgets.QDialogButtonBox.Cancel)
