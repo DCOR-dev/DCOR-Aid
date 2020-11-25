@@ -203,6 +203,12 @@ class UploadDialog(QtWidgets.QDialog):
                     " ".join(["*{}".format(s) for s in suffixes])))
         self.rvmodel.add_resources(files)
 
+        if not self.listView_resources.selectedIndexes():
+            # Select the first item
+            ix = self.rvmodel.index(0, 0)
+            sm = self.listView_resources.selectionModel()
+            sm.select(ix, QtCore.QItemSelectionModel.Select)
+
     @QtCore.pyqtSlot()
     def on_preset_load(self):
         """Load the preset with the current name"""

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1088</width>
-    <height>745</height>
+    <width>1383</width>
+    <height>839</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -129,7 +129,7 @@
              </size>
             </property>
             <property name="placeholderText">
-             <string>General background information about the study being conducted.</string>
+             <string>General description.</string>
             </property>
            </widget>
           </item>
@@ -446,8 +446,8 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>261</width>
-                     <height>470</height>
+                     <width>500</width>
+                     <height>564</height>
                     </rect>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_6">
