@@ -12,7 +12,7 @@ from .resources_model import ResourcesModel
 from .resource_schema_preset import PersistentResourceSchemaPresets
 
 
-class UploadDialog(QtWidgets.QMainWindow):
+class UploadDialog(QtWidgets.QDialog):
     finished = QtCore.pyqtSignal(object)
     instance_counter = 1
 
@@ -23,6 +23,13 @@ class UploadDialog(QtWidgets.QMainWindow):
         path_ui = pkg_resources.resource_filename(
             "dcoraid.gui.upload", "dlg_upload.ui")
         uic.loadUi(path_ui, self)
+
+        # Dialog box buttons
+        self.pushButton_proceed = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.Ok)
+        self.pushButton_proceed.setText("Proceed with upload / Enqueue job")
+        self.pushButton_cancel = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.Cancel)
 
         # Keep identifier
         self.identifier = self.instance_counter

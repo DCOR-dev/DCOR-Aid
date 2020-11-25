@@ -21,7 +21,6 @@ class UploadWidget(QtWidgets.QWidget):
         uic.loadUi(path_ui, self)
 
         self.toolButton_new_upload.clicked.connect(self.on_draft_upload)
-        self._upload_dialogs = []
 
         # Underlying upload class
         settings = QtCore.QSettings()
@@ -42,8 +41,7 @@ class UploadWidget(QtWidgets.QWidget):
         """
         dlg = UploadDialog(self)
         dlg.finished.connect(self.on_run_upload)
-        self._upload_dialogs.append(dlg)
-        dlg.show()
+        dlg.exec()
 
     @QtCore.pyqtSlot(object)
     def on_run_upload(self, upload_dialog):

@@ -8,6 +8,7 @@
  - enh: make sure the user really wants to upload datasets without
    editing any metadata (#10)
  - ref: migrate preferences to QSettings
+ - ref: refactor upload dialog to a real dialog
 0.0.9
  - enh: send DCOR-Aid user-agent string
 0.0.8
