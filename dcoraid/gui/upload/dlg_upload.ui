@@ -210,7 +210,7 @@
          </sizepolicy>
         </property>
         <property name="title">
-         <string>Resources</string>
+         <string>Data files</string>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
@@ -221,8 +221,10 @@
            <item>
             <widget class="QLabel" name="label_11">
              <property name="text">
-              <string>Select one or multiple resources
- to enter meta data editing mode.</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click &lt;span style=&quot; font-style:italic;&quot;&gt;Add data files&lt;/span&gt; below to add resources (.rtdc measurements, .so2 session files, images). Then, select one or multiple files to modify the supplementary resource meta data.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -251,7 +253,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Add resources</string>
+              <string>Add data files (resources)</string>
              </property>
             </widget>
            </item>
@@ -264,7 +266,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Remove selected</string>
+              <string>Remove selected resources</string>
              </property>
             </widget>
            </item>
@@ -354,7 +356,7 @@
               <item>
                <widget class="QGroupBox" name="groupBox_3">
                 <property name="title">
-                 <string>Supplementary information</string>
+                 <string>Supplementary resource meta data</string>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_7">
                  <property name="spacing">

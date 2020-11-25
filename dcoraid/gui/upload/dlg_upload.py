@@ -286,8 +286,8 @@ class UploadDialog(QtWidgets.QMainWindow):
         if not self.rvmodel.supplements_were_edited():
             choice = QtWidgets.QMessageBox.question(
                 self,
-                "No resource schema supplements",
-                "You did not specify any supplementary resource information. "
+                "No supplementary resource meta data",
+                "You did not specify any supplementary resource meta data. "
                 + "Would you like to proceed anyway? The editing options "
                 + "appear when you click on a resource. Please select 'No' "
                 + "if you would like to go back (recommended). Select 'Yes' "
