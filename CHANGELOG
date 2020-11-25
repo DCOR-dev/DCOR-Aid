@@ -7,6 +7,7 @@
  - enh: enable DCOR usage (anonymous and registered users)
  - enh: make sure the user really wants to upload datasets without
    editing any metadata (#10)
+ - enh: improve upload dialog understandability
  - ref: migrate preferences to QSettings
  - ref: refactor upload dialog to a real dialog
 0.0.9

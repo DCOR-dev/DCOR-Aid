@@ -4,6 +4,7 @@ import pkg_resources
 from PyQt5 import uic, QtCore, QtWidgets
 
 from ...upload import UploadQueue
+from ..tools import ShowWaitCursor
 
 from .dlg_upload import UploadDialog
 from .widget_tablecell_actions import TableCellActions
@@ -39,8 +40,9 @@ class UploadWidget(QtWidgets.QWidget):
         A draft dataset is created to which the resources are then
         uploaded.
         """
-        dlg = UploadDialog(self)
-        dlg.finished.connect(self.on_run_upload)
+        with ShowWaitCursor():
+            dlg = UploadDialog(self)
+            dlg.finished.connect(self.on_run_upload)
         dlg.exec()
 
     @QtCore.pyqtSlot(object)
