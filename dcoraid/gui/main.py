@@ -79,13 +79,14 @@ class StatusWidget(QtWidgets.QWidget):
 class DCORAid(QtWidgets.QMainWindow):
     plots_changed = QtCore.pyqtSignal()
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """Initialize DCOR_Manager
 
         If you pass the "--version" command line argument, the
         application will print the version after initialization
         and exit.
         """
+        super(DCORAid, self).__init__(*args, **kwargs)
         # Settings are stored in the .ini file format. Even though
         # `self.settings` may return integer/bool in the same session,
         # in the next session, it will reliably return strings. Lists
@@ -96,7 +97,6 @@ class DCORAid(QtWidgets.QMainWindow):
         QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
         # Some promoted widgets need the above constants set in order
         # to access the settings upon initialization.
-        QtWidgets.QMainWindow.__init__(self)
         path_ui = pkg_resources.resource_filename(
             "dcoraid.gui", "main.ui")
         uic.loadUi(path_ui, self)
