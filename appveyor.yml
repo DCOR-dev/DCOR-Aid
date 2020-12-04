@@ -27,6 +27,9 @@ install:
   - python --version
   # Install dcoraid and its dependencies
   - appveyor-retry python -m pip install --upgrade pip
+  # Pin version of numpy
+  # https://developercommunity.visualstudio.com/content/problem/1207405/fmod-after-an-update-to-windows-2004-is-causing-a.html
+  - appveyor-retry pip install "numpy<1.19.4"
   - appveyor-retry pip install -e .
   # Show the installed packages
   - pip freeze
