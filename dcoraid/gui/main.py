@@ -86,7 +86,6 @@ class DCORAid(QtWidgets.QMainWindow):
         application will print the version after initialization
         and exit.
         """
-        super(DCORAid, self).__init__(*args, **kwargs)
         # Settings are stored in the .ini file format. Even though
         # `self.settings` may return integer/bool in the same session,
         # in the next session, it will reliably return strings. Lists
@@ -97,6 +96,7 @@ class DCORAid(QtWidgets.QMainWindow):
         QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
         # Some promoted widgets need the above constants set in order
         # to access the settings upon initialization.
+        super(DCORAid, self).__init__(*args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "dcoraid.gui", "main.ui")
         uic.loadUi(path_ui, self)

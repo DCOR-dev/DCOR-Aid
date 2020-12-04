@@ -1,4 +1,5 @@
 import time
+import warnings
 
 from .job import UploadJob
 from .kthread import KThread
@@ -7,7 +8,8 @@ from .kthread import KThread
 class UploadQueue(object):
     def __init__(self, server, api_key):
         self.server = server
-        assert api_key, "API key not set!"
+        if not api_key:
+            warnings.warn("No API key is set! Upload will not work!")
         self.api_key = api_key
         self.jobs = []
         self.daemon_compress = CompressDaemon(self.jobs)
