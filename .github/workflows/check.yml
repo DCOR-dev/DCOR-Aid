@@ -45,7 +45,7 @@ jobs:
         QT_DEBUG_PLUGINS=1 python -m dcoraid --version
     - name: Test with pytest
       env:
-        DCOR_API_KEY: ${{ secrets.DCOR_API_KEY}}
+        DCOR_API_KEY: ${{ secrets.DCOR_API_KEY }}
       run: |
          coverage run --source=dcoraid setup.py test
     - name: Lint with flake8
