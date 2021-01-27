@@ -11,9 +11,8 @@ if not exists(join(cdir, "dcoraid")):
 	warnings.warn("Cannot find 'dcoraid'! Please run pyinstaller "+
                   "from git root folder.")
 
-name = "DCOR-Aid"
-pyinstdir = os.path.realpath(cdir+"/.appveyor/")
-script = os.path.join(pyinstdir, name+".py")
+pyinstdir = os.path.realpath(cdir+"/build-recipes/")
+script = os.path.join(pyinstdir, "DCOR-Aid.py")
 
 # Icon
 icofile = os.path.join(pyinstdir,"DCOR-Aid.ico")
@@ -30,7 +29,7 @@ exe = EXE(pyz,
           a.scripts,
           options,
           exclude_binaries=True,
-          name=name+".exe",
+          name="DCOR-Aid.exe",
           debug=False,
           strip=False,
           upx=False,
@@ -43,4 +42,4 @@ coll = COLLECT(exe,
                a.datas,
                strip=False,
                upx=False,
-               name=name)
+               name="DCOR-Aid")
