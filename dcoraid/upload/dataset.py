@@ -28,7 +28,13 @@ def activate_dataset(dataset_id, server, api_key):
         "match": {"id": dataset_id},
         "update": {"state": "active"}}
     res = api.post("package_revise", revise_dict)
-    assert res["package"]["state"] == "active", "{}".format(res)
+    if res["package"]["state"] != "active":
+        # TODO: Make this an error message in ckanext-dcor_schemas
+        raise ValueError("Setting the state of the dataset "
+                         + "'{}' to 'active' did not work! ".format(dataset_id)
+                         + "Does the dataset contain resources? If not, then "
+                         + "you are experienceing a ckanext-dcor_schemas "
+                         + "restriction.")
 
 
 def add_resource(dataset_id, path, server, api_key, resource_name=None,
