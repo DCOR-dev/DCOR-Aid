@@ -33,7 +33,7 @@ By default, testing is done with https://dcor-dev.mpl.mpg.de and the user
 .. |DCOR-Aid| image:: https://raw.github.com/DCOR-dev/DCOR-Aid/master/dcoraid/img/dcoraid_text.png
 .. |PyPI Version| image:: https://img.shields.io/pypi/v/dcoraid.svg
    :target: https://pypi.python.org/pypi/DCOR-Aid
-.. |Build Status Unix| image:: https://img.shields.io/github/workflow/status/ZELLMECHANIK-DRESDEN/ShapeOut2/Checks
+.. |Build Status Unix| image:: https://img.shields.io/github/workflow/status/DCOR-dev/DCOR-Aid/Checks
    :target: https://github.com/DCOR-dev/DCOR-Aid/actions?query=workflow%3AChecks
 .. |Tests Status Win| image:: https://img.shields.io/appveyor/ci/paulmueller/DCOR-Aid/master.svg?label=tests_win
    :target: https://ci.appveyor.com/project/paulmueller/DCOR-Aid
