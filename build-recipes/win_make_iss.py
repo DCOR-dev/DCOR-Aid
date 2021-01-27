@@ -15,7 +15,7 @@ import dcoraid
 version = dcoraid.__version__
 
 # read dummy
-with io.open(op.join(cdir, "dcoraid.iss_dummy"), 'r') as dummy:
+with io.open(op.join(cdir, "win_dcoraid.iss_dummy"), 'r') as dummy:
     iss = dummy.readlines()
 
 # replace keywords
@@ -27,6 +27,6 @@ for i in range(len(iss)):
         iss[i] = '#define MyAppPlatform "win_{}"\n'.format(platform.architecture()[0])
 
 # write iss
-with io.open(op.join(cdir, "dcoraid.iss"), 'w') as issfile:
+with io.open(op.join(cdir, "win_dcoraid.iss"), 'w') as issfile:
     issfile.writelines(iss)
 
