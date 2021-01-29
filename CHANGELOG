@@ -1,4 +1,6 @@
 0.1.1
+ - setup: bump dclab from 0.28.0 to 0.32.2 (OOM issues during compression)
+ - setup: pin dclab (for triaging)
  - build: move build pipeline from travisCI to GitHub Actions
 0.1.0
  - feat: implement persistent upload resource schema presets (#9)
