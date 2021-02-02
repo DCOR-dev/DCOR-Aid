@@ -1,3 +1,5 @@
+0.1.2
+ - ci: overhauled build pipeline
 0.1.1
  - setup: bump dclab from 0.28.0 to 0.32.2 (OOM issues during compression)
  - setup: pin dclab (for triaging)
