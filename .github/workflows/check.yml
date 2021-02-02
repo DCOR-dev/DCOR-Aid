@@ -59,4 +59,4 @@ jobs:
       if: runner.os == 'macOS'
       working-directory: ./build-recipes
       run: |
-        bash ./macos_build_app.sh DCOR-Aid $(git describe --tags)
+        bash ./macos_build_app.sh DCORAid $(git describe --tags)

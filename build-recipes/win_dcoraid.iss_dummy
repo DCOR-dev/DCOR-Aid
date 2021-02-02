@@ -5,10 +5,11 @@
 #define MyAppNameSimple "DCOR-Aid"
 #define MyzmAppName "DCOR-Aid"
 #define MyAppVersion "0.1.0"
-#define MyAppPublisher "DCOR"
+#define MyAppPublisher "DCOR Developers"
 #define MyAppURL "https://dcor.mpl.mpg.de"
 #define MyAppPlatform "win32"
-#define MyAppExeName "DCOR-Aid.exe"
+#define MyAppExeName "DCORAid.exe"
+#define MyAppDir = SourcePath + "dist\DCORAid\"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.

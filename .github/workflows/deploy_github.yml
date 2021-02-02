@@ -47,8 +47,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-        asset_path: ./build-recipes/dist_app/DCOR-Aid_${{ env.RELEASE_VERSION }}.dmg
-        asset_name: DCOR-Aid_${{ env.RELEASE_VERSION }}.dmg
+        asset_path: ./build-recipes/dist/DCORAid_${{ env.RELEASE_VERSION }}.dmg
+        asset_name: DCORAid_${{ env.RELEASE_VERSION }}.dmg
         asset_content_type: application/zip
     - name: Upload Release Asset PGK
       id: upload-release-asset-pkg
@@ -57,6 +57,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-        asset_path: ./build-recipes/dist_app/DCOR-Aid.pkg
-        asset_name: DCOR-Aid.pkg
+        asset_path: ./build-recipes/dist/DCORAid.pkg
+        asset_name: DCORAid.pkg
         asset_content_type: application/zip
