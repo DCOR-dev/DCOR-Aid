@@ -20,6 +20,10 @@ class APIError(BaseException):
     pass
 
 
+class APIAuthorizationError(APIError):
+    pass
+
+
 class APIBadGatewayError(APIError):
     pass
 
@@ -239,6 +243,8 @@ class CKANAPI():
                 raise APIGatewayTimeoutError(msg)
             elif req.reason == "Bad Gateway":
                 raise APIBadGatewayError(msg)
+            elif req.reason == "FORBIDDEN":
+                raise APIAuthorizationError(msg)
             else:
                 raise ConnectionError(msg)
         if not rdata["success"]:
