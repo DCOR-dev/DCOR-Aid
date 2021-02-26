@@ -1,4 +1,5 @@
-0.1.2
+0.2.0
+ - feat: enable "clinics" in wizard and support encrypted access tokens
  - ci: overhauled build pipeline
  - enh: add APIAuthorizationError class
 0.1.1

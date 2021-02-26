@@ -6,6 +6,8 @@ from PyQt5 import uic, QtCore, QtWidgets
 
 from ...api import APIKeyError, CKANAPI
 
+from .import access_token
+
 
 def get_dcor_dev_api_key():
     """Return a valid DCOR-dev user API key
@@ -54,76 +56,10 @@ class SetupWizard(QtWidgets.QWizard):
             "dcoraid.gui.wizard", "wizard.ui")
         uic.loadUi(path_ui, self)
 
+        self.pushButton_path_access_token.clicked.connect(
+            self.on_browse_access_token)
         self.button(QtWidgets.QWizard.FinishButton).clicked.connect(
             self._finalize)
-
-    def get_user_scenario(self):
-        """Return string representing the user scenario (from first page)"""
-        if self.radioButton_dcor.isChecked():
-            return "dcor"
-        elif self.radioButton_med.isChecked():
-            return "medical"
-        elif self.radioButton_play.isChecked():
-            return "dcor-dev"
-        elif self.radioButton_anonym.isChecked():
-            return "anonymous"
-        elif self.radioButton_custom.isChecked():
-            return "custom"
-        else:
-            raise ValueError("Undefined!")
-
-    def get_api_key(self):
-        user_scenario = self.get_user_scenario()
-        if user_scenario == "dcor":
-            return self.lineEdit_apikey_dcor.text()
-        elif user_scenario == "medical":
-            return self.lineEdit_apikey_med.text()
-        elif user_scenario == "dcor-dev":
-            return get_dcor_dev_api_key()
-        elif user_scenario == "anonymous":
-            return ""
-        elif user_scenario == "custom":
-            return self.lineEdit_apikey_custom.text()
-        else:
-            raise ValueError("Undefined!")
-
-    def get_server(self):
-        user_scenario = self.get_user_scenario()
-        if user_scenario == "dcor":
-            return "dcor.mpl.mpg.de"
-        elif user_scenario == "medical":
-            raise NotImplementedError("TODO")
-        elif user_scenario == "dcor-dev":
-            return "dcor-dev.mpl.mpg.de"
-        elif user_scenario == "anonymous":
-            return "dcor.mpl.mpg.de"
-        elif user_scenario == "custom":
-            return self.lineEdit_server_custom.text()
-        else:
-            raise ValueError("Undefined!")
-
-    def nextId(self):
-        """Determine the next page based on the current page data"""
-        user_scenario = self.get_user_scenario()
-        page = self.currentPage()
-        page_dict = {}
-        for ii in self.pageIds():
-            page_dict[self.page(ii)] = ii
-        if page == self.page_welcome:
-            if user_scenario == "dcor":
-                return page_dict[self.page_dcor]
-            elif user_scenario == "medical":
-                return page_dict[self.page_med]
-            elif user_scenario == "dcor-dev":
-                return -1
-            elif user_scenario == "anonymous":
-                return -1
-            elif user_scenario == "custom":
-                return page_dict[self.page_custom]
-            else:
-                raise ValueError("No Rule!")
-        else:
-            return -1
 
     def _finalize(self):
         """Update settings"""
@@ -169,3 +105,84 @@ class SetupWizard(QtWidgets.QWizard):
                 QtWidgets.QApplication.processEvents()
                 QtWidgets.QApplication.quit()
                 sys.exit(0)  # if the above does not work
+
+    def get_api_key(self):
+        user_scenario = self.get_user_scenario()
+        if user_scenario == "dcor":
+            return self.lineEdit_apikey_dcor.text()
+        elif user_scenario == "medical":
+            return access_token.get_api_key(
+                self.lineEdit_access_token_path.text(),
+                self.lineEdit_access_token_password.text(),
+            )
+        elif user_scenario == "dcor-dev":
+            return get_dcor_dev_api_key()
+        elif user_scenario == "anonymous":
+            return ""
+        elif user_scenario == "custom":
+            return self.lineEdit_apikey_custom.text()
+        else:
+            raise ValueError("Undefined!")
+
+    def get_server(self):
+        user_scenario = self.get_user_scenario()
+        if user_scenario == "dcor":
+            return "dcor.mpl.mpg.de"
+        elif user_scenario == "medical":
+            return access_token.get_hostname(
+                self.lineEdit_access_token_path.text(),
+                self.lineEdit_access_token_password.text(),
+            )
+        elif user_scenario == "dcor-dev":
+            return "dcor-dev.mpl.mpg.de"
+        elif user_scenario == "anonymous":
+            return "dcor.mpl.mpg.de"
+        elif user_scenario == "custom":
+            return self.lineEdit_server_custom.text()
+        else:
+            raise ValueError("Undefined!")
+
+    def get_user_scenario(self):
+        """Return string representing the user scenario (from first page)"""
+        if self.radioButton_dcor.isChecked():
+            return "dcor"
+        elif self.radioButton_med.isChecked():
+            return "medical"
+        elif self.radioButton_play.isChecked():
+            return "dcor-dev"
+        elif self.radioButton_anonym.isChecked():
+            return "anonymous"
+        elif self.radioButton_custom.isChecked():
+            return "custom"
+        else:
+            raise ValueError("Undefined!")
+
+    def nextId(self):
+        """Determine the next page based on the current page data"""
+        user_scenario = self.get_user_scenario()
+        page = self.currentPage()
+        page_dict = {}
+        for ii in self.pageIds():
+            page_dict[self.page(ii)] = ii
+        if page == self.page_welcome:
+            if user_scenario == "dcor":
+                return page_dict[self.page_dcor]
+            elif user_scenario == "medical":
+                return page_dict[self.page_med]
+            elif user_scenario == "dcor-dev":
+                return -1
+            elif user_scenario == "anonymous":
+                return -1
+            elif user_scenario == "custom":
+                return page_dict[self.page_custom]
+            else:
+                raise ValueError("No Rule!")
+        else:
+            return -1
+
+    @QtCore.pyqtSlot()
+    def on_browse_access_token(self):
+        path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, 'Open access token', 'DCOR access token (*.dcor-access)')
+        if path:
+            self.lineEdit_access_token_path.setText(path)

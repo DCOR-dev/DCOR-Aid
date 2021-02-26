@@ -108,9 +108,6 @@
     </item>
     <item>
      <widget class="QRadioButton" name="radioButton_med">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
       <property name="font">
        <font>
         <weight>75</weight>
@@ -424,7 +421,7 @@
     <item>
      <widget class="QLabel" name="label_8">
       <property name="text">
-       <string>Please locate the SSL certificate that you received from your local DCOR administrator.</string>
+       <string>Please specify the encrypted access token (.dcor-access) that you received from your DCOR administrator.</string>
       </property>
       <property name="wordWrap">
        <bool>true</bool>
@@ -432,70 +429,37 @@
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_5">
-      <item>
-       <widget class="QLineEdit" name="lineEdit"/>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="lineEdit_access_token_path"/>
       </item>
-      <item>
-       <widget class="QPushButton" name="pushButton">
+      <item row="0" column="2">
+       <widget class="QPushButton" name="pushButton_path_access_token">
         <property name="text">
          <string>Browse</string>
         </property>
        </widget>
       </item>
-     </layout>
-    </item>
-    <item>
-     <spacer name="verticalSpacer_2">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item>
-     <widget class="QLabel" name="label_9">
-      <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You should also have received your access credentials. Please log in at the following URL, go to your profile page (click on your name at the top of the page) and copy-paste your API key (located at the bottom of the left panel on your profile page) here:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="wordWrap">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <layout class="QFormLayout" name="formLayout_2">
       <item row="0" column="0">
-       <widget class="QLabel" name="label_10">
+       <widget class="QLabel" name="label_9">
         <property name="text">
-         <string>Login</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="label_11">
-        <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://your.local.domain&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://your.local.domain&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Access token</string>
         </property>
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="label_12">
+       <widget class="QLabel" name="label_16">
         <property name="text">
-         <string>API key</string>
+         <string>Token password</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="lineEdit_apikey_custom"/>
+       <widget class="QLineEdit" name="lineEdit_access_token_password">
+        <property name="echoMode">
+         <enum>QLineEdit::PasswordEchoOnEdit</enum>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
