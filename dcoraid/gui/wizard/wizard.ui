@@ -421,7 +421,7 @@
     <item>
      <widget class="QLabel" name="label_8">
       <property name="text">
-       <string>Please specify the encrypted access token (.dcor-access) that you received from your DCOR administrator.</string>
+       <string>Please specify the path to the encrypted access token (.dcor-access file) that you received from your DCOR administrator.</string>
       </property>
       <property name="wordWrap">
        <bool>true</bool>

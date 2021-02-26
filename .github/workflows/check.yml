@@ -61,4 +61,4 @@ jobs:
       if: runner.os == 'macOS'
       working-directory: ./build-recipes
       run: |
-        bash ./macos_build_app.sh DCORAid $(python -m dcoraid --version)
+        bash ./macos_build_app.sh DCOR-Aid $(python -m dcoraid --version)
