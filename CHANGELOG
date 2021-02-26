@@ -1,5 +1,5 @@
 0.2.1
- - build: fix macOS build pipeline
+ - build: fix build pipeline
 0.2.0
  - feat: enable "clinics" in wizard and support encrypted access tokens
  - ci: overhauled build pipeline

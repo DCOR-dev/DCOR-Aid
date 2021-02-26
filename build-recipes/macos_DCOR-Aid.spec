@@ -4,7 +4,7 @@ import warnings
 
 from dcoraid._version import version
 
-NAME = "DCORAid"
+NAME = "DCOR-Aid"
 
 
 if not exists("./{}Launcher.py".format(NAME)):

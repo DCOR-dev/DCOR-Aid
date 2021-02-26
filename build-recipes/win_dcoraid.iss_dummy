@@ -8,8 +8,8 @@
 #define MyAppPublisher "DCOR Developers"
 #define MyAppURL "https://dcor.mpl.mpg.de"
 #define MyAppPlatform "win32"
-#define MyAppExeName "DCORAid.exe"
-#define MyAppDir = SourcePath + "dist\DCORAid\"
+#define MyAppExeName "DCOR-Aid.exe"
+#define MyAppDir = SourcePath + "dist\DCOR-Aid\"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -42,8 +42,8 @@ Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\projects\DCOR-Aid\dist\DCOR-Aid\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\projects\DCOR-Aid\dist\DCOR-Aid\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#MyAppDir}{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#MyAppDir}*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\{#MyzmAppName}"; Filename: "{app}\{#MyAppExeName}"
