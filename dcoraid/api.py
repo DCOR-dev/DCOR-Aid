@@ -44,7 +44,7 @@ class APINotFoundError(APIError):
     pass
 
 
-class CKANAPI():
+class CKANAPI:
     def __init__(self, server, api_key):
         """User-convenient interface to the CKAN API"""
         self.api_key = api_key

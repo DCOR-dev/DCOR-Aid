@@ -101,6 +101,14 @@ class SetupWizard(QtWidgets.QWizard):
                                   self.get_user_scenario())
                 settings.setValue("auth/server", server)
                 settings.setValue("auth/api key", api_key)
+                if user_scenario == "medical":
+                    # save the server certificate
+                    cert_data = access_token.get_certificate(
+                        self.lineEdit_access_token_path.text(),
+                        self.lineEdit_access_token_password.text())
+                    settings.setValue("auth/certificate", cert_data)
+                elif settings.contains("auth/certificate"):
+                    settings.remove("auth/certificate")
                 settings.sync()
                 QtWidgets.QApplication.processEvents()
                 QtWidgets.QApplication.quit()
@@ -113,8 +121,7 @@ class SetupWizard(QtWidgets.QWizard):
         elif user_scenario == "medical":
             return access_token.get_api_key(
                 self.lineEdit_access_token_path.text(),
-                self.lineEdit_access_token_password.text(),
-            )
+                self.lineEdit_access_token_password.text())
         elif user_scenario == "dcor-dev":
             return get_dcor_dev_api_key()
         elif user_scenario == "anonymous":
@@ -131,8 +138,7 @@ class SetupWizard(QtWidgets.QWizard):
         elif user_scenario == "medical":
             return access_token.get_hostname(
                 self.lineEdit_access_token_path.text(),
-                self.lineEdit_access_token_password.text(),
-            )
+                self.lineEdit_access_token_password.text())
         elif user_scenario == "dcor-dev":
             return "dcor-dev.mpl.mpg.de"
         elif user_scenario == "anonymous":

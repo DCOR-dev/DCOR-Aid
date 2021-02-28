@@ -1,8 +1,11 @@
+import atexit
 import os
 import pathlib
 import pkg_resources
+import shutil
 import signal
 import sys
+import tempfile
 import traceback as tb
 
 import appdirs
@@ -90,12 +93,22 @@ class DCORAid(QtWidgets.QMainWindow):
         # `self.settings` may return integer/bool in the same session,
         # in the next session, it will reliably return strings. Lists
         # of strings (comma-separated) work nicely though.
+        # Some promoted widgets need the below constants set in order
+        # to access the settings upon initialization.
         QtCore.QCoreApplication.setOrganizationName("DCOR")
         QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
         QtCore.QCoreApplication.setApplicationName("dcoraid")
         QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
-        # Some promoted widgets need the above constants set in order
-        # to access the settings upon initialization.
+        #: DCOR-Aid settings
+        self.settings = QtCore.QSettings()
+        # Certificate pinning in case of medical user scenario
+        if self.settings.value("user scenario") == "medical":
+            cert_data = self.settings.value("auth/certificate")
+            tmpdir = tempfile.mkdtemp(prefix="dcoraid_certificate_pinning_")
+            cert_path = pathlib.Path(tmpdir) / "server.cert"
+            cert_path.write_bytes(cert_data)
+            os.environ["REQUESTS_CA_BUNDLE"] = str(cert_path)
+            atexit.register(shutil.rmtree, tmpdir, ignore_errors=True)
         super(DCORAid, self).__init__(*args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "dcoraid.gui", "main.ui")
@@ -105,8 +118,6 @@ class DCORAid(QtWidgets.QMainWindow):
             print(__version__)
             QtWidgets.QApplication.processEvents()
             sys.exit(0)
-        #: DCOR-Aid settings
-        self.settings = QtCore.QSettings()
         # GUI
         # Preferences dialog
         self.dlg_pref = PreferencesDialog()
