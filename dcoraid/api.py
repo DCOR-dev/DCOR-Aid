@@ -76,6 +76,10 @@ class CKANAPI:
             url = "https://" + url
         return url
 
+    def copy(self):
+        return CKANAPI(server=self.server, api_key=self.api_key,
+                       ssl_verify=self.verify)
+
     def is_available(self):
         """Check whether server and API are reachable"""
         try:

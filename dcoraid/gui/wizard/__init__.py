@@ -18,7 +18,8 @@ def get_dcor_dev_api_key():
     settings = QtCore.QSettings()
     api_key = settings.value("auth/api key", "")
     api = CKANAPI(server="https://dcor-dev.mpl.mpg.de",
-                  api_key=api_key)
+                  api_key=api_key,
+                  ssl_verify=True)
     try:
         api.get_user_dict()
     except APIKeyError:

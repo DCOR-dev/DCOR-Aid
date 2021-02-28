@@ -1,21 +1,19 @@
 import warnings
 
-from ..api import CKANAPI
-
 from .core import DBInterrogator, DBModel
 from .util import ttl_cache
 
 
 class APIModel(DBModel):
-    def __init__(self, url, api_key=None, *args, **kwargs):
+    def __init__(self, api, *args, **kwargs):
         """A CKAN-API-based database model"""
-        db = APIInterrogator(url=url, api_key=api_key)
+        db = APIInterrogator(api=api)
         super(APIModel, self).__init__(interrogator=db, *args, **kwargs)
 
 
 class APIInterrogator(DBInterrogator):
-    def __init__(self, url, api_key=None):
-        self.api = CKANAPI(url, api_key)
+    def __init__(self, api):
+        self.api = api.copy()
         super(APIInterrogator, self).__init__()
 
     @ttl_cache(seconds=5)

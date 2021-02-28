@@ -1,6 +1,8 @@
 import os
 import pathlib
 
+from dcoraid.api import CKANAPI
+
 
 CIRCLE = "dcoraid-circle"
 COLLECTION = "dcoraid-collection"
@@ -9,6 +11,11 @@ SERVER = "dcor-dev.mpl.mpg.de"
 USER = "dcoraid"
 USER_NAME = "DCOR-Aid tester"
 TITLE = "DCOR-Aid test dataset"
+
+
+def get_api():
+    api = CKANAPI(server=SERVER, api_key=get_api_key(), ssl_verify=True)
+    return api
 
 
 def get_api_key():

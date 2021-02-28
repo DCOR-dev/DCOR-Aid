@@ -309,9 +309,7 @@ class UploadDialog(QtWidgets.QDialog):
         # Try to create the dataset and display any issues with the metadata
         try:
             data = create_dataset(dataset_dict=self.assemble_metadata(),
-                                  server=self.api.api_url,
-                                  api_key=self.api.api_key
-                                  )
+                                  api=self.api.copy())
         except BaseException:
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Critical)

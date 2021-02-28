@@ -4,6 +4,7 @@ from PyQt5 import uic, QtCore, QtWidgets
 
 from ...upload.dataset import remove_all_drafts
 
+from ..api import get_ckan_api
 from ..tools import ShowWaitCursor
 
 
@@ -20,11 +21,8 @@ class MaintenanceWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_remove_drafts(self):
-        settings = QtCore.QSettings()
         with ShowWaitCursor():
-            data = remove_all_drafts(
-                server=settings.value("auth/server", "dcor.mpl.mpg.de"),
-                api_key=settings.value("auth/api key", ""))
+            data = remove_all_drafts(api=get_ckan_api())
         msg = QtWidgets.QMessageBox()
         msg.setIcon(QtWidgets.QMessageBox.Information)
         if len(data):

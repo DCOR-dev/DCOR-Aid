@@ -222,10 +222,9 @@ class DCORAid(QtWidgets.QMainWindow):
         self.tab_user.setCursor(QtCore.Qt.WaitCursor)
         # TODO:
         # - what happens if the user changes the server? Ask to restart?
-        api_key = self.settings.value("auth/api key", "")
-        server = self.settings.value("auth/server", "dcor.mpl.mpg.de")
+        api = get_ckan_api()
         try:
-            am = APIModel(url=server, api_key=api_key)
+            am = APIModel(api=api)
             if am.api.is_available():
                 db_extract = am.get_user_datasets()
         except BaseException:

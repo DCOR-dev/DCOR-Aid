@@ -3,10 +3,8 @@ import pathlib
 
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
-from ..api import CKANAPI
 
-
-def activate_dataset(dataset_id, server, api_key):
+def activate_dataset(dataset_id, api):
     """Change the state of a dataset to "active"
 
     In the DCOR workflow, datasets are created as drafts and
@@ -18,12 +16,9 @@ def activate_dataset(dataset_id, server, api_key):
     ----------
     dataset_id: str
         CKAN ID of the dataset
-    server: str
-        server domain name
-    api_key: str
-        API key of the CKAN/DCOR user
+    api: dcoraid.api.CKANAPI
+        API instance with server, api_key (and optional certificate)
     """
-    api = CKANAPI(server=server, api_key=api_key)
     revise_dict = {
         "match": {"id": dataset_id},
         "update": {"state": "active"}}
@@ -37,7 +32,7 @@ def activate_dataset(dataset_id, server, api_key):
                          + "restriction.")
 
 
-def add_resource(dataset_id, path, server, api_key, resource_name=None,
+def add_resource(dataset_id, path, api, resource_name=None,
                  resource_dict={}, monitor_callback=None):
     """Add a resource to a dataset
 
@@ -47,10 +42,8 @@ def add_resource(dataset_id, path, server, api_key, resource_name=None,
         CKAN ID of the dataset to which the resource is added
     path: str or pathlib.Path
         Path to the resource
-    server: str
-        server domain name
-    api_key: str
-        API key of the CKAN/DCOR user
+    api: dcoraid.api.CKANAPI
+        API instance with server, api_key (and optional certificate)
     resource_name: str
         Alternate resource name, if not set `path.name` is used
     resource_dict: dict
@@ -69,7 +62,6 @@ def add_resource(dataset_id, path, server, api_key, resource_name=None,
     path = pathlib.Path(path)
     if resource_name is None:
         resource_name = path.name
-    api = CKANAPI(server=server, api_key=api_key)
     e = MultipartEncoder(fields={
         'package_id': dataset_id,
         'name': resource_name,
@@ -88,7 +80,7 @@ def add_resource(dataset_id, path, server, api_key, resource_name=None,
         api.post("package_revise", revise_dict)
 
 
-def create_dataset(dataset_dict, server, api_key, resources=[],
+def create_dataset(dataset_dict, api, resources=[],
                    create_circle=False, activate=False):
     """Create a draft dataset
 
@@ -96,10 +88,8 @@ def create_dataset(dataset_dict, server, api_key, resources=[],
     ----------
     dataset_dict: dict
         CKAN dataset dictionary
-    server: str
-        server domain name
-    api_key: str
-        API key of the CKAN/DCOR user
+    api: dcoraid.api.CKANAPI
+        API instance with server, api_key (and optional certificate)
     resources: list of str or pathlib.Path
         Paths to dataset resources
     create_circle: bool
@@ -110,7 +100,6 @@ def create_dataset(dataset_dict, server, api_key, resources=[],
         this implies that no other resources can be added to the
         dataset.
     """
-    api = CKANAPI(server=server, api_key=api_key)
     if create_circle:
         circles = [c["name"] for c in api.get("organization_list_for_user")]
         if dataset_dict["owner_org"] not in circles:
@@ -124,15 +113,14 @@ def create_dataset(dataset_dict, server, api_key, resources=[],
         for res in resources:
             add_resource(dataset_id=data["id"],
                          path=res,
-                         server=server,
-                         api_key=api_key)
+                         api=api)
     if activate:
-        activate_dataset(dataset_id=data["id"], server=server, api_key=api_key)
+        activate_dataset(dataset_id=data["id"], api=api)
         data["state"] = "active"
     return data
 
 
-def remove_draft(dataset_id, server, api_key):
+def remove_draft(dataset_id, api):
     """Remove a draft dataset
 
     Use this for deleting datasets that you created but which were
@@ -142,17 +130,14 @@ def remove_draft(dataset_id, server, api_key):
     ----------
     dataset_id: str
         CKAN ID of the dataset to which the resource is added
-    server: str
-        server domain name
-    api_key: str
-        API key of the CKAN/DCOR user
+    api: dcoraid.api.CKANAPI
+        API instance with server, api_key (and optional certificate)
     """
-    api = CKANAPI(server=server, api_key=api_key)
     api.post("package_delete", {"id": dataset_id})
     api.post("dataset_purge", {"id": dataset_id})
 
 
-def remove_all_drafts(server, api_key):
+def remove_all_drafts(api):
     """Remove all draft datasets
 
     Find and delete all draft datasets for a user. The user
@@ -160,12 +145,9 @@ def remove_all_drafts(server, api_key):
 
     Parameters
     ----------
-    server: str
-        server domain name
-    api_key: str
-        API key of the CKAN/DCOR user
+    api: dcoraid.api.CKANAPI
+        API instance with server, api_key (and optional certificate)
     """
-    api = CKANAPI(server=server, api_key=api_key)
     user_dict = api.get_user_dict()
     data = api.get(
         "package_search",
@@ -176,13 +158,12 @@ def remove_all_drafts(server, api_key):
         rows=1000)
     for dd in data["results"]:
         assert dd["state"] == "draft"
-        remove_draft(dd["id"], server=server, api_key=api_key)
+        remove_draft(dd["id"], api=api)
     return data["results"]
 
 
-def resource_exists(dataset_id, resource_name, server, api_key):
+def resource_exists(dataset_id, resource_name, api):
     """Check whether a resource exists in a dataset"""
-    api = CKANAPI(server=server, api_key=api_key)
     pkg_dict = api.get("package_show", id=dataset_id)
     for resource in pkg_dict["resources"]:
         if resource["name"] == resource_name:
@@ -191,9 +172,8 @@ def resource_exists(dataset_id, resource_name, server, api_key):
         return False
 
 
-def resource_sha256_sums(dataset_id, server, api_key):
+def resource_sha256_sums(dataset_id, api):
     """Return a dictionary of resources with the SHA256 sums as values"""
-    api = CKANAPI(server=server, api_key=api_key)
     pkg_dict = api.get("package_show", id=dataset_id)
     sha256dict = {}
     for resource in pkg_dict["resources"]:

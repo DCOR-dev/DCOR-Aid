@@ -34,13 +34,12 @@ def make_dataset_dict(hint=""):
 
 
 def test_queue_create_dataset_with_resource():
+    api = common.get_api()
     # create some metadata
     dataset_dict = make_dataset_dict(hint="create-with-resource")
     # post dataset creation request
-    data = create_dataset(dataset_dict=dataset_dict,
-                          server=common.SERVER,
-                          api_key=get_api_key())
-    joblist = UploadQueue(server=common.SERVER, api_key=get_api_key())
+    data = create_dataset(dataset_dict=dataset_dict, api=api)
+    joblist = UploadQueue(api=api)
     joblist.add_job(dataset_dict=data,
                     paths=[dpath])
     for _ in range(600):  # 60 seconds to upload

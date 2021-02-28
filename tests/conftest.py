@@ -1,4 +1,4 @@
-from dcoraid.api import APIConflictError, CKANAPI
+from dcoraid.api import APIConflictError
 
 import common
 
@@ -8,8 +8,7 @@ def pytest_sessionstart(session):
     Called after the Session object has been created and
     before performing collection and entering the run test loop.
     """
-    api_key = common.get_api_key()
-    api = CKANAPI(server=common.SERVER, api_key=api_key)
+    api = common.get_api()
     api.get("group_show", id=common.COLLECTION)
     try:
         api.post("group_create", {"name": common.COLLECTION})

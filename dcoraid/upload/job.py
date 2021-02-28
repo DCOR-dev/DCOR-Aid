@@ -10,8 +10,9 @@ import appdirs
 from dclab.rtdc_dataset.check import IntegrityChecker
 from dclab.cli import compress
 
+from ..api import APIError
+
 from . import dataset
-from .. import api
 
 
 #: Valid job states (in more or less chronological order)
@@ -30,7 +31,7 @@ JOB_STATES = [
 
 
 class UploadJob(object):
-    def __init__(self, dataset_dict, paths, server, api_key,
+    def __init__(self, dataset_dict, paths, api,
                  resource_names=None, supplements=None):
         """Wrapper for resource uploads
 
@@ -43,10 +44,7 @@ class UploadJob(object):
         """
         self.dataset_dict = dataset_dict
         self.dataset_id = dataset_dict["id"]
-        self.server = server
-        if not api_key:
-            raise ValueError("API key is empty!")
-        self.api_key = api_key
+        self.api = api.copy()  # create a copy of the API
         self.paths = paths
         if resource_names is None:
             resource_names = [pathlib.Path(pp).name for pp in paths]
@@ -87,8 +85,7 @@ class UploadJob(object):
     def get_dataset_url(self):
         """Return a link to the dataset on DCOR"""
         # The API prepends missing "https://"
-        cpi = api.CKANAPI(server=self.server, api_key=self.api_key)
-        return "{}/dataset/{}".format(cpi.server, self.dataset_id)
+        return "{}/dataset/{}".format(self.api.server, self.dataset_id)
 
     def get_progress_string(self):
         """Return a nice string representation of the progress"""
@@ -249,8 +246,7 @@ class UploadJob(object):
                     exists = dataset.resource_exists(
                         dataset_id=self.dataset_id,
                         resource_name=resource_name,
-                        server=self.server,
-                        api_key=self.api_key)
+                        api=self.api)
                     if exists:
                         # We are currently retrying an upload. If the
                         # resource exists, we have already uploaded it.
@@ -263,18 +259,16 @@ class UploadJob(object):
                                 path=path,
                                 resource_name=resource_name,
                                 resource_dict=resource_supplement,
-                                server=self.server,
-                                api_key=self.api_key,
+                                api=self.api,
                                 monitor_callback=self.monitor_callback)
                             self.paths_uploaded.append(path)
-                        except api.APIError:
+                        except APIError:
                             # Workaround for large datasets (no response)
                             # just check whether the resource is there
                             exists = dataset.resource_exists(
                                 dataset_id=self.dataset_id,
                                 resource_name=resource_name,
-                                server=self.server,
-                                api_key=self.api_key)
+                                api=self.api)
                             if not exists:
                                 raise
                         except SystemExit:
@@ -299,8 +293,7 @@ class UploadJob(object):
             # First check whether all SHA256 sums are already available online
             sha256dict = dataset.resource_sha256_sums(
                 dataset_id=self.dataset_id,
-                server=self.server,
-                api_key=self.api_key)
+                api=self.api)
             if sum([sha256dict[name] is None for name in sha256dict]) != 0:
                 # only start verification if all SHA256 sums are available
                 pass
@@ -323,8 +316,7 @@ class UploadJob(object):
                     # draft -> active
                     dataset.activate_dataset(
                         dataset_id=self.dataset_id,
-                        server=self.server,
-                        api_key=self.api_key)
+                        api=self.api)
                     self.set_state("done")
         else:
             warnings.warn("Resource verification is only possible when state "

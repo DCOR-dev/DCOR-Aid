@@ -152,8 +152,10 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         server = self.comboBox_server.currentText().strip()
         # Test whether that works
         try:
-            api = CKANAPI(server=server, api_key=api_key)
-            api.get_user_dict()
+            cur_api = get_ckan_api()  # maybe only name or api key changed
+            api = CKANAPI(server=server, api_key=api_key,
+                          ssl_verify=cur_api.verify)
+            api.get_user_dict()  # raises an exception if credentials are wrong
         except BaseException:
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Critical)

@@ -11,7 +11,8 @@ dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
 
 def test_dcor_dev_public_api_interrogator():
     """This test uses the figshare datasets on SERVER"""
-    db = model_api.APIInterrogator(common.SERVER)
+    api = common.get_api()
+    db = model_api.APIInterrogator(api=api)
     assert common.CIRCLE in db.get_circles()
     assert common.COLLECTION in db.get_collections()
     assert common.USER in db.get_users()
@@ -19,14 +20,14 @@ def test_dcor_dev_public_api_interrogator():
 
 def test_dcor_dev_user_data():
     """Test the user information"""
-    api_key = common.get_api_key()
-    db = model_api.APIInterrogator(common.SERVER, api_key=api_key)
+    api = common.get_api()
+    db = model_api.APIInterrogator(api=api)
     data = db.get_user_data()
     assert data["fullname"] == common.USER_NAME, "fullname not correct"
 
 
 def test_dcor_dev_search():
-    api_key = common.get_api_key()
+    api = common.get_api()
     ranstr = ''.join(random.choice("0123456789") for _i in range(10))
     # Create a test dataset
     create_dataset({"title": "{} {}".format(common.TITLE, ranstr),
@@ -35,11 +36,10 @@ def test_dcor_dev_search():
                     "license_id": "CC0-1.0",
                     "groups": [{"name": common.COLLECTION}],
                     },
-                   server=common.SERVER,
-                   api_key=api_key,
+                   api=api,
                    resources=[dpath],
                    activate=True)
-    db = model_api.APIInterrogator(common.SERVER, api_key=api_key)
+    db = model_api.APIInterrogator(api=api)
     # Positive test
     data = db.search_dataset(query="dcoraid",
                              circles=[common.CIRCLE],

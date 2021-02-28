@@ -4,6 +4,8 @@ import pkg_resources
 from PyQt5 import uic, QtCore, QtWidgets
 
 from ...upload import UploadQueue
+
+from ..api import get_ckan_api
 from ..tools import ShowWaitCursor
 
 from .dlg_upload import UploadDialog
@@ -24,10 +26,7 @@ class UploadWidget(QtWidgets.QWidget):
         self.toolButton_new_upload.clicked.connect(self.on_draft_upload)
 
         # Underlying upload class
-        settings = QtCore.QSettings()
-        self.jobs = UploadQueue(server=settings.value("auth/server",
-                                                      "dcor.mpl.mpg.de"),
-                                api_key=settings.value("auth/api key", ""))
+        self.jobs = UploadQueue(api=get_ckan_api())
         self.widget_jobs.set_job_list(self.jobs)
 
         # upload finished signal

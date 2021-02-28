@@ -6,11 +6,10 @@ from .kthread import KThread
 
 
 class UploadQueue(object):
-    def __init__(self, server, api_key):
-        self.server = server
-        if not api_key:
+    def __init__(self, api):
+        self.api = api.copy()
+        if not api.api_key:
             warnings.warn("No API key is set! Upload will not work!")
-        self.api_key = api_key
         self.jobs = []
         self.daemon_compress = CompressDaemon(self.jobs)
         self.daemon_upload = UploadDaemon(self.jobs)
@@ -38,8 +37,7 @@ class UploadQueue(object):
                         paths=paths,
                         resource_names=resource_names,
                         supplements=supplements,
-                        server=self.server,
-                        api_key=self.api_key)
+                        api=self.api)
         self.jobs.append(job)
 
     def get_job(self, dataset_id):

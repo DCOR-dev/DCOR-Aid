@@ -1,4 +1,7 @@
-0.2.3
+0.3.0
+ - BREAKING CHANGE: all methods and functions dealing with API calls
+   now accept a CKANAPI instance instead of a server and an API key.
+   This was necessary, because we have to support certificate pinning.
  - fix: actually use server certificate for "medical" user scenario
  - fix: support new CKAN API tokens
  - setup: bump dclab from 0.32.2 to 0.32.4
