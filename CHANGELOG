@@ -1,5 +1,6 @@
 0.2.3
  - fix: actually use server certificate for "medical" user scenario
+ - fix: support new CKAN API tokens
  - setup: bump dclab from 0.32.2 to 0.32.4
 0.2.2
  - build: fix build macOS pipeline

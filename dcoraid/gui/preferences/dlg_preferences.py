@@ -139,7 +139,16 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         old_server = self.settings.value("auth/server", "")
         old_api_key = self.settings.value("auth/api key", "")
         api_key = self.lineEdit_api_key.text()
-        api_key = "".join([ch for ch in api_key if ch in "0123456789abcdef-"])
+        if len(api_key) == 36:
+            # deprecated API Key (UUID)
+            valid = "0123456789abcdef-"
+        else:
+            # new API tokens
+            valid = "0123456789" \
+                    + "abcdefghijklmnopqrstuvwxyz" \
+                    + "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
+                    + "._"
+        api_key = "".join([ch for ch in api_key if ch in valid])
         server = self.comboBox_server.currentText().strip()
         # Test whether that works
         try:

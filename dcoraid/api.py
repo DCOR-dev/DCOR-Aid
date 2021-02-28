@@ -50,7 +50,7 @@ class CKANAPI:
         self.api_key = api_key
         self.server = self._make_server_url(server)
         self.api_url = self._make_api_url(server)
-        self.headers = {"Authorization": api_key,
+        self.headers = {"X-CKAN-API-Key": api_key,
                         "user-agent": "DCOR-Aid/{}".format(version)
                         }
         self.verify = ssl_verify
@@ -167,13 +167,13 @@ class CKANAPI:
     def get_user_dict(self):
         """Return the current user data dictionary
 
-        The user name is inferred from the API key.
+        The user name is inferred from the user list.
         """
         # Workaround for https://github.com/ckan/ckan/issues/5490
-        # Get the user that has a matching API key
+        # Get the user for which the email field is visible.
         data = self.get("user_list")
         for user in data:
-            if user.get("apikey") == self.api_key:
+            if user.get("email", ""):
                 userdata = user
                 break
         else:
