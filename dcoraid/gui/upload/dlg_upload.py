@@ -5,8 +5,9 @@ import traceback as tb
 
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
-from ...api import CKANAPI
 from ...upload import create_dataset
+
+from ..api import get_ckan_api
 
 from .resources_model import ResourcesModel
 from .resource_schema_preset import PersistentResourceSchemaPresets
@@ -42,10 +43,7 @@ class UploadDialog(QtWidgets.QDialog):
         self.setWindowTitle("DCOR Upload {}".format(self.identifier))
 
         # Initialize api
-        settings = QtCore.QSettings()
-        api_key = settings.value("auth/api key", "")
-        server = settings.value("auth/server", "dcor.mpl.mpg.de")
-        self.api = CKANAPI(server=server, api_key=api_key)
+        self.api = get_ckan_api()
 
         # Set license choices
         licenses = self.api.get_license_list()

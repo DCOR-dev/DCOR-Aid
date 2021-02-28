@@ -3,8 +3,10 @@ import traceback as tb
 
 from PyQt5 import uic, QtCore, QtWidgets
 
-from ...api import CKANAPI, APIKeyError
+from ...api import APIKeyError, CKANAPI
 from ..tools import show_wait_cursor
+
+from ..api import get_ckan_api
 
 
 class PreferencesDialog(QtWidgets.QMainWindow):
@@ -84,9 +86,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     @show_wait_cursor
     def on_show_user(self):
-        api = CKANAPI(
-            server=self.settings.value("auth/server", "dcor.mpl.mpg.de"),
-            api_key=self.settings.value("auth/api key", ""))
+        api = get_ckan_api()
         try:
             user_dict = api.get_user_dict()
         except (ConnectionError, APIKeyError):
@@ -115,9 +115,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     @show_wait_cursor
     def on_update_user(self):
-        api = CKANAPI(
-            server=self.settings.value("auth/server", "dcor.mpl.mpg.de"),
-            api_key=self.settings.value("auth/api key", ""))
+        api = get_ckan_api()
         try:
             user_dict = api.get_user_dict()
         except (ConnectionError, APIKeyError):

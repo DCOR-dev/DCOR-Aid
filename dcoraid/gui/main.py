@@ -1,11 +1,8 @@
-import atexit
 import os
 import pathlib
 import pkg_resources
-import shutil
 import signal
 import sys
-import tempfile
 import traceback as tb
 
 import appdirs
@@ -15,10 +12,11 @@ import requests_toolbelt
 
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
-from ..api import APIKeyError, CKANAPI
+from ..api import APIKeyError
 from ..dbmodel import APIModel
 from .._version import version as __version__
 
+from .api import get_ckan_api
 from .preferences import PreferencesDialog
 from .tools import run_async
 from .wizard import SetupWizard
@@ -101,14 +99,6 @@ class DCORAid(QtWidgets.QMainWindow):
         QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
         #: DCOR-Aid settings
         self.settings = QtCore.QSettings()
-        # Certificate pinning in case of medical user scenario
-        if self.settings.value("user scenario") == "medical":
-            cert_data = self.settings.value("auth/certificate")
-            tmpdir = tempfile.mkdtemp(prefix="dcoraid_certificate_pinning_")
-            cert_path = pathlib.Path(tmpdir) / "server.cert"
-            cert_path.write_bytes(cert_data)
-            os.environ["REQUESTS_CA_BUNDLE"] = str(cert_path)
-            atexit.register(shutil.rmtree, tmpdir, ignore_errors=True)
         super(DCORAid, self).__init__(*args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "dcoraid.gui", "main.ui")
@@ -196,15 +186,13 @@ class DCORAid(QtWidgets.QMainWindow):
     @run_async
     @QtCore.pyqtSlot()
     def refresh_login_status(self):
-        api_key = self.settings.value("auth/api key", "")
-        server = self.settings.value("auth/server", "dcor.mpl.mpg.de")
-        api = CKANAPI(server=server, api_key=api_key)
+        api = get_ckan_api()
         if not api.is_available():
             text = "No connection"
-            tip = "Can you access {} via a browser?".format(server)
+            tip = "Can you access {} via a browser?".format(api.server)
             icon = "hourglass"
         else:
-            if not api_key:
+            if not api.api_key:
                 text = "Anonymous"
                 tip = "Click here to enter your API key."
                 icon = "user"

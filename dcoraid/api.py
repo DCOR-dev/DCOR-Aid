@@ -45,7 +45,7 @@ class APINotFoundError(APIError):
 
 
 class CKANAPI:
-    def __init__(self, server, api_key):
+    def __init__(self, server, api_key, ssl_verify=True):
         """User-convenient interface to the CKAN API"""
         self.api_key = api_key
         self.server = self._make_server_url(server)
@@ -53,6 +53,7 @@ class CKANAPI:
         self.headers = {"Authorization": api_key,
                         "user-agent": "DCOR-Aid/{}".format(version)
                         }
+        self.verify = ssl_verify
 
     def _make_api_url(self, url):
         """Generate a complete CKAN API URL
@@ -109,7 +110,7 @@ class CKANAPI:
                 kwv.append("{}={}".format(kw, kwargs[kw]))
             api_call += "?" + "&".join(kwv)
         url_call = self.api_url + api_call
-        req = requests.get(url_call, headers=self.headers)
+        req = requests.get(url_call, headers=self.headers, verify=self.verify)
         try:
             rdata = req.json()
         except BaseException:
@@ -219,7 +220,8 @@ class CKANAPI:
         url_call = self.api_url + api_call
         req = requests.post(url_call,
                             data=data,
-                            headers=new_headers)
+                            headers=new_headers,
+                            verify=self.verify)
         try:
             rdata = req.json()
         except BaseException:
