@@ -1,3 +1,6 @@
+0.3.1
+ - fix: selecting dcor-access token file in health-facility wizard
+   section did not work.
 0.3.0
  - BREAKING CHANGE: all methods and functions dealing with API calls
    now accept a CKANAPI instance instead of a server and an API key.

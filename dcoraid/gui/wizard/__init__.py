@@ -190,6 +190,7 @@ class SetupWizard(QtWidgets.QWizard):
     @QtCore.pyqtSlot()
     def on_browse_access_token(self):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self, 'Open access token', 'DCOR access token (*.dcor-access)')
+            self, 'Open access token', '', 'DCOR access token (*.dcor-access)',
+            'DCOR access token (*.dcor-access)')
         if path:
             self.lineEdit_access_token_path.setText(path)
