@@ -1,4 +1,7 @@
 import pkg_resources
+import random
+import socket
+import string
 import traceback as tb
 
 from PyQt5 import uic, QtCore, QtWidgets
@@ -27,7 +30,10 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         self.tabWidget.currentChanged.connect(self.on_tab_changed)
         self.toolButton_user_update.clicked.connect(self.on_update_user)
         self.toolButton_server_update.clicked.connect(self.on_update_server)
-        self.toolButton_api_key_purge.clicked.connect(self.on_api_key_purge)
+        self.toolButton_api_token_renew.clicked.connect(
+            self.on_api_token_renew)
+        self.toolButton_api_token_revoke.clicked.connect(
+            self.on_api_token_revoke)
         self.toolButton_eye.clicked.connect(self.on_toggle_api_password_view)
 
         self.settings = QtCore.QSettings()
@@ -42,7 +48,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         button_reply = QtWidgets.QMessageBox.question(
             self,
             'DCOR-Aid restart required',
-            "Changing the server or API key requires a restart of "
+            "Changing the server or API token requires a restart of "
             + "DCOR-Aid. If you choose 'No', then the original server "
             + "and API key are NOT changed. Do you really want to quit "
             + "DCOR-Aid?",
@@ -63,8 +69,62 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         self.lineEdit_api_key.setEchoMode(new_em)
 
     @QtCore.pyqtSlot()
-    def on_api_key_purge(self):
+    def on_api_token_renew(self):
         if self.ask_change_server_or_api_key():
+            api_key = self.settings.value("auth/api key")
+            if len(api_key) == 36:
+                # deprecated API key
+                ret = QtWidgets.QMessageBox.question(
+                    self,
+                    "Deprecated API key",
+                    "You are using an API key instead of an API token. "
+                    + "API keys are deprecated and cannot be invalidated. "
+                    + "DCOR-Aid can only remove it locally. A new API token "
+                    + "will be created. Proceed?"
+                )
+                if ret != QtWidgets.QMessageBox.Yes:
+                    # Abort
+                    return
+            # Create a new token
+            api = get_ckan_api()
+            # create a new token
+            user_dict = api.get_user_dict()
+            token_name = "DCOR-Aid {} {}".format(
+                socket.gethostname(),
+                ''.join(random.choice(string.ascii_letters) for _ in range(5)))
+
+            tret = api.post("api_token_create",
+                            data={"user": user_dict["id"],
+                                  "name": token_name})
+            self.settings.setValue("auth/api key", tret["token"])
+
+            if len(api_key) != 36:
+                # revoke the old API token
+                api.post("api_token_revoke",
+                         data={"token": api_key})
+            QtWidgets.QApplication.quit()
+
+    @QtCore.pyqtSlot()
+    def on_api_token_revoke(self):
+        if self.ask_change_server_or_api_key():
+            api_key = self.settings.value("auth/api key")
+            if len(api_key) == 36:
+                # deprecated API key
+                ret = QtWidgets.QMessageBox.question(
+                    self,
+                    "Deprecated API key",
+                    "You are using an API key instead of an API token. "
+                    + "API keys are deprecated and cannot be invalidated. "
+                    + "DCOR-Aid can only remove it locally. Proceed?"
+                )
+                if ret != QtWidgets.QMessageBox.Yes:
+                    # Abort
+                    return
+            else:
+                # API token
+                api = get_ckan_api()
+                api.post("api_token_revoke",
+                         data={"token": self.settings.value("auth/api key")})
             self.settings.remove("auth/api key")
             QtWidgets.QApplication.quit()
 
@@ -147,7 +207,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             valid = "0123456789" \
                     + "abcdefghijklmnopqrstuvwxyz" \
                     + "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
-                    + "._"
+                    + "._-"
         api_key = "".join([ch for ch in api_key if ch in valid])
         server = self.comboBox_server.currentText().strip()
         # Test whether that works

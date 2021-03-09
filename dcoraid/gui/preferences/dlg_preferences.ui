@@ -84,22 +84,53 @@
         </item>
         <item row="3" column="1">
          <layout class="QGridLayout" name="gridLayout_2">
-          <item row="0" column="1">
-           <widget class="QLabel" name="label_3">
+          <item row="1" column="0" alignment="Qt::AlignTop">
+           <widget class="QToolButton" name="toolButton_api_token_revoke">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
-             <string>Forget the API key on this machine</string>
+             <string>Revoke API token</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="label_9">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Generate a new API token for the current user. The old API token is revoked.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QLabel" name="label_4">
+           <widget class="QLabel" name="label_3">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
-             <string>Replace the API key (invalidates the API key on all other machines)</string>
+             <string>Revoke the current API token. All access will be lost. You will have to create a new API token by logging in via the web interface.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QToolButton" name="toolButton_api_key_purge">
+          <item row="0" column="0" alignment="Qt::AlignTop">
+           <widget class="QToolButton" name="toolButton_api_token_renew">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -107,23 +138,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Purge API key</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QToolButton" name="toolButton_api_key_cycle">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Generate new API key</string>
+             <string>Renew API token</string>
             </property>
            </widget>
           </item>
@@ -132,7 +147,7 @@
         <item row="1" column="0">
          <widget class="QLabel" name="label_2">
           <property name="text">
-           <string>API key</string>
+           <string>API token</string>
           </property>
          </widget>
         </item>
@@ -154,7 +169,8 @@
              <string>e</string>
             </property>
             <property name="icon">
-             <iconset theme="eye"/>
+             <iconset theme="eye">
+              <normaloff>.</normaloff>.</iconset>
             </property>
            </widget>
           </item>
