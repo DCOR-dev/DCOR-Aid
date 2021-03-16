@@ -1,5 +1,5 @@
 0.4.0
- - feat: allow to renew and revoke API tokens
+ - feat: allow to renew and revoke API tokens (#12)
  - fix: selecting dcor-access token file in health-facility wizard
    section did not work.
 0.3.0

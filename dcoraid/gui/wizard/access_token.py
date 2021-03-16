@@ -1,3 +1,4 @@
+"""DCOR-med access token (SSL certificate + CKAN token)"""
 import pathlib
 import ssl
 import tempfile
