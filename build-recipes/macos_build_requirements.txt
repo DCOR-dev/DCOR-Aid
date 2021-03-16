@@ -4,3 +4,5 @@ pyinstaller
 scipy<1.5.0
 # https://github.com/pyinstaller/pyinstaller/issues/5631
 pyqt5==5.15.3
+# https://github.com/pyinstaller/pyinstaller/issues/5631
+pyqt5==5.15.3
