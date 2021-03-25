@@ -3,6 +3,7 @@ import pathlib
 import pkg_resources
 import signal
 import sys
+import time
 import traceback as tb
 
 import appdirs
@@ -138,11 +139,25 @@ class DCORAid(QtWidgets.QMainWindow):
 
         if ((self.settings.value("user scenario", "") != "anonymous")
                 and not self.settings.value("auth/api key", "")):
+            QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
+                                                 300)
             # User has not done anything yet
             self.on_wizard()
 
         self.show()
         self.raise_()
+
+    def close(self):
+        self.timer.stop()
+        self.panel_upload.jobs.daemon_compress.join()
+        self.panel_upload.jobs.daemon_upload.join()
+        self.panel_upload.jobs.daemon_verify.join()
+        self.panel_upload.jobs.daemon_compress.terminate()
+        self.panel_upload.jobs.daemon_upload.terminate()
+        self.panel_upload.jobs.daemon_verify.terminate()
+        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
+                                             300)
+        super(DCORAid, self).close()
 
     def on_action_about(self):
         dcor = "https://dcor.mpl.mpg.de"

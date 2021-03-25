@@ -28,7 +28,8 @@
         <bool>false</bool>
        </property>
        <attribute name="icon">
-        <iconset theme="globe"/>
+        <iconset theme="globe">
+         <normaloff>.</normaloff>.</iconset>
        </attribute>
        <attribute name="title">
         <string>Public Data</string>
@@ -150,7 +151,8 @@
         <bool>false</bool>
        </property>
        <attribute name="icon">
-        <iconset theme="street-view"/>
+        <iconset theme="street-view">
+         <normaloff>.</normaloff>.</iconset>
        </attribute>
        <attribute name="title">
         <string>My Data</string>
@@ -249,7 +251,8 @@
       </widget>
       <widget class="QWidget" name="tab_upload">
        <attribute name="icon">
-        <iconset theme="upload"/>
+        <iconset theme="upload">
+         <normaloff>.</normaloff>.</iconset>
        </attribute>
        <attribute name="title">
         <string>Uploads</string>
@@ -277,7 +280,8 @@
         <bool>false</bool>
        </property>
        <attribute name="icon">
-        <iconset theme="people-arrows"/>
+        <iconset theme="people-arrows">
+         <normaloff>.</normaloff>.</iconset>
        </attribute>
        <attribute name="title">
         <string>Sharing</string>
@@ -413,7 +417,8 @@
       </widget>
       <widget class="QWidget" name="tab_maintain">
        <attribute name="icon">
-        <iconset theme="broom"/>
+        <iconset theme="broom">
+         <normaloff>.</normaloff>.</iconset>
        </attribute>
        <attribute name="title">
         <string>Maintenance</string>
@@ -460,7 +465,8 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionSoftware">
    <property name="icon">
-    <iconset theme="code-branch"/>
+    <iconset theme="code-branch">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Software</string>
@@ -473,7 +479,8 @@
   </action>
   <action name="actionQuit">
    <property name="icon">
-    <iconset theme="times-circle"/>
+    <iconset theme="times-circle">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Quit</string>
@@ -486,7 +493,8 @@
   </action>
   <action name="actionPreferences">
    <property name="icon">
-    <iconset theme="cogs"/>
+    <iconset theme="cogs">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Preferences...</string>
@@ -494,7 +502,8 @@
   </action>
   <action name="actionAbout">
    <property name="icon">
-    <iconset theme="info"/>
+    <iconset theme="info">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>About</string>
@@ -502,7 +511,8 @@
   </action>
   <action name="actionSetupWizard">
    <property name="icon">
-    <iconset theme="hat-wizard"/>
+    <iconset theme="hat-wizard">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Setup wizard...</string>

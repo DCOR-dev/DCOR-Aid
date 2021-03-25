@@ -2,7 +2,7 @@ import shutil
 import tempfile
 import time
 
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtWidgets
 
 from dcoraid.api import APIConflictError
 
@@ -27,7 +27,6 @@ def pytest_configure(config):
     settings.value("user scenario", "dcor-dev")
     settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
     settings.setValue("auth/api key", common.get_api_key())
-
     settings.sync()
     # set global temp directory
     tempfile.tempdir = TMPDIR

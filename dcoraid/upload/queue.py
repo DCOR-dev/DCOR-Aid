@@ -66,8 +66,6 @@ class UploadQueue(object):
 
 
 class Daemon(KThread):
-    daemon = True  # We don't have to worry about ending this thread
-
     def __init__(self, queue, job_trigger_state, job_function_name):
         """Daemon base class"""
         self.queue = queue
@@ -75,11 +73,21 @@ class Daemon(KThread):
         self.job_trigger_state = job_trigger_state
         self.job_function_name = job_function_name
         super(Daemon, self).__init__()
+        self.daemon = True  # We don't have to worry about ending this thread
         self.start()
+
+    def join(self):
+        """Join thread by breaking the while loop"""
+        self.state = "exiting"
+        super(Daemon, self).join()
+        assert self.state == "exited"
 
     def run(self):
         while True:
-            if self.state != "running":
+            if self.state == "exiting":
+                self.state = "exited"
+                break
+            elif self.state != "running":
                 # Don't do anything
                 time.sleep(.1)
                 continue
