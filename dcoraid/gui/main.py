@@ -3,7 +3,6 @@ import pathlib
 import pkg_resources
 import signal
 import sys
-import time
 import traceback as tb
 
 import appdirs
