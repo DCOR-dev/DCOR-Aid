@@ -1,12 +1,9 @@
 from collections import OrderedDict
 import copy
+from functools import lru_cache
 import pathlib
 
 from PyQt5 import QtCore, QtGui
-
-
-tag = QtGui.QIcon.fromTheme("tag").pixmap(16, 16)
-slash = QtGui.QIcon.fromTheme("slash").pixmap(16, 16)
 
 
 class ResourcesModel(QtCore.QAbstractListModel):
@@ -39,9 +36,9 @@ class ResourcesModel(QtCore.QAbstractListModel):
 
         if role == QtCore.Qt.DecorationRole:
             if self.index_has_edits(index):
-                return tag
+                return get_icon("tag")
             else:
-                return slash
+                return get_icon("slash")
 
     def filenames_are_unique(self):
         """Test whether the final file names are unique"""
@@ -187,3 +184,8 @@ class ResourcesModel(QtCore.QAbstractListModel):
                         {"supplement": data_dict["supplement"]})
 
         self.layoutChanged.emit()
+
+
+@lru_cache(maxsize=32)
+def get_icon(name):
+    return QtGui.QIcon.fromTheme(name).pixmap(16, 16)

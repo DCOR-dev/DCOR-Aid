@@ -1,24 +1,15 @@
-# ATTENTION:
-# For some reason pytest segfaults if not all GUI tests are in one file.
-# This has something to do with Threading.
 import time
 
 from dcoraid.gui.main import DCORAid
+from dcoraid.gui.upload.dlg_upload import UploadDialog
+
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
-
-
-def test_simple(qtbot):
-    """Open the main window and close it again"""
-    main_window = DCORAid()
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
-    main_window.close()
 
 
 def test_upload_simple(qtbot, monkeypatch):
     """Upload a test dataset"""
     # I get "Aborted (core dumped)" when putting this outside the function?
-    from dcoraid.gui.upload.dlg_upload import UploadDialog
 
     mw = DCORAid()
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
