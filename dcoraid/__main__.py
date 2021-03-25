@@ -2,7 +2,6 @@ def main(splash=True):
     import os
     import pkg_resources
     import sys
-    import time
 
     from PyQt5.QtWidgets import QApplication
 
