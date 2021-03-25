@@ -25,8 +25,8 @@ def pytest_configure(config):
     settings = QtCore.QSettings()
     settings.setIniCodec("utf-8")
     settings.value("user scenario", "dcor-dev")
-    settings.setValue("server", "dcor-dev.mpl.mpg.de")
-    settings.setValue("api key", common.get_api_key())
+    settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
+    settings.setValue("auth/api key", common.get_api_key())
 
     settings.sync()
     # set global temp directory
