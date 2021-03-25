@@ -106,7 +106,8 @@ class DCORAid(QtWidgets.QMainWindow):
         # if "--version" was specified, print the version and exit
         if "--version" in sys.argv:
             print(__version__)
-            QtWidgets.QApplication.processEvents()
+            QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
+                                                 300)
             sys.exit(0)
         # GUI
         # Preferences dialog

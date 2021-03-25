@@ -111,7 +111,8 @@ class SetupWizard(QtWidgets.QWizard):
                 elif settings.contains("auth/certificate"):
                     settings.remove("auth/certificate")
                 settings.sync()
-                QtWidgets.QApplication.processEvents()
+                QtWidgets.QApplication.processEvents(
+                    QtCore.QEventLoop.AllEvents, 300)
                 QtWidgets.QApplication.quit()
                 sys.exit(0)  # if the above does not work
 

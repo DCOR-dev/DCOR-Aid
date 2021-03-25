@@ -12,14 +12,13 @@ def main(splash=True):
     if splash:
         from PyQt5.QtWidgets import QSplashScreen
         from PyQt5.QtGui import QPixmap
+        from PyQt5.QtCore import QEventLoop
         splash_path = os.path.join(imdir, "splash.png")
         splash_pix = QPixmap(splash_path)
         splash = QSplashScreen(splash_pix)
         splash.setMask(splash_pix.mask())
         splash.show()
-        # make sure Qt really displays the splash screen
-        time.sleep(.07)
-        app.processEvents()
+        app.processEvents(QEventLoop.AllEvents, 300)
 
     from PyQt5 import QtCore, QtGui
     from .gui import DCORAid
