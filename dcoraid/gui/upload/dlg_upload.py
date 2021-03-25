@@ -62,8 +62,13 @@ class UploadDialog(QtWidgets.QDialog):
             self.comboBox_circles.addItem(ci["title"], ci["name"])
 
         # Set visibility choices
-        self.comboBox_vis.addItem("Public", "public")
-        self.comboBox_vis.addItem("Private", "private")
+        settings = QtCore.QSettings()
+        if settings.value("user scenario", "") == "medical":
+            # only allow private datasets
+            self.comboBox_vis.addItem("Private", "private")
+        else:
+            self.comboBox_vis.addItem("Public", "public")
+            self.comboBox_vis.addItem("Private", "private")
 
         # Shortcut for testing
         self.shortcut = QtWidgets.QShortcut(

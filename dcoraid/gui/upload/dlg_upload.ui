@@ -302,7 +302,7 @@
                  </property>
                  <property name="icon">
                   <iconset theme="undo">
-                   <normaloff>.</normaloff>.</iconset>
+                   <normaloff>../../../../../.designer/backup</normaloff>../../../../../.designer/backup</iconset>
                  </property>
                 </widget>
                </item>

@@ -1,6 +1,44 @@
+import shutil
+import tempfile
+import time
+
+from PyQt5 import QtCore
+
 from dcoraid.api import APIConflictError
 
 import common
+
+
+TMPDIR = tempfile.mkdtemp(prefix=time.strftime(
+    "dcoraid_test_%H.%M_"))
+
+pytest_plugins = ["pytest-qt"]
+
+
+def pytest_configure(config):
+    """This is ran before all tests"""
+    # disable update checking
+    QtCore.QCoreApplication.setOrganizationName("DCOR")
+    QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+    QtCore.QCoreApplication.setApplicationName("dcoraid")
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+    settings = QtCore.QSettings()
+    settings.setIniCodec("utf-8")
+    settings.value("user scenario", "dcor-dev")
+    settings.setValue("server", "dcor-dev.mpl.mpg.de")
+    settings.setValue("api key", common.get_api_key())
+
+    settings.sync()
+    # set global temp directory
+    tempfile.tempdir = TMPDIR
+
+
+def pytest_unconfigure(config):
+    """
+    called before test process is exited.
+    """
+    # clear global temp directory
+    shutil.rmtree(TMPDIR, ignore_errors=True)
 
 
 def pytest_sessionstart(session):
