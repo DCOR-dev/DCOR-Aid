@@ -2,7 +2,7 @@ import shutil
 import tempfile
 import time
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore
 
 from dcoraid.api import APIConflictError
 
