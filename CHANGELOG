@@ -3,6 +3,8 @@
  - fix: selecting dcor-access token file in health-facility wizard
    section did not work.
  - fix: medical scenario should only support private data uploads
+ - setup: setup.py test is deprecated
+ - tests: added first GUI tests
 0.3.0
  - BREAKING CHANGE: all methods and functions dealing with API calls
    now accept a CKANAPI instance instead of a server and an API key.

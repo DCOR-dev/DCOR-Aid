@@ -49,7 +49,7 @@ jobs:
       env:
         DCOR_API_KEY: ${{ secrets.DCOR_API_KEY }}
       run: |
-         coverage run --source=dcoraid setup.py test
+         coverage run --source=dcoraid -m pytest tests
     - name: Lint with flake8
       run: |
         flake8 .
