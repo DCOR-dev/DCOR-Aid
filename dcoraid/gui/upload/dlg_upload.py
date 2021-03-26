@@ -59,7 +59,8 @@ class UploadDialog(QtWidgets.QDialog):
         # Set circle choices
         circles = self.get_user_circle_dicts()
         for ci in circles:
-            self.comboBox_circles.addItem(ci["title"], ci["name"])
+            self.comboBox_circles.addItem(
+                ci["title"] if ci["title"] else ci["name"], ci["name"])
 
         # Set visibility choices
         settings = QtCore.QSettings()

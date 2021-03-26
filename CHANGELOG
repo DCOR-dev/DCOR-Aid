@@ -4,6 +4,7 @@
    section did not work.
  - fix: medical scenario should only support private data uploads
  - fix: aborting or restarting an upload job in the GUI did not work
+ - fix: use circle name in upload dialog dropdown if title is empty
  - setup: setup.py test is deprecated
  - tests: added first GUI tests
 0.3.0
