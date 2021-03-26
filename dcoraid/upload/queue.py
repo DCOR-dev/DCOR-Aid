@@ -27,7 +27,7 @@ class UploadQueue(object):
         if job.state == "transfer":
             job.set_state("abort")
             # https://github.com/requests/toolbelt/issues/297
-            self.dameon_upload.terminate()
+            self.daemon_upload.terminate()
             self.daemon_upload = UploadDaemon(self.jobs)
 
     def add_job(self, dataset_dict, paths, resource_names=None,
@@ -76,10 +76,10 @@ class Daemon(KThread):
         self.daemon = True  # We don't have to worry about ending this thread
         self.start()
 
-    def join(self):
+    def join(self, *args, **kwargs):
         """Join thread by breaking the while loop"""
         self.state = "exiting"
-        super(Daemon, self).join()
+        super(Daemon, self).join(*args, **kwargs)
         assert self.state == "exited"
 
     def run(self):

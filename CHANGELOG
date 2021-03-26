@@ -3,6 +3,7 @@
  - fix: selecting dcor-access token file in health-facility wizard
    section did not work.
  - fix: medical scenario should only support private data uploads
+ - fix: aborting or restarting an upload job in the GUI did not work
  - setup: setup.py test is deprecated
  - tests: added first GUI tests
 0.3.0
