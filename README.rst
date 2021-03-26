@@ -27,7 +27,8 @@ By default, testing is done with https://dcor-dev.mpl.mpg.de and the user
 ::
 
     pip install -e .
-    python -m pytest tests
+    pip install pytest pytest-qt
+    pytest tests
 
 
 .. |DCOR-Aid| image:: https://raw.github.com/DCOR-dev/DCOR-Aid/master/dcoraid/img/dcoraid_text.png
