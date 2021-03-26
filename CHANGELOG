@@ -7,6 +7,7 @@
  - fix: use circle name in upload dialog dropdown if title is empty
  - setup: setup.py test is deprecated
  - tests: added first GUI tests
+ - docs: pathify logo text
 0.3.0
  - BREAKING CHANGE: all methods and functions dealing with API calls
    now accept a CKANAPI instance instead of a server and an API key.
