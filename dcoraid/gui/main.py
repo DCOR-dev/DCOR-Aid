@@ -149,7 +149,7 @@ class DCORAid(QtWidgets.QMainWindow):
 
     def close(self):
         self.timer.stop()
-        self.panel_upload.timer.stop()
+        self.panel_upload.widget_jobs.timer.stop()
         self.panel_upload.jobs.daemon_compress.join()
         self.panel_upload.jobs.daemon_upload.join()
         self.panel_upload.jobs.daemon_verify.join()
