@@ -1,3 +1,6 @@
+0.4.1
+ - fix: ignore SubjectAltNameWarning for certificates in medical
+   branding
 0.4.0
  - feat: allow to renew and revoke API tokens (#12)
  - fix: selecting dcor-access token file in health-facility wizard
