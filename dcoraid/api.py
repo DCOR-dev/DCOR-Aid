@@ -97,7 +97,7 @@ class CKANAPI:
         ----------
         api_call: str
             An API call function (e.g. "package_show")
-        kwargs: dict
+        kwargs: Any
             Any keyword arguments to the API call
             (e.g. `name="test-dataset"`)
 

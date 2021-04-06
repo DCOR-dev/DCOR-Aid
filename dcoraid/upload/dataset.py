@@ -33,7 +33,7 @@ def activate_dataset(dataset_id, api):
 
 
 def add_resource(dataset_id, path, api, resource_name=None,
-                 resource_dict={}, monitor_callback=None):
+                 resource_dict=None, monitor_callback=None):
     """Add a resource to a dataset
 
     Parameters
@@ -59,6 +59,8 @@ def add_resource(dataset_id, path, api, resource_name=None,
     dcoraid.upload.joblist.UploadJob
         An implementation of an upload job that monitors progress.
     """
+    if resource_dict is None:
+        resource_dict = {}
     path = pathlib.Path(path)
     if resource_name is None:
         resource_name = path.name
