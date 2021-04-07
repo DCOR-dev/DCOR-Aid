@@ -49,11 +49,11 @@ jobs:
       # sometimes tests fail due to threading issues
       uses: nick-invision/retry@v2
       with:
-        timeout_minutes: 10
-        max_attempts: 5
+        timeout_minutes: 20
+        max_attempts: 10
         retry_on: error
         # segmentation fault after successful tests returned 139
-        command: coverage run --source=dcoraid -m pytest tests || [ $? -eq 139 ] && echo "skipped 139 segfault"
+        command: coverage run --source=dcoraid -m pytest tests
       env:
         DCOR_API_KEY: ${{ secrets.DCOR_API_KEY }}
     - name: Lint with flake8
