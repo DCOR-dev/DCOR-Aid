@@ -53,7 +53,7 @@ jobs:
         max_attempts: 5
         retry_on: error
         # segmentation fault after successful tests returned 139
-        command: coverage run --source=dcoraid -m pytest tests || [ $? -eq 139 ] || exit
+        command: coverage run --source=dcoraid -m pytest tests || [ $? -eq 139 ] && echo "skipped 139 segfault"
       env:
         DCOR_API_KEY: ${{ secrets.DCOR_API_KEY }}
     - name: Lint with flake8
