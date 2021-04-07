@@ -23,10 +23,6 @@ def run_around_tests():
     time.sleep(2)
 
 
-def test_bad():
-    assert False
-
-
 def test_upload_simple(qtbot, monkeypatch):
     """Upload a test dataset"""
     mw = DCORAid()
