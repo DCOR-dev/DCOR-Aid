@@ -66,10 +66,8 @@ class UploadQueue(object):
 
 
 class Daemon(KThread):
-    instances = []
     def __init__(self, queue, job_trigger_state, job_function_name):
         """Daemon base class"""
-        Daemon.instances.append(self)
         self.queue = queue
         self.state = "running"
         self.job_trigger_state = job_trigger_state

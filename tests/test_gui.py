@@ -18,9 +18,6 @@ def run_around_tests():
     # Run test
     yield
     # Make sure that all daemons are gone
-    for dm in Daemon.instances:
-        if dm.state != "exited":
-            dm.join()
 
 
 def test_upload_simple(qtbot, monkeypatch):
