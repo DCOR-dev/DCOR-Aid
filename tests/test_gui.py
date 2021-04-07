@@ -2,7 +2,6 @@ import time
 
 from dcoraid.gui.main import DCORAid
 from dcoraid.gui.upload.dlg_upload import UploadDialog
-from dcoraid.upload.queue import Daemon
 
 import pytest
 from PyQt5 import QtCore, QtWidgets

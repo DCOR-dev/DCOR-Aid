@@ -40,7 +40,8 @@ test_script:
   - python -c "import dcoraid; print(dcoraid.__version__)"
   - pip install coverage codecov
   - pip install pytest pytest-qt
-  - coverage run --source=dcoraid -m pytest tests
+  # segmentation fault after successful tests returned -1073741819
+  - coverage run --source=dcoraid -m pytest tests || [ $? -eq -1073741819 ] || exit
   - coverage report -m
   # Allow codecov to fail
   - codecov || exit 0
