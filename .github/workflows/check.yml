@@ -48,6 +48,7 @@ jobs:
     - name: Test with pytest
       uses: nick-invision/retry@v2
       with:
+        timeout_minutes: 10
         max_attempts: 5
         retry_on: error
         # segmentation fault after successful tests returned 139
