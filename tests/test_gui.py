@@ -17,6 +17,10 @@ def run_around_tests():
     # Run test
     yield
     # Make sure that all daemons are gone
+    time.sleep(2)
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
+                                         3000)
+    time.sleep(2)
 
 
 def test_upload_simple(qtbot, monkeypatch):
