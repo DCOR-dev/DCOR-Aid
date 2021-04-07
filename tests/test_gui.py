@@ -2,11 +2,25 @@ import time
 
 from dcoraid.gui.main import DCORAid
 from dcoraid.gui.upload.dlg_upload import UploadDialog
+from dcoraid.upload.queue import Daemon
 
+import pytest
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 
 import common
+
+
+@pytest.fixture(autouse=True)
+def run_around_tests():
+    # Code that will run before your test, for example:
+    pass
+    # Run test
+    yield
+    # Make sure that all daemons are gone
+    for dm in Daemon.instances:
+        if dm.state != "exited":
+            dm.join()
 
 
 def test_upload_simple(qtbot, monkeypatch):

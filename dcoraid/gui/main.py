@@ -3,7 +3,6 @@ import pathlib
 import pkg_resources
 import signal
 import sys
-import time
 import traceback as tb
 
 import appdirs
@@ -157,8 +156,7 @@ class DCORAid(QtWidgets.QMainWindow):
         self.panel_upload.jobs.daemon_upload.terminate()
         self.panel_upload.jobs.daemon_verify.terminate()
         QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                             300)
-        time.sleep(1)
+                                             3000)
         super(DCORAid, self).close()
 
     def on_action_about(self):
