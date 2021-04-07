@@ -126,7 +126,7 @@ class UploadDialog(QtWidgets.QDialog):
         self.comboBox_license.setCurrentIndex(
             self.comboBox_license.findData(licen))
         self.comboBox_circles.setCurrentIndex(0)
-        self.comboBox_vis.setCurrentIndex(1)
+        self.comboBox_vis.setCurrentIndex(0)
         relpath = "../../../tests/data/calibration_beads_47.rtdc"
         path = pathlib.Path(__file__).resolve().parent / relpath
         if path.exists():
@@ -179,7 +179,7 @@ class UploadDialog(QtWidgets.QDialog):
             "tags": tags,
             "notes": self.plainTextEdit_notes.toPlainText(),
             "license_id": self.comboBox_license.currentData(),
-            "visibility": self.comboBox_vis.currentData(),
+            "private": self.comboBox_vis.currentData() == "private",
             "owner_org": self.comboBox_circles.currentData(),
         }
         return dataset_dict
