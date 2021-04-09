@@ -1,8 +1,10 @@
+import os.path
 import shutil
 import tempfile
 import time
 
 from PyQt5 import QtCore
+import pytest
 
 from dcoraid.api import APIConflictError
 
@@ -58,3 +60,30 @@ def pytest_sessionstart(session):
     user_dict = api.get("user_show", id=common.USER)
     user_dict["fullname"] = common.USER_NAME
     api.post("user_update", user_dict)
+
+
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Writes report to failures file
+
+    We need this to check whether the tests passed or failed
+    du to the threading issue we have.
+    https://github.com/DCOR-dev/DCOR-Aid/issues/14
+    """
+    # https://docs.pytest.org/en/stable/example/simple.html
+    # #post-process-test-reports-failures
+    # execute all other hooks to obtain the report object
+    outcome = yield
+    rep = outcome.get_result()
+
+    # we only look at actual failing test calls, not setup/teardown
+    if rep.when == "call" and rep.failed:
+        mode = "a" if os.path.exists("failures") else "w"
+        with open("failures", mode) as f:
+            # let's also access a fixture for the fun of it
+            if "tmpdir" in item.fixturenames:
+                extra = " ({})".format(item.funcargs["tmpdir"])
+            else:
+                extra = ""
+
+            f.write(rep.nodeid + extra + "\n")
