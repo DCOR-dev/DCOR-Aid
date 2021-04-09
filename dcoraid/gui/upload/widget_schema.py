@@ -111,6 +111,12 @@ class SchemaWidget(QtWidgets.QWidget):
                 wrss.value_changed.connect(self.schema_changed)
                 wrss.value_changed.connect(self.on_hide_show_items)
             self.schema_widgets[sec] = widget_list
+        # Finally add a stretch spacer in case there are not enough
+        # items.
+        spacer_item = QtWidgets.QSpacerItem(20, 0,
+                                            QtWidgets.QSizePolicy.Minimum,
+                                            QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacer_item)
 
     def set_schema(self, schema_dict):
         """Apply schema to all widgets
