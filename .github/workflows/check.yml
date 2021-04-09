@@ -50,8 +50,10 @@ jobs:
         DCOR_API_KEY: ${{ secrets.DCOR_API_KEY }}
       run: |
         coverage run --source=dcoraid -m pytest tests || exit 0
+    - name: Test whether test passed
         # check if pytest wrote failures to the "pytest-failures.txt" file
         # (exits 0 if the file does not exist)
+      run: |
         test ! -f "pytest-failures.txt"
     - name: Lint with flake8
       run: |
