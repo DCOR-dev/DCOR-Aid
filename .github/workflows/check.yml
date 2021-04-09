@@ -49,7 +49,7 @@ jobs:
       env:
         DCOR_API_KEY: ${{ secrets.DCOR_API_KEY }}
       run: |
-        coverage run --source=dcoraid -m pytest tests || exit 0
+        coverage run --source=dcoraid -m pytest tests
     - name: Test whether test passed
         # check if pytest wrote failures to the "pytest-failures.txt" file
         # (exits 0 if the file does not exist)
