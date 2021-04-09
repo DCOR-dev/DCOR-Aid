@@ -9,7 +9,6 @@ def test_get_hostname():
     """This test uses the figshare datasets on SERVER"""
     hostname = access_token.get_hostname(datapath / "cptamerica.dcor-access",
                                          "42")
-    assert False
     assert hostname == "dcor.example.com"
 
 
