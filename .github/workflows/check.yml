@@ -48,13 +48,10 @@ jobs:
     - name: Test with pytest
       env:
         DCOR_API_KEY: ${{ secrets.DCOR_API_KEY }}
-      # sometimes tests fail due to threading issues
-      uses: nick-invision/retry@v2.4.0
-      with:
-        timeout_minutes: 20
-        max_attempts: 10
-        # segmentation fault after successful tests returned 139
-        command: coverage run --source=dcoraid -m pytest tests
+      run: |
+        coverage run --source=dcoraid -m pytest tests || exit 0
+        # check if pytest wrote failures to the "pytest-failures.txt" file
+        if test -f "pytest-failures.txt"; then exit 1; fi
     - name: Lint with flake8
       run: |
         flake8 .

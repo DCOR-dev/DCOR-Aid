@@ -78,12 +78,11 @@ def pytest_runtest_makereport(item, call):
 
     # we only look at actual failing test calls, not setup/teardown
     if rep.when == "call" and rep.failed:
-        mode = "a" if os.path.exists("failures") else "w"
-        with open("failures", mode) as f:
+        mode = "a" if os.path.exists("pytest-failures.txt") else "w"
+        with open("pytest-failures.txt", mode) as f:
             # let's also access a fixture for the fun of it
             if "tmpdir" in item.fixturenames:
                 extra = " ({})".format(item.funcargs["tmpdir"])
             else:
                 extra = ""
-
             f.write(rep.nodeid + extra + "\n")
