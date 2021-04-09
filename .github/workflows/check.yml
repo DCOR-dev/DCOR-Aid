@@ -51,7 +51,8 @@ jobs:
       run: |
         coverage run --source=dcoraid -m pytest tests || exit 0
         # check if pytest wrote failures to the "pytest-failures.txt" file
-        if test -f "pytest-failures.txt"; then exit 1; fi
+        # (exits 0 if the file does not exist)
+        test ! -f "pytest-failures.txt"
     - name: Lint with flake8
       run: |
         flake8 .
