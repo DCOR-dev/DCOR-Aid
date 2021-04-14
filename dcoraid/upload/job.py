@@ -10,8 +10,6 @@ import appdirs
 from dclab.rtdc_dataset.check import IntegrityChecker
 from dclab.cli import compress
 
-from ..api import APIError
-
 from . import dataset
 
 
@@ -262,15 +260,6 @@ class UploadJob(object):
                                 api=self.api,
                                 monitor_callback=self.monitor_callback)
                             self.paths_uploaded.append(path)
-                        except APIError:
-                            # Workaround for large datasets (no response)
-                            # just check whether the resource is there
-                            exists = dataset.resource_exists(
-                                dataset_id=self.dataset_id,
-                                resource_name=resource_name,
-                                api=self.api)
-                            if not exists:
-                                raise
                         except SystemExit:
                             # This thread has just been killed
                             self.start_time = None

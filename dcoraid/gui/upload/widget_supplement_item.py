@@ -248,6 +248,9 @@ class RSSItem(RSSItemBase):
             elif itemtype == "boolean":
                 widget = self.widget_bool
                 value = self.radioButton_yes.isChecked()
+            elif itemtype == "date":
+                widget = self.lineEdit
+                value = self.lineEdit.text()
             else:
                 raise ValueError("No rule to process item {}".format(rss_dict))
         self.blockSignals(False)

@@ -71,6 +71,27 @@ def test_dataset_creation():
         assert False
 
 
+def test_dataset_creation_wrong_resource_supplement():
+    """Pass an invalid resource supplement and see if it fails"""
+    api = common.get_api()
+    # create some metadata
+    dataset_dict = make_dataset_dict(hint="basic_test")
+    # post dataset creation request
+    data = dataset.create_dataset(dataset_dict=dataset_dict,
+                                  api=api,
+                                  )
+    # simple test
+    try:
+        dataset.add_resource(dataset_id=data["id"],
+                             resource_dict={
+                                 "sp:chip:production date": "2020-15-31"},
+                             path=dpath,
+                             api=api
+                             )
+    except APIConflictError:
+        pass
+
+
 if __name__ == "__main__":
     # Run all tests
     loc = locals()
