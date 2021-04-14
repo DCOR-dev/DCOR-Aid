@@ -164,11 +164,15 @@ def remove_all_drafts(api):
     return data["results"]
 
 
-def resource_exists(dataset_id, resource_name, api):
+def resource_exists(dataset_id, resource_name, api, resource_dict):
     """Check whether a resource exists in a dataset"""
     pkg_dict = api.get("package_show", id=dataset_id)
     for resource in pkg_dict["resources"]:
         if resource["name"] == resource_name:
+            # check that the resource dict matches
+            for key in resource_dict:
+                if resource[key] != resource_dict[key]:
+                    return False
             return True
     else:
         return False

@@ -244,6 +244,7 @@ class UploadJob(object):
                     exists = dataset.resource_exists(
                         dataset_id=self.dataset_id,
                         resource_name=resource_name,
+                        resource_dict=resource_supplement,
                         api=self.api)
                     if exists:
                         # We are currently retrying an upload. If the

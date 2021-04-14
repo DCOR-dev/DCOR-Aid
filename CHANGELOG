@@ -1,6 +1,8 @@
 0.4.6
  - fix: do not anymore ignore APIErrors during upload
  - fix: support "date" type of resource supplements
+ - fix: also check for resource metadata before declaring
+   an upload successfull
 0.4.5
  - ui: add stretch spacer item to resource schema supplements
 0.4.4
