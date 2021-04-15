@@ -73,7 +73,7 @@ artifacts:
 deploy:
   provider: GitHub
   auth_token:
-    secure: /b5SfmYssAfLaWi0qkPhxR5CruSVBZUurSQLEL3RAaRlHn6HTPrkIqvrLDk/8JxB
+    secure: u94ePbzUmuyh5jZU+1xvST73Ueuxepu86/XQsGx/15AnSd4NhQHKE1UXIe1vBIwf
   artifact: /.*\.exe/
   draft: true
   on:
