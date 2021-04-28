@@ -22,14 +22,7 @@ def activate_dataset(dataset_id, api):
     revise_dict = {
         "match": {"id": dataset_id},
         "update": {"state": "active"}}
-    res = api.post("package_revise", revise_dict)
-    if res["package"]["state"] != "active":
-        # TODO: Make this an error message in ckanext-dcor_schemas
-        raise ValueError("Setting the state of the dataset "
-                         + "'{}' to 'active' did not work! ".format(dataset_id)
-                         + "Does the dataset contain resources? If not, then "
-                         + "you are experienceing a ckanext-dcor_schemas "
-                         + "restriction.")
+    api.post("package_revise", revise_dict)
 
 
 def add_resource(dataset_id, path, api, resource_name=None,
@@ -82,7 +75,7 @@ def add_resource(dataset_id, path, api, resource_name=None,
         api.post("package_revise", revise_dict)
 
 
-def create_dataset(dataset_dict, api, resources=[],
+def create_dataset(dataset_dict, api, resources=None,
                    create_circle=False, activate=False):
     """Create a draft dataset
 
@@ -102,6 +95,8 @@ def create_dataset(dataset_dict, api, resources=[],
         this implies that no other resources can be added to the
         dataset.
     """
+    if resources is None:
+        resources = []
     if create_circle:
         circles = [c["name"] for c in api.get("organization_list_for_user")]
         if dataset_dict["owner_org"] not in circles:
