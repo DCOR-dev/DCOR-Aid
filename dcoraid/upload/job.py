@@ -29,8 +29,8 @@ JOB_STATES = [
 
 
 class UploadJob(object):
-    def __init__(self, dataset_dict, paths, api,
-                 resource_names=None, supplements=None):
+    def __init__(self, api, dataset_dict, resource_paths,
+                 resource_names=None, resource_supplements=None):
         """Wrapper for resource uploads
 
         This job is meant to be run from a separate thread.
@@ -43,19 +43,21 @@ class UploadJob(object):
         self.dataset_dict = dataset_dict
         self.dataset_id = dataset_dict["id"]
         self.api = api.copy()  # create a copy of the API
-        self.paths = paths
+        self.paths = resource_paths
         if resource_names is None:
-            resource_names = [pathlib.Path(pp).name for pp in paths]
+            resource_names = [pathlib.Path(pp).name for pp in self.paths]
         #: Important supplementary resource schema meta data that will
         #: be formatted to composite {"sp:section:key" = value} an appended
         #: to the resource metadata.
-        self.supplements = supplements
+        self.supplements = resource_supplements
         self.resource_names = resource_names
         self.paths_uploaded = []
+        self.state = None
         self.set_state("init")
         self.traceback = None
-        self.file_sizes = [pathlib.Path(ff).stat().st_size for ff in paths]
-        self.file_bytes_uploaded = [0] * len(paths)
+        self.file_sizes = [pathlib.Path(ff).stat().st_size
+                           for ff in self.paths]
+        self.file_bytes_uploaded = [0] * len(self.paths)
         self.index = 0
         self.start_time = None
         self.end_time = None
@@ -65,6 +67,45 @@ class UploadJob(object):
         # caching
         dcoraid_cache = pathlib.Path(appdirs.user_cache_dir()) / "dcoraid"
         self.cache_dir = dcoraid_cache / "compress-{}".format(self.dataset_id)
+
+    def __getstate__(self):
+        """Get the state of the UploadJob instance
+
+        This is not the state of the upload! For monitoring the
+        upload, please see :func:`UploadJob.get_status`,
+        :const:`UploadJob.state`, and :func:`UploadJob.set_state`.
+
+        See Also
+        --------
+        from_upload_job_state: to recreate a job from a state
+        """
+        uj_state = {
+            "dataset_dict": self.dataset_dict,
+            "resource_paths": self.paths,
+            "resource_names": self.resource_names,
+            "resource_supplements": self.supplements,
+        }
+        return uj_state
+
+    @staticmethod
+    def from_upload_job_state(uj_state, api):
+        """Reinstantiate a job from an `UploadJob.__getstate__` dict
+
+        Note that there is no `UploadJob.__setstate__` function,
+        because that would just not be possible/debugabble when one
+        of the tasks (compress, upload) is running. The upload job
+        is implemented in such a way that it will just skip existing
+        resources, so it will just go through the states until it
+        is "done", even if there is nothing to upload. BTW this is
+        also a great way of making sure that an upload is complete.
+
+        Note
+        ----
+        The `uj_state` dictionary contains a `"dataset_dict"`
+        dictionary which must contain the `"id"` key, otherwise
+        we won't know where to upload the resources to.
+        """
+        return UploadJob(api=api, **uj_state)
 
     def cleanup(self):
         """cleanup temporary files in the user's cache directory"""

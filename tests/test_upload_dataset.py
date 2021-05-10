@@ -1,8 +1,10 @@
 import pathlib
 import time
 
+import pytest
+
 from dcoraid.upload import dataset
-from dcoraid.api import APIConflictError
+from dcoraid.api import APIConflictError, APINotFoundError
 
 import common
 
@@ -34,15 +36,12 @@ def test_dataset_create_same_resource():
                          path=dpath,
                          api=api
                          )
-    try:
+    with pytest.raises(APIConflictError):
+        # Should not be able to upload same resource twice
         dataset.add_resource(dataset_id=data["id"],
                              path=dpath,
                              api=api
                              )
-    except APIConflictError:
-        pass
-    else:
-        assert False, "Should not be able to upload same resource twice"
 
 
 def test_dataset_creation():
@@ -62,13 +61,9 @@ def test_dataset_creation():
     dataset.remove_draft(dataset_id=data["id"],
                          api=api,
                          )
-    # make sure it is gone
-    try:
+    with pytest.raises(APINotFoundError):
+        # make sure it is gone
         api.get("package_show", id=data["id"])
-    except BaseException:
-        pass
-    else:
-        assert False
 
 
 def test_dataset_creation_wrong_resource_supplement():
@@ -81,15 +76,13 @@ def test_dataset_creation_wrong_resource_supplement():
                                   api=api,
                                   )
     # simple test
-    try:
+    with pytest.raises(APIConflictError):
         dataset.add_resource(dataset_id=data["id"],
                              resource_dict={
                                  "sp:chip:production date": "2020-15-31"},
                              path=dpath,
                              api=api
                              )
-    except APIConflictError:
-        pass
 
 
 if __name__ == "__main__":

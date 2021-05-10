@@ -33,11 +33,13 @@ class UploadQueue(object):
     def add_job(self, dataset_dict, paths, resource_names=None,
                 supplements=None):
         """Add a job to the job list"""
-        job = UploadJob(dataset_dict=dataset_dict,
-                        paths=paths,
-                        resource_names=resource_names,
-                        supplements=supplements,
-                        api=self.api)
+        job = UploadJob(
+            api=self.api,
+            dataset_dict=dataset_dict,
+            resource_paths=paths,
+            resource_names=resource_names,
+            resource_supplements=supplements,
+            )
         self.jobs.append(job)
 
     def get_job(self, dataset_id):

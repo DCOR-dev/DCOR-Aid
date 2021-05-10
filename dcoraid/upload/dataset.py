@@ -49,7 +49,7 @@ def add_resource(dataset_id, path, api, resource_name=None,
 
     See Also
     --------
-    dcoraid.upload.joblist.UploadJob
+    dcoraid.upload.queue.UploadJob
         An implementation of an upload job that monitors progress.
     """
     if resource_dict is None:
