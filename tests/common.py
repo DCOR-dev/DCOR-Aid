@@ -1,5 +1,6 @@
 import os
 import pathlib
+import time
 
 from dcoraid.api import CKANAPI
 
@@ -27,3 +28,15 @@ def get_api_key():
             raise ValueError("No DCOR_API_KEY variable or api_key file!")
         key = kp.read_text().strip()
     return key
+
+
+def make_dataset_dict(hint=""):
+    hint += " "
+    dataset_dict = {
+        "title": "A test dataset {}{}".format(hint, time.time()),
+        "private": True,
+        "license_id": "CC0-1.0",
+        "owner_org": CIRCLE,
+        "authors": USER_NAME,
+    }
+    return dataset_dict

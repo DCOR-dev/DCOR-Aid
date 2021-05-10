@@ -85,7 +85,7 @@ def create_dataset(dataset_dict, api, resources=None,
         CKAN dataset dictionary
     api: dcoraid.api.CKANAPI
         API instance with server, api_key (and optional certificate)
-    resources: list of str or pathlib.Path
+    resources: list of str or list of pathlib.Path
         Paths to dataset resources
     create_circle: bool
         Create the circle if it does not already exist

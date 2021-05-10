@@ -10,22 +10,10 @@ import common
 dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
 
 
-def make_dataset_dict(hint=""):
-    hint += " "
-    dataset_dict = {
-        "title": "A test dataset {}{}".format(hint, time.time()),
-        "private": True,
-        "license_id": "CC0-1.0",
-        "owner_org": common.CIRCLE,
-        "authors": common.USER_NAME,
-    }
-    return dataset_dict
-
-
 def test_initialize():
     api = common.get_api()
     # create some metadata
-    bare_dict = make_dataset_dict(hint="create-with-resource")
+    bare_dict = common.make_dataset_dict(hint="create-with-resource")
     # create dataset (to get the "id")
     dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
     uj = job.UploadJob(api=api, dataset_dict=dataset_dict,
@@ -36,7 +24,7 @@ def test_initialize():
 def test_full_upload():
     api = common.get_api()
     # create some metadata
-    bare_dict = make_dataset_dict(hint="create-with-resource")
+    bare_dict = common.make_dataset_dict(hint="create-with-resource")
     # create dataset (to get the "id")
     dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
     uj = job.UploadJob(api=api, dataset_dict=dataset_dict,
@@ -60,11 +48,11 @@ def test_full_upload():
 def test_saveload():
     api = common.get_api()
     # create some metadata
-    bare_dict = make_dataset_dict(hint="create-with-resource")
+    bare_dict = common.make_dataset_dict(hint="create-with-resource")
     # create dataset (to get the "id")
     dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
     uj = job.UploadJob(api=api, dataset_dict=dataset_dict,
-                       resource_paths=[dpath])
+                       resource_paths=[dpath], task_id="hanspeter")
     state = uj.__getstate__()
     assert state["dataset_dict"]["id"] == dataset_dict["id"]
     assert dpath.samefile(state["resource_paths"][0])
@@ -76,6 +64,7 @@ def test_saveload():
     assert state2["dataset_dict"]["id"] == dataset_dict["id"]
     assert dpath.samefile(state2["resource_paths"][0])
     assert dpath.name == state2["resource_names"][0]
+    assert state2["task_id"] == "hanspeter"
 
 
 if __name__ == "__main__":

@@ -30,7 +30,8 @@ JOB_STATES = [
 
 class UploadJob(object):
     def __init__(self, api, dataset_dict, resource_paths,
-                 resource_names=None, resource_supplements=None):
+                 resource_names=None, resource_supplements=None,
+                 task_id=None):
         """Wrapper for resource uploads
 
         This job is meant to be run from a separate thread.
@@ -39,18 +40,35 @@ class UploadJob(object):
         performs the actual upload. During upload, the progress
         is monitored and can be read from other threads
         using the e.g. `get_status` function.
+
+        Parameters
+        ----------
+        api: dclab.api.CKANAPI
+            The CKAN/DCOR API instance used for the upload
+        dataset_dict: dict
+            Dictionary returned by CKAN's `package_show`
+        resource_paths: list
+            Paths to the dataset resources
+        resource_names: list
+            Corresponding names of the resources as they should appear
+            on DCOR
+        resource_supplements: list of dict
+            Supplementary resource information
+        task_id: str
+            Unique task ID (used for identifying jobs uploaded already)
         """
         self.dataset_dict = dataset_dict
         self.dataset_id = dataset_dict["id"]
         self.api = api.copy()  # create a copy of the API
-        self.paths = resource_paths
+        self.paths = [pathlib.Path(pp).resolve() for pp in resource_paths]
         if resource_names is None:
-            resource_names = [pathlib.Path(pp).name for pp in self.paths]
+            resource_names = [pp.name for pp in self.paths]
         #: Important supplementary resource schema meta data that will
         #: be formatted to composite {"sp:section:key" = value} an appended
         #: to the resource metadata.
         self.supplements = resource_supplements
         self.resource_names = resource_names
+        self.task_id = task_id
         self.paths_uploaded = []
         self.state = None
         self.set_state("init")
@@ -81,9 +99,10 @@ class UploadJob(object):
         """
         uj_state = {
             "dataset_dict": self.dataset_dict,
-            "resource_paths": self.paths,
+            "resource_paths": [str(pp) for pp in self.paths],
             "resource_names": self.resource_names,
             "resource_supplements": self.supplements,
+            "task_id": self.task_id,
         }
         return uj_state
 
