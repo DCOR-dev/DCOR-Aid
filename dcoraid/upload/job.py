@@ -15,7 +15,7 @@ from . import dataset
 
 #: Valid job states (in more or less chronological order)
 JOB_STATES = [
-    "init",  # inital
+    "init",  # initial
     "compress",  # compression (only for DC data)
     "parcel",  # ready for upload
     "transfer",  # upload in progress
@@ -24,12 +24,12 @@ JOB_STATES = [
     "finalize",  # CKAN dataset is being activated
     "done",  # job finished
     "abort",  # user aborted
-    "error",  # error occured
+    "error",  # error occurred
 ]
 
 
 class UploadJob(object):
-    def __init__(self, api, dataset_dict, resource_paths,
+    def __init__(self, api, dataset_id, resource_paths,
                  resource_names=None, resource_supplements=None,
                  task_id=None):
         """Wrapper for resource uploads
@@ -45,8 +45,8 @@ class UploadJob(object):
         ----------
         api: dclab.api.CKANAPI
             The CKAN/DCOR API instance used for the upload
-        dataset_dict: dict
-            Dictionary returned by CKAN's `package_show`
+        dataset_id: str
+            ID of the CKAN/DCOR dataset
         resource_paths: list
             Paths to the dataset resources
         resource_names: list
@@ -57,8 +57,7 @@ class UploadJob(object):
         task_id: str
             Unique task ID (used for identifying jobs uploaded already)
         """
-        self.dataset_dict = dataset_dict
-        self.dataset_id = dataset_dict["id"]
+        self.dataset_id = dataset_id
         self.api = api.copy()  # create a copy of the API
         self.paths = [pathlib.Path(pp).resolve() for pp in resource_paths]
         if resource_names is None:
@@ -98,7 +97,7 @@ class UploadJob(object):
         from_upload_job_state: to recreate a job from a state
         """
         uj_state = {
-            "dataset_dict": self.dataset_dict,
+            "dataset_id": self.dataset_id,
             "resource_paths": [str(pp) for pp in self.paths],
             "resource_names": self.resource_names,
             "resource_supplements": self.supplements,
@@ -120,9 +119,8 @@ class UploadJob(object):
 
         Note
         ----
-        The `uj_state` dictionary contains a `"dataset_dict"`
-        dictionary which must contain the `"id"` key, otherwise
-        we won't know where to upload the resources to.
+        The `uj_state` dictionary must contain the "dataset_id",
+        otherwise we won't know where to upload the resources to.
         """
         return UploadJob(api=api, **uj_state)
 

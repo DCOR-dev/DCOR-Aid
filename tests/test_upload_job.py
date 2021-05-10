@@ -16,7 +16,7 @@ def test_initialize():
     bare_dict = common.make_dataset_dict(hint="create-with-resource")
     # create dataset (to get the "id")
     dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
-    uj = job.UploadJob(api=api, dataset_dict=dataset_dict,
+    uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
                        resource_paths=[dpath])
     assert uj.state == "init"
 
@@ -27,7 +27,7 @@ def test_full_upload():
     bare_dict = common.make_dataset_dict(hint="create-with-resource")
     # create dataset (to get the "id")
     dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
-    uj = job.UploadJob(api=api, dataset_dict=dataset_dict,
+    uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
                        resource_paths=[dpath])
     assert uj.state == "init"
     uj.task_compress_resources()
@@ -51,17 +51,17 @@ def test_saveload():
     bare_dict = common.make_dataset_dict(hint="create-with-resource")
     # create dataset (to get the "id")
     dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
-    uj = job.UploadJob(api=api, dataset_dict=dataset_dict,
+    uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
                        resource_paths=[dpath], task_id="hanspeter")
     state = uj.__getstate__()
-    assert state["dataset_dict"]["id"] == dataset_dict["id"]
+    assert state["dataset_id"] == dataset_dict["id"]
     assert dpath.samefile(state["resource_paths"][0])
     assert dpath.name == state["resource_names"][0]
 
     # now create a new job from the state
     uj2 = job.UploadJob.from_upload_job_state(state, api=api)
     state2 = uj2.__getstate__()
-    assert state2["dataset_dict"]["id"] == dataset_dict["id"]
+    assert state2["dataset_id"] == dataset_dict["id"]
     assert dpath.samefile(state2["resource_paths"][0])
     assert dpath.name == state2["resource_names"][0]
     assert state2["task_id"] == "hanspeter"

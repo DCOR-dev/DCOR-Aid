@@ -40,7 +40,7 @@ def test_queue_create_dataset_with_resource():
     # post dataset creation request
     data = create_dataset(dataset_dict=dataset_dict, api=api)
     joblist = UploadQueue(api=api)
-    joblist.add_job(dataset_dict=data,
+    joblist.add_job(dataset_id=data["id"],
                     paths=[dpath])
     for _ in range(600):  # 60 seconds to upload
         if joblist[0].state == "done":

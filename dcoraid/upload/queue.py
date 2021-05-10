@@ -30,12 +30,12 @@ class UploadQueue(object):
             self.daemon_upload.terminate()
             self.daemon_upload = UploadDaemon(self.jobs)
 
-    def add_job(self, dataset_dict, paths, resource_names=None,
+    def add_job(self, dataset_id, paths, resource_names=None,
                 supplements=None):
         """Add a job to the job list"""
         job = UploadJob(
             api=self.api,
-            dataset_dict=dataset_dict,
+            dataset_id=dataset_id,
             resource_paths=paths,
             resource_names=resource_names,
             resource_supplements=supplements,

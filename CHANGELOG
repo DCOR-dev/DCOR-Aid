@@ -1,6 +1,8 @@
 0.4.7
  - ref: ckanext-dcor_schemas 0.14.3 now handles activation
    attempts of datasets without resources correctly
+ - ref: UploadJob now accepts dataset_id instead of dataset_dict,
+   because that is cleaner
 0.4.6
  - fix: do not anymore ignore APIErrors during upload
  - fix: support "date" type of resource supplements
