@@ -8,6 +8,7 @@ class PersistentResourceSchemaPresets(object):
     def __init__(self):
         """Dict-like interface for schema presets for resource uploads"""
         self._presets = {}
+        # This is a roaming path on Windows
         self.path = pathlib.Path(QStandardPaths.writableLocation(
             QStandardPaths.AppDataLocation)) / "upload_resource_schema_presets"
         self.path.mkdir(exist_ok=True, parents=True)

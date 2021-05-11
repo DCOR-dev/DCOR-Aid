@@ -1,16 +1,73 @@
+import pathlib
 import time
 import warnings
 
 from .job import UploadJob
+from .task import load_task, save_task
 from .kthread import KThread
 
 
-class UploadQueue(object):
-    def __init__(self, api):
+class PersistentUploadJobList:
+    def __init__(self, path):
+        """A file-system and JSON-based persistent UploadJob list"""
+        self.path = pathlib.Path(path)
+        self.path_completed = self.path / "completed"
+        self.path_queued = self.path / "queued"
+        self.path_completed.mkdir(parents=True, exist_ok=True)
+        self.path_queued.mkdir(parents=True, exist_ok=True)
+
+    def get_queued_dataset_ids(self):
+        return [pp.stem for pp in self.path_queued.glob("*.json")]
+
+    def immortalize_job(self, upload_job):
+        """Put this job in the persistent queue list"""
+        pout = self.path_queued / (upload_job.dataset_id + ".json")
+        save_task(upload_job=upload_job, path=pout)
+
+    def obliterate_job(self, dataset_id):
+        """Remove a job from the persistent queue list"""
+        pdel = self.path_queued / (dataset_id + ".json")
+        pdel.unlink()
+
+    def set_job_done(self, dataset_id):
+        """Move the job from the queue to the complete list"""
+        pin = self.path_queued / (dataset_id + ".json")
+        pout = self.path_completed / (dataset_id + ".json")
+        pin.rename(pout)
+
+    def summon_job(self, dataset_id, api):
+        """Instantiate job from the persistent queue list"""
+        pin = self.path_queued / (dataset_id + ".json")
+        upload_job = load_task(path=pin, api=api)
+        assert upload_job.dataset_id == dataset_id
+        return upload_job
+
+
+class UploadQueue:
+    def __init__(self, api, path_persistent_job_list=None):
+        """Manager for running multiple UploadJobs in sequence
+
+        Parameters
+        ----------
+        api: dclab.api.CKANAPI
+            The CKAN/DCOR API instance used for the uploads
+        path_persistent_job_list: str or pathlib.Path
+            Path to a directory for storing UploadJobs in a
+            persistent manner across restarts.
+        """
         self.api = api.copy()
         if not api.api_key:
             warnings.warn("No API key is set! Upload will not work!")
         self.jobs = []
+        if path_persistent_job_list is not None:
+            self.jobs_eternal = PersistentUploadJobList(
+                path_persistent_job_list)
+            # add any previously queued jobs
+            for dataset_id in self.jobs_eternal.get_queued_dataset_ids():
+                uj = self.jobs_eternal.summon_job(dataset_id, api=self.api)
+                self.jobs.append(uj)
+        else:
+            self.jobs_eternal = None
         self.daemon_compress = CompressDaemon(self.jobs)
         self.daemon_upload = UploadDaemon(self.jobs)
         self.daemon_verify = VerifyDaemon(self.jobs)
@@ -32,18 +89,23 @@ class UploadQueue(object):
 
     def add_job(self, dataset_id, paths, resource_names=None,
                 supplements=None):
-        """Add a job to the job list"""
-        job = UploadJob(
+        """Create an UploadJob and add it to the job list"""
+        uj = UploadJob(
             api=self.api,
             dataset_id=dataset_id,
             resource_paths=paths,
             resource_names=resource_names,
             resource_supplements=supplements,
             )
-        self.jobs.append(job)
+
+        if self.jobs_eternal is not None:
+            # also add to shelf for persistence
+            self.jobs_eternal.immortalize_job(uj)
+
+        self.jobs.append(uj)
 
     def get_job(self, dataset_id):
-        """Return the job instance belonging to the dataset ID"""
+        """Return the queued UploadJob belonging to the dataset ID"""
         for job in self.jobs:
             if job.dataset_id == dataset_id:
                 return job
@@ -51,11 +113,11 @@ class UploadQueue(object):
             raise KeyError("Job '{}' not found!".format(dataset_id))
 
     def get_status(self, dataset_id):
-        """Return the status of an upload job"""
+        """Return the status of an UploadJob"""
         self.get_job(dataset_id).get_status()
 
     def remove_job(self, dataset_id):
-        """Remove a job from the queue and perform cleanup
+        """Remove an UploadJob from the queue and perform cleanup
 
         It has not been tested what happens when a running job
         is aborted. It will probably keep running and then complain
@@ -65,6 +127,9 @@ class UploadQueue(object):
             if job.dataset_id == dataset_id:
                 self.jobs.pop(ii)
                 job.cleanup()
+        # also remove from shelf
+        if self.jobs_eternal is not None:
+            self.jobs_eternal.obliterate_job(dataset_id)
 
 
 class Daemon(KThread):

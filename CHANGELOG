@@ -1,4 +1,6 @@
 0.4.7
+ - enh: persistent upload jobs (DCORAid remembers all upload
+   jobs and automatically attempts to run them on startup)
  - ref: ckanext-dcor_schemas 0.14.3 now handles activation
    attempts of datasets without resources correctly
  - ref: UploadJob now accepts dataset_id instead of dataset_dict,

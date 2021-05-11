@@ -1,7 +1,10 @@
+from functools import lru_cache
+import os.path as os_path
 import pathlib
 import pkg_resources
 
 from PyQt5 import uic, QtCore, QtWidgets
+from PyQt5.QtCore import QStandardPaths
 
 from ...upload import UploadQueue
 
@@ -26,7 +29,13 @@ class UploadWidget(QtWidgets.QWidget):
         self.toolButton_new_upload.clicked.connect(self.on_draft_upload)
 
         # Underlying upload class
-        self.jobs = UploadQueue(api=get_ckan_api())
+        # use a persistent shelf to be able to resume uploads on startup
+        shelf_path = os_path.join(
+            QStandardPaths.writableLocation(
+                QStandardPaths.AppLocalDataLocation),
+            "persistent_upload_jobs")
+        self.jobs = UploadQueue(api=get_ckan_api(),
+                                path_persistent_job_list=shelf_path)
         self.widget_jobs.set_job_list(self.jobs)
 
         # upload finished signal
@@ -76,7 +85,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
 
     def __init__(self, *args, **kwargs):
         super(UploadTableWidget, self).__init__(*args, **kwargs)
-        self.jobs = []  # Will become UploadJobList with self.set_job_list
+        self.jobs = []  # Will become UploadQueue with self.set_job_list
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update_job_status)
         self.timer.start(30)
@@ -86,7 +95,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         """Set the current job list
 
         The job list can be a `list`, but it is actually
-        an `UploadJobList`.
+        an `UploadQueue`.
         """
         # This is the actual initialization
         self.jobs = jobs
@@ -101,6 +110,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         """Triggers upload_finished whenever an upload is finished"""
         if dataset_id not in self._finished_uploads:
             self._finished_uploads.append(dataset_id)
+            self.jobs.jobs_eternal.set_job_done(dataset_id)
             self.upload_finished.emit()
 
     @QtCore.pyqtSlot()
@@ -115,7 +125,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         for row, job in enumerate(self.jobs):
             status = job.get_status()
             self.set_label_item(row, 0, job.dataset_id[:5])
-            self.set_label_item(row, 1, job.dataset_dict["title"])
+            self.set_label_item(row, 1, get_dataset_title(job.dataset_id))
             self.set_label_item(row, 2, status["state"])
             self.set_label_item(row, 3, job.get_progress_string())
             self.set_label_item(row, 4, job.get_rate_string())
@@ -158,3 +168,10 @@ class UploadTableWidget(QtWidgets.QTableWidget):
             wid.abort_job.connect(self.on_job_abort)
             self.setCellWidget(row, col, wid)
         wid.refresh_visibility(job)
+
+
+@lru_cache(maxsize=10000)
+def get_dataset_title(dataset_id):
+    api = get_ckan_api()
+    ddict = api.get("package_show", id=dataset_id)
+    return ddict["title"]
