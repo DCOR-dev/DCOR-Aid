@@ -158,7 +158,8 @@ def test_no_ids():
                           resource_paths=[str(dpath)],
                           resource_names=[dpath.name],
                           task_id=None)
-    with pytest.raises(ValueError, match="must contain a task ID"):
+    with pytest.raises(ValueError,
+                       match="must specify a dataset_id via dataset_kwargs"):
         task.load_task(task_path, api=api)
 
 
@@ -187,7 +188,9 @@ def test_wrong_ids():
                           dataset_id="hans",  # different id
                           resource_paths=[str(dpath)],
                           resource_names=[dpath.name])
-    with pytest.raises(ValueError, match="do not match!"):
+    with pytest.raises(ValueError,
+                       match="I got the following IDs: from upload job "
+                             + "state: hans; from dataset dict: peter"):
         task.load_task(task_path, api=api)
 
 

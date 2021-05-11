@@ -60,7 +60,9 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None):
         Dictionary-like object that maps previously encountered
         task IDs to CKAN/DCOR dataset IDs. This is only used
         if there is no dataset ID in the task file. Use this if
-        you want to avoid uploading duplicate datasets.
+        you want to avoid uploading duplicate datasets. If task_id
+        is given in the task file, then map_task_to_dataset_id will
+        be updated with the dataset_id.
 
     Returns
     -------
@@ -68,6 +70,10 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None):
         The corresponding upload job
     """
     path = pathlib.Path(path)
+    if map_task_to_dataset_id is None:
+        # just set to empty dict so the code below may remain simple
+        map_task_to_dataset_id = {}
+
     with path.open() as fd:
         task_dict = json.load(fd)
 
@@ -82,38 +88,54 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None):
 
     uj_state = task_dict["upload_job"]
 
-    dataset_id = uj_state.get("dataset_id")
-    if dataset_id is None:
-        # Try to fetch the dataset_id from the dataset_dict
-        dataset_id = dataset_dict.get("id")
-    elif "id" in dataset_dict and dataset_id != dataset_dict["id"]:
-        # Oh no! The dataset IDs are not the same
-        raise ValueError(
-            f"The ID in `dataset_id` '{uj_state['dataset_id']}' and in "
-            f"`dataset_dict['id']` '{dataset_dict['id']}' do not match!")
+    # determine the dataset id...
+    # ...from the upload job state
+    id_u = uj_state.get("dataset_id")
+    # ...from the dataset_dict
+    id_d = dataset_dict.get("id")
+    # ...from the shelf using the task_id
+    task_id = uj_state.get("task_id")
+    if task_id is None:
+        id_m = None
+        if id_u is None and id_d is None:
+            # This is an important point for automation. We can't just
+            # have people running around not specifying any task_ids.
+            raise ValueError(
+                f"If neither task_id or dataset_id are specified in '{path}' "
+                "then you must specify a dataset_id via dataset_kwargs.")
+    else:
+        id_m = map_task_to_dataset_id.get(task_id)
 
-    if dataset_id is None:
-        # If no dataset ID is specified, then we *have* to have
-        # a task ID.
-        task_id = uj_state.get("task_id")
-        if task_id is None:
-            raise ValueError(f"The task file '{path}' must contain a task ID "
-                             "or a dataset ID")
-        if map_task_to_dataset_id is not None:
-            # only call "get" once, because otherwise this may take
-            # too long for large dictionaries or file-system based
-            # implementations of `map_task_to_dataset_id`.
-            dataset_id = map_task_to_dataset_id.get(task_id)
-        if dataset_id is None:
-            # The task_id was not in the dictionary which means we have
-            # to create a draft dataset first.
-            ddict = create_dataset(
-                dataset_dict=dataset_dict,
-                api=api,
-                activate=False)
-            dataset_id = ddict["id"]
+    # use the ids to determine what to do next
+    ids = [dd for dd in [id_u, id_d, id_m] if dd is not None]
+    if len(set(ids)) == 0:
+        # We have no dataset_id, so we create a dataset first
+        ddict = create_dataset(
+            dataset_dict=dataset_dict,
+            api=api,
+            activate=False)
+        dataset_id = ddict["id"]
+    elif len(set(ids)) == 1:
+        # We have a unique dataset_id
+        dataset_id = ids[0]
+    else:
+        # Something went wrong when creating the task file or the
+        # user is insane.
+        raise ValueError(
+            "There are ambiguities regarding the dataset_id! I got the "
+            + "following IDs: "
+            + (f"from upload job state: {id_u}; " if id_u is not None else "")
+            + (f"from dataset dict: {id_d}; " if id_d is not None else "")
+            + (f"from task id shelve: {id_m}; " if id_m is not None else "")
+            + "Please check your input data!"
+        )
+
     # Finally, set the dataset ID
     uj_state["dataset_id"] = dataset_id
+
+    if task_id is None:
+        # also update the shelve
+        map_task_to_dataset_id[task_id] = dataset_id
 
     # Proceed with instantiation of UploadJob
     uj = UploadJob.from_upload_job_state(uj_state, api=api)

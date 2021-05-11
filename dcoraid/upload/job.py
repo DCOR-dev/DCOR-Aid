@@ -366,7 +366,8 @@ class UploadJob(object):
                         dataset_id=self.dataset_id,
                         api=self.api)
                     self.set_state("done")
-        else:
+        elif self.state != "done":
+            # Only issue this warning if the upload is not already done.
             warnings.warn("Resource verification is only possible when state "
                           + "is 'online', but current state is "
                           + "'{}'!".format(self.state))

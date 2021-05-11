@@ -65,7 +65,7 @@ class UploadWidget(QtWidgets.QWidget):
             supps.append(rdata[path]["supplement"])
         dataset_dict = upload_dialog.dataset_dict
         # add the entry to the job list
-        self.jobs.add_job(dataset_dict["id"],
+        self.jobs.add_job(dataset_id=dataset_dict["id"],
                           paths=paths,
                           resource_names=names,
                           supplements=supps)
