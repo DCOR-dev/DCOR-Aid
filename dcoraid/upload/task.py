@@ -144,6 +144,19 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None):
 
     uj_state = task_dict["upload_job"]
 
+    # make sure the paths exist (if not, try with name relative to task path)
+    for ii in range(len(uj_state["resource_paths"])):
+        pi = pathlib.Path(uj_state["resource_paths"][ii])
+        pi_alt = pathlib.Path(path).parent / pi.name
+        if pi.exists():
+            pass
+        elif pi_alt.exists():
+            # replace with path relative to task file
+            uj_state["resource_paths"][ii] = str(pi_alt)
+        else:
+            raise FileNotFoundError(
+                f"Resource path '{pi}' not found for task '{path}'!")
+
     # determine the dataset id...
     # ...from the upload job state
     id_u = uj_state.get("dataset_id")

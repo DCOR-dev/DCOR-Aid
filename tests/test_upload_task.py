@@ -1,4 +1,5 @@
 import pathlib
+import shutil
 import tempfile
 import time
 
@@ -187,6 +188,21 @@ def test_persistent_dict_override_forbidden():
     # make sure it is not stored
     pd2 = task.PersistentTaskDatasetIDDict(path)
     assert pd2["peter"] == "pan"
+
+
+def test_resource_path_is_relative():
+    task_path = common.make_upload_task(resource_paths=["guess_my_name.rtdc"])
+    new_data_path = pathlib.Path(task_path).parent / "guess_my_name.rtdc"
+    shutil.copy2(dpath, new_data_path)
+    uj = task.load_task(task_path, api=common.get_api())
+    assert new_data_path.samefile(uj.paths[0])
+
+
+def test_resource_path_not_found():
+    task_path = common.make_upload_task(resource_paths=["/home/unknown.rtdc"])
+    with pytest.raises(FileNotFoundError,
+                       match="not found for task"):
+        task.load_task(task_path, api=common.get_api())
 
 
 def test_save_load():
