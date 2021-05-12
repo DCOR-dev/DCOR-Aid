@@ -18,6 +18,62 @@ from .dataset import create_dataset
 from .job import UploadJob
 
 
+class PersistentTaskDatasetIDDict:
+    def __init__(self, path):
+        """A file-based dictionary with task_id as keys
+
+        Features:
+
+        - Not possible to override any keys with other values
+        - allowed key characters are
+          "0123456789-_abcdefghijklmnopqrstuvwxyz"
+        - New keys are appended to the end of the file
+        - No file locking (make sure that only one thread
+          appends to the file)
+        - Dictionary is loaded into memory on init, then for
+          each new entry, the internal dictionary is updated
+          and a new line is appended to the file on disk
+        """
+        self._path = pathlib.Path(path)
+        self._path.touch(exist_ok=True)
+        self._dict = {}
+        # load the dictionary
+        with self._path.open() as fd:
+            lines = fd.readlines()
+            for line in lines:
+                task_id, dataset_id = line.strip().split()
+                self._dict[task_id] = dataset_id
+
+    def __contains__(self, task_id):
+        return self._dict.__contains__(task_id)
+
+    def __setitem__(self, task_id, dataset_id):
+        if task_id in self._dict:
+            if self[task_id] != dataset_id:
+                raise ValueError("Cannot override entries in persistent dict!")
+            else:
+                # everything ok
+                pass  # this line is covered, even though coverage disagrees
+        else:
+            valid_ch = "0123456789-_abcdefghijklmnopqrstuvwxyz"
+            task_id_check = "".join([ch for ch in task_id if ch in valid_ch])
+            if task_id_check != task_id:
+                raise ValueError("task IDs may only contain numbers, "
+                                 "lower-case characters, and '-_'."
+                                 f"Got '{task_id}'!")
+            # append to end of file
+            with self._path.open("a") as fd:
+                fd.write(f"{task_id} {dataset_id}\n")
+            # append to dict
+            self._dict[task_id] = dataset_id
+
+    def __getitem__(self, task_id):
+        return self._dict[task_id]
+
+    def get(self, task_id, default=None):
+        return self._dict.get(task_id, default)
+
+
 def save_task(upload_job, path):
     """Save an upload job to a JSON file
 
@@ -56,7 +112,7 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None):
         dataset already exists (dataset_id) is defined, then the
         entries in this dictionary have no effect. They only have
         an effect when the dataset has to be created.
-    map_task_to_dataset_id: dict
+    map_task_to_dataset_id: dict or PersistentTaskDatasetIDDict
         Dictionary-like object that maps previously encountered
         task IDs to CKAN/DCOR dataset IDs. This is only used
         if there is no dataset ID in the task file. Use this if
@@ -126,15 +182,15 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None):
             + "following IDs: "
             + (f"from upload job state: {id_u}; " if id_u is not None else "")
             + (f"from dataset dict: {id_d}; " if id_d is not None else "")
-            + (f"from task id shelve: {id_m}; " if id_m is not None else "")
+            + (f"from ID dict: {id_m}; " if id_m is not None else "")
             + "Please check your input data!"
         )
 
     # Finally, set the dataset ID
     uj_state["dataset_id"] = dataset_id
 
-    if task_id is None:
-        # also update the shelve
+    if task_id is not None:
+        # also update the ID dictionary
         map_task_to_dataset_id[task_id] = dataset_id
 
     # Proceed with instantiation of UploadJob

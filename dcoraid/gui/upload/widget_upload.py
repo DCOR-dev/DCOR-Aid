@@ -7,6 +7,7 @@ from PyQt5 import uic, QtCore, QtWidgets
 from PyQt5.QtCore import QStandardPaths
 
 from ...upload import UploadQueue
+from ...upload.task import PersistentTaskDatasetIDDict, load_task
 
 from ..api import get_ckan_api
 from ..tools import ShowWaitCursor
@@ -26,7 +27,20 @@ class UploadWidget(QtWidgets.QWidget):
             "dcoraid.gui.upload", "widget_upload.ui")
         uic.loadUi(path_ui, self)
 
-        self.toolButton_new_upload.clicked.connect(self.on_draft_upload)
+        # button for adding new dataset manually
+        self.toolButton_new_upload.clicked.connect(self.on_upload_manual)
+
+        # menu button for adding tasks
+        menu = QtWidgets.QMenu()
+        act1 = QtWidgets.QAction("Select task files from disk", self)
+        act1.setData("single")
+        menu.addAction(act1)
+        act2 = QtWidgets.QAction(
+            "Recursively find and load task files from a folder", self)
+        act2.setData("bulk")
+        menu.addAction(act2)
+        menu.triggered.connect(self.on_upload_task)
+        self.toolButton_load_upload_tasks.setMenu(menu)
 
         # Underlying upload class
         # use a persistent shelf to be able to resume uploads on startup
@@ -42,7 +56,7 @@ class UploadWidget(QtWidgets.QWidget):
         self.widget_jobs.upload_finished.connect(self.upload_finished)
 
     @QtCore.pyqtSlot()
-    def on_draft_upload(self):
+    def on_upload_manual(self):
         """Guides the user through the process of creating a dataset
 
         A draft dataset is created to which the resources are then
@@ -50,11 +64,11 @@ class UploadWidget(QtWidgets.QWidget):
         """
         with ShowWaitCursor():
             dlg = UploadDialog(self)
-            dlg.finished.connect(self.on_run_upload)
+            dlg.finished.connect(self.on_upload_manual_ready)
         dlg.exec()
 
     @QtCore.pyqtSlot(object)
-    def on_run_upload(self, upload_dialog):
+    def on_upload_manual_ready(self, upload_dialog):
         """Proceed with resource upload as defined by `update_dialog`
 
         `update_dialog` is an instance of `dlg_upload.UploadDialog`
@@ -74,10 +88,49 @@ class UploadWidget(QtWidgets.QWidget):
             supps.append(rdata[path]["supplement"])
         dataset_dict = upload_dialog.dataset_dict
         # add the entry to the job list
-        self.jobs.add_job(dataset_id=dataset_dict["id"],
+        self.jobs.new_job(dataset_id=dataset_dict["id"],
                           paths=paths,
                           resource_names=names,
                           supplements=supps)
+
+    @QtCore.pyqtSlot(QtWidgets.QAction)
+    def on_upload_task(self, action):
+        """Import an UploadJob task file and add it to the queue
+
+        This functionality is mainly used for automation. Another
+        software creates upload tasks which are then loaded by
+        DCOR-Aid.
+        """
+        if action.data() == "single":
+            files, _ = QtWidgets.QFileDialog.getOpenFileNames(
+                self,
+                "Select DCOR-Aid task files",
+                ".",
+                "DCOR-Aid task files (*.dcoraid-task)",
+            )
+        else:
+            tdir = QtWidgets.QFileDialog.getExistingDirectory(
+                self,
+                "Select folder to search for DCOR-Aid task files",
+                ".",
+                QtWidgets.QFileDialog.ShowDirsOnly,
+            )
+            files = pathlib.Path(tdir).rglob("*.dcoraid-task")
+
+        # Keep track of a persistent task ID to dataset ID dictionary
+        path_id_dict = os_path.join(
+            QStandardPaths.writableLocation(
+                QStandardPaths.AppLocalDataLocation),
+            "map_task_to_dataset_id.txt")
+        map_task_to_dataset_id = PersistentTaskDatasetIDDict(path_id_dict)
+
+        for pp in files:
+            upload_job = load_task(
+                path=pp,
+                map_task_to_dataset_id=map_task_to_dataset_id,
+                api=get_ckan_api())
+            assert upload_job.task_id is not None
+            self.jobs.add_job(upload_job)
 
 
 class UploadTableWidget(QtWidgets.QTableWidget):

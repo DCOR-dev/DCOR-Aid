@@ -1,4 +1,3 @@
-import json
 import pathlib
 import tempfile
 import time
@@ -14,44 +13,12 @@ import common
 dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
 
 
-def make_task(task_id="123456789",
-              dataset_id=None,
-              dataset_dict=True,
-              resource_paths=[str(dpath)],
-              resource_names=["gorgonzola.rtdc"],
-              resource_supplements=None,
-              ):
-    """Return path to example task file"""
-    if dataset_dict and not isinstance(dataset_dict, dict):
-        dataset_dict = common.make_dataset_dict(hint="task_test")
-    if dataset_dict and dataset_id is None:
-        dataset_id = dataset_dict.get("dataset_id")
-    uj_state = {
-        "dataset_id": dataset_id,
-        "task_id": task_id,
-        "resource_paths": resource_paths,
-        "resource_names": resource_names,
-        "resource_supplements": resource_supplements,
-    }
-    data = {"upload_job": uj_state}
-    if dataset_dict:
-        data["dataset_dict"] = dataset_dict
-    td = pathlib.Path(tempfile.mkdtemp(prefix="task_"))
-    taskp = td / "test.dcoraid-task"
-    with taskp.open("w") as fd:
-        json.dump(data, fd,
-                  ensure_ascii=False,
-                  indent=2,
-                  sort_keys=True)
-    return taskp
-
-
 def test_custom_dataset_dict():
     api = common.get_api()
     # post dataset creation request
-    task_path = make_task(dataset_dict=False,
-                          resource_paths=[str(dpath)],
-                          resource_names=[dpath.name])
+    task_path = common.make_upload_task(dataset_dict=False,
+                                        resource_paths=[str(dpath)],
+                                        resource_names=[dpath.name])
     dataset_dict = common.make_dataset_dict()
     dataset_dict["authors"] = "Captain Hook!"
     uj = task.load_task(task_path, api=api,
@@ -64,9 +31,9 @@ def test_custom_dataset_dict():
 def test_custom_dataset_dict_2():
     api = common.get_api()
     # post dataset creation request
-    task_path = make_task(dataset_dict=True,
-                          resource_paths=[str(dpath)],
-                          resource_names=[dpath.name])
+    task_path = common.make_upload_task(dataset_dict=True,
+                                        resource_paths=[str(dpath)],
+                                        resource_names=[dpath.name])
     dataset_dict = common.make_dataset_dict()
     dataset_dict["authors"] = "Captain Hook!"
     uj = task.load_task(task_path, api=api,
@@ -78,8 +45,8 @@ def test_custom_dataset_dict_2():
 
 def test_load_basic():
     api = common.get_api()
-    task_path = make_task(task_id="zpowiemsnh",
-                          resource_names=["humdinger.rtdc"])
+    task_path = common.make_upload_task(task_id="zpowiemsnh",
+                                        resource_names=["humdinger.rtdc"])
     uj = task.load_task(task_path, api=api)
     assert uj.task_id == "zpowiemsnh"
     assert uj.resource_names == ["humdinger.rtdc"]
@@ -93,9 +60,9 @@ def test_load_with_existing_dataset():
     dataset_dict_with_id = create_dataset(dataset_dict=dataset_dict,
                                           resources=[dpath],
                                           api=api)
-    task_path = make_task(dataset_dict=dataset_dict_with_id,
-                          resource_paths=[str(dpath)],
-                          resource_names=[dpath.name])
+    task_path = common.make_upload_task(dataset_dict=dataset_dict_with_id,
+                                        resource_paths=[str(dpath)],
+                                        resource_names=[dpath.name])
     uj = task.load_task(task_path, api=api)
     assert uj.dataset_id == dataset_dict_with_id["id"]
     # skipping the upload should work, since it's already uploaded
@@ -120,15 +87,33 @@ def test_load_with_existing_dataset_map_from_task():
     dataset_dict_with_id = create_dataset(dataset_dict=dataset_dict,
                                           resources=[dpath],
                                           api=api)
-    task_path = make_task(dataset_dict=dataset_dict,
-                          resource_paths=[str(dpath)],
-                          resource_names=[dpath.name],
-                          task_id="xwing")
+    task_path = common.make_upload_task(dataset_dict=dataset_dict,
+                                        resource_paths=[str(dpath)],
+                                        resource_names=[dpath.name],
+                                        task_id="xwing")
     uj = task.load_task(
         task_path,
         api=api,
         map_task_to_dataset_id={"xwing": dataset_dict_with_id["id"]})
     assert uj.dataset_id == dataset_dict_with_id["id"]
+
+
+def test_load_with_existing_dataset_map_from_task_dict_update():
+    api = common.get_api()
+    # create some metadata
+    dataset_dict = common.make_dataset_dict(hint="task_test")
+    # post dataset creation request
+    task_path = common.make_upload_task(dataset_dict=dataset_dict,
+                                        resource_paths=[str(dpath)],
+                                        resource_names=[dpath.name],
+                                        task_id="xwing")
+    map_task_to_dataset_id = {}
+    uj = task.load_task(
+        task_path,
+        api=api,
+        map_task_to_dataset_id=map_task_to_dataset_id)
+    assert uj.task_id == "xwing"
+    assert map_task_to_dataset_id["xwing"] == uj.dataset_id
 
 
 def test_load_with_existing_dataset_map_from_task_control():
@@ -139,10 +124,10 @@ def test_load_with_existing_dataset_map_from_task_control():
     dataset_dict_with_id = create_dataset(dataset_dict=dataset_dict,
                                           resources=[dpath],
                                           api=api)
-    task_path = make_task(dataset_dict=dataset_dict,
-                          resource_paths=[str(dpath)],
-                          resource_names=[dpath.name],
-                          task_id="xwing")
+    task_path = common.make_upload_task(dataset_dict=dataset_dict,
+                                        resource_paths=[str(dpath)],
+                                        resource_names=[dpath.name],
+                                        task_id="xwing")
     uj = task.load_task(
         task_path,
         api=api,
@@ -154,13 +139,54 @@ def test_no_ids():
     api = common.get_api()
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="task_test")
-    task_path = make_task(dataset_dict=dataset_dict,
-                          resource_paths=[str(dpath)],
-                          resource_names=[dpath.name],
-                          task_id=None)
+    task_path = common.make_upload_task(dataset_dict=dataset_dict,
+                                        resource_paths=[str(dpath)],
+                                        resource_names=[dpath.name],
+                                        task_id=None)
     with pytest.raises(ValueError,
                        match="must specify a dataset_id via dataset_kwargs"):
         task.load_task(task_path, api=api)
+
+
+def test_persistent_dict():
+    tdir = tempfile.mkdtemp(prefix="upload_task_persistent_dict_")
+    path = pathlib.Path(tdir) / "persistent_dict.txt"
+    pd = task.PersistentTaskDatasetIDDict(path)
+    pd["hans"] = "peter"
+    pd["golem"] = "odin123"
+    assert pd["hans"] == "peter"
+    assert pd["golem"] == "odin123"
+    assert pd.get("fritz") is None
+
+    pd2 = task.PersistentTaskDatasetIDDict(path)
+    assert pd2["hans"] == "peter"
+    assert pd2["golem"] == "odin123"
+
+
+def test_persistent_dict_bad_task_id():
+    tdir = tempfile.mkdtemp(prefix="upload_task_persistent_dict_")
+    path = pathlib.Path(tdir) / "persistent_dict.txt"
+    pd = task.PersistentTaskDatasetIDDict(path)
+    with pytest.raises(ValueError, match="task IDs may only contain"):
+        pd["hans!"] = "peter"
+    # make sure it is not stored
+    pd2 = task.PersistentTaskDatasetIDDict(path)
+    assert "hans!" not in pd2
+
+
+def test_persistent_dict_override_forbidden():
+    tdir = tempfile.mkdtemp(prefix="upload_task_persistent_dict_")
+    path = pathlib.Path(tdir) / "persistent_dict.txt"
+    pd = task.PersistentTaskDatasetIDDict(path)
+    pd["peter"] = "pan"
+    assert "peter" in pd
+    assert pd["peter"] == "pan"
+    pd["peter"] = "pan"  # once again
+    with pytest.raises(ValueError, match="Cannot override entries"):
+        pd["peter"] = "hook"
+    # make sure it is not stored
+    pd2 = task.PersistentTaskDatasetIDDict(path)
+    assert pd2["peter"] == "pan"
 
 
 def test_save_load():
@@ -184,10 +210,10 @@ def test_wrong_ids():
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="task_test")
     dataset_dict["id"] = "peter"
-    task_path = make_task(dataset_dict=dataset_dict,
-                          dataset_id="hans",  # different id
-                          resource_paths=[str(dpath)],
-                          resource_names=[dpath.name])
+    task_path = common.make_upload_task(dataset_dict=dataset_dict,
+                                        dataset_id="hans",  # different id
+                                        resource_paths=[str(dpath)],
+                                        resource_names=[dpath.name])
     with pytest.raises(ValueError,
                        match="I got the following IDs: from upload job "
                              + "state: hans; from dataset dict: peter"):

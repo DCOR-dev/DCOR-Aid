@@ -1,4 +1,5 @@
 import time
+import uuid
 
 from dcoraid.gui.main import DCORAid
 from dcoraid.gui.upload.dlg_upload import UploadDialog
@@ -29,7 +30,7 @@ def test_upload_simple(qtbot, monkeypatch):
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
 
     dlg = UploadDialog(mw.panel_upload)
-    dlg.finished.connect(mw.panel_upload.on_run_upload)
+    dlg.finished.connect(mw.panel_upload.on_upload_manual_ready)
     # Fill data for testing
     dlg._autofill_for_testing()
     # Avoid message boxes
@@ -47,13 +48,28 @@ def test_upload_simple(qtbot, monkeypatch):
     mw.close()
 
 
+def test_upload_task(qtbot, monkeypatch):
+    task_id = str(uuid.uuid4())
+    tpath = common.make_upload_task(task_id=task_id)
+    mw = DCORAid()
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+    monkeypatch.setattr(QtWidgets.QFileDialog, "getOpenFileNames",
+                        lambda *args: ([tpath], None))
+    act = QtWidgets.QAction("some unimportant text")
+    act.setData("single")
+    mw.panel_upload.on_upload_task(action=act)
+    uj = mw.panel_upload.jobs[-1]
+    assert uj.task_id == task_id
+    mw.close()
+
+
 def test_upload_private(qtbot, monkeypatch):
     """Upload a private test dataset"""
     mw = DCORAid()
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
 
     dlg = UploadDialog(mw.panel_upload)
-    dlg.finished.connect(mw.panel_upload.on_run_upload)
+    dlg.finished.connect(mw.panel_upload.on_upload_manual_ready)
     # Fill data for testing
     dlg._autofill_for_testing()
     # set visibility to private

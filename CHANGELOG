@@ -1,5 +1,6 @@
-0.4.7
- - enh: persistent upload jobs (DCORAid remembers all upload
+0.5.0
+ - feat: support importing upload jobs from DCOR-Aid task files
+ - feat: persistent upload jobs (DCORAid remembers all upload
    jobs and automatically attempts to run them on startup)
  - ref: ckanext-dcor_schemas 0.14.3 now handles activation
    attempts of datasets without resources correctly

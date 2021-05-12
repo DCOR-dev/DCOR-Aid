@@ -19,10 +19,26 @@
      <item>
       <widget class="QToolButton" name="toolButton_new_upload">
        <property name="text">
-        <string>Upload new dataset</string>
+        <string>New manual upload</string>
        </property>
        <property name="icon">
-        <iconset theme="folder"/>
+        <iconset theme="people-carry"/>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="toolButton_load_upload_tasks">
+       <property name="text">
+        <string>Load upload task(s) from disk</string>
+       </property>
+       <property name="icon">
+        <iconset theme="shipping-fast"/>
+       </property>
+       <property name="popupMode">
+        <enum>QToolButton::InstantPopup</enum>
        </property>
        <property name="toolButtonStyle">
         <enum>Qt::ToolButtonTextBesideIcon</enum>

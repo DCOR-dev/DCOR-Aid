@@ -1,9 +1,11 @@
-import os.path
+import os.path as os_path
+import pathlib
 import shutil
 import tempfile
 import time
 
 from PyQt5 import QtCore
+from PyQt5.QtCore import QStandardPaths
 import pytest
 
 from dcoraid.api import APIConflictError
@@ -30,6 +32,20 @@ def pytest_configure(config):
     settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
     settings.setValue("auth/api key", common.get_api_key())
     settings.sync()
+    # remove persistent upload jobs
+    shelf_path = os_path.join(
+        QStandardPaths.writableLocation(
+            QStandardPaths.AppLocalDataLocation),
+        "persistent_upload_jobs")
+    shutil.rmtree(shelf_path, ignore_errors=True)
+    # remove persistent upload id dict
+    path_id_dict = os_path.join(
+        QStandardPaths.writableLocation(
+            QStandardPaths.AppLocalDataLocation),
+        "map_task_to_dataset_id.txt")
+    path_id_dict = pathlib.Path(path_id_dict)
+    if path_id_dict.exists():
+        path_id_dict.unlink()
     # set global temp directory
     tempfile.tempdir = TMPDIR
 
@@ -78,7 +94,7 @@ def pytest_runtest_makereport(item, call):
 
     # we only look at actual failing test calls, not setup/teardown
     if rep.when == "call" and rep.failed:
-        mode = "a" if os.path.exists("pytest-failures.txt") else "w"
+        mode = "a" if os_path.exists("pytest-failures.txt") else "w"
         with open("pytest-failures.txt", mode) as f:
             # let's also access a fixture for the fun of it
             if "tmpdir" in item.fixturenames:

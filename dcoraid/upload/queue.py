@@ -87,22 +87,12 @@ class UploadQueue:
             self.daemon_upload.terminate()
             self.daemon_upload = UploadDaemon(self.jobs)
 
-    def add_job(self, dataset_id, paths, resource_names=None,
-                supplements=None):
-        """Create an UploadJob and add it to the job list"""
-        uj = UploadJob(
-            api=self.api,
-            dataset_id=dataset_id,
-            resource_paths=paths,
-            resource_names=resource_names,
-            resource_supplements=supplements,
-            )
-
+    def add_job(self, upload_job):
+        """Add an UploadJob to the job list"""
         if self.jobs_eternal is not None:
-            # also add to shelf for persistence
-            self.jobs_eternal.immortalize_job(uj)
-
-        self.jobs.append(uj)
+            # also add to eternal jobs for persistence
+            self.jobs_eternal.immortalize_job(upload_job)
+        self.jobs.append(upload_job)
 
     def get_job(self, dataset_id):
         """Return the queued UploadJob belonging to the dataset ID"""
@@ -116,6 +106,18 @@ class UploadQueue:
         """Return the status of an UploadJob"""
         self.get_job(dataset_id).get_status()
 
+    def new_job(self, dataset_id, paths, resource_names=None,
+                supplements=None):
+        """Create an UploadJob and add it to the job list"""
+        upload_job = UploadJob(
+            api=self.api,
+            dataset_id=dataset_id,
+            resource_paths=paths,
+            resource_names=resource_names,
+            resource_supplements=supplements,
+            )
+        self.add_job(upload_job)
+
     def remove_job(self, dataset_id):
         """Remove an UploadJob from the queue and perform cleanup
 
@@ -127,7 +129,7 @@ class UploadQueue:
             if job.dataset_id == dataset_id:
                 self.jobs.pop(ii)
                 job.cleanup()
-        # also remove from shelf
+        # also remove from eternal jobs
         if self.jobs_eternal is not None:
             self.jobs_eternal.obliterate_job(dataset_id)
 
