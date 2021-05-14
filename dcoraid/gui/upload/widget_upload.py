@@ -123,14 +123,14 @@ class UploadWidget(QtWidgets.QWidget):
                 QStandardPaths.AppLocalDataLocation),
             "map_task_to_dataset_id.txt")
         map_task_to_dataset_id = PersistentTaskDatasetIDDict(path_id_dict)
-
-        for pp in files:
-            upload_job = load_task(
-                path=pp,
-                map_task_to_dataset_id=map_task_to_dataset_id,
-                api=get_ckan_api())
-            assert upload_job.task_id is not None
-            self.jobs.add_job(upload_job)
+        with ShowWaitCursor():
+            for pp in files:
+                upload_job = load_task(
+                    path=pp,
+                    map_task_to_dataset_id=map_task_to_dataset_id,
+                    api=get_ckan_api())
+                assert upload_job.task_id is not None
+                self.jobs.add_job(upload_job)
 
 
 class UploadTableWidget(QtWidgets.QTableWidget):
