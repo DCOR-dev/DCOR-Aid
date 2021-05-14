@@ -41,7 +41,7 @@ test_script:
   - pip install coverage codecov
   - pip install pytest pytest-qt
   # sometimes tests fail due to threading issues
-  - appveyor-retry coverage run --source=dcoraid -m pytest tests || exit 0
+  - coverage run --source=dcoraid -m pytest tests || exit 0
   # check if pytest wrote failures to the "pytest-failures.txt" file
   # (exits 0 if the file does not exist)
   - if exist pytest-failures.txt exit 1
