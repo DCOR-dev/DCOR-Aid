@@ -18,6 +18,7 @@ def run_around_tests():
     # Run test
     yield
     # Make sure that all daemons are gone
+    time.sleep(2)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
                                          3000)
     time.sleep(2)
@@ -94,3 +95,8 @@ def test_upload_private(qtbot, monkeypatch):
     dataset_dict = api.get(api_call="package_show", id=dataset_id)
     assert dataset_dict["private"]
     assert isinstance(dataset_dict["private"], bool)
+
+
+def test_zzz_final():
+    # give remaining threads time to join?
+    time.sleep(5)
