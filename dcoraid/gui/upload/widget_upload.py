@@ -138,9 +138,14 @@ class UploadTableWidget(QtWidgets.QTableWidget):
     def __init__(self, *args, **kwargs):
         super(UploadTableWidget, self).__init__(*args, **kwargs)
         self.jobs = []  # Will become UploadQueue with self.set_job_list
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.update_job_status)
-        self.timer.start(30)
+
+        settings = QtCore.QSettings()
+        if settings.value("debug/without timers", False):
+            self.timer = QtCore.QTimer()
+            self.timer.timeout.connect(self.update_job_status)
+            self.timer.start(30)
+        else:
+            self.timer = None
         self._finished_uploads = []
 
     def set_job_list(self, jobs):
