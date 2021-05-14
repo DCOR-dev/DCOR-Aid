@@ -170,8 +170,9 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None):
             # This is an important point for automation. We can't just
             # have people running around not specifying any task_ids.
             raise ValueError(
-                f"If neither task_id or dataset_id are specified in '{path}' "
-                "then you must specify a dataset_id via dataset_kwargs.")
+                f"Neither task_id nor dataset_id are specified in '{path}'! "
+                "Please update the task file or pass the dataset_id via "
+                "the dataset_kwargs argument.")
     else:
         id_m = map_task_to_dataset_id.get(task_id)
 

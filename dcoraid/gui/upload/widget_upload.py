@@ -63,9 +63,9 @@ class UploadWidget(QtWidgets.QWidget):
         uploaded.
         """
         with ShowWaitCursor():
-            dlg = UploadDialog(self)
-            dlg.finished.connect(self.on_upload_manual_ready)
-        dlg.exec()
+            self._dlg_manual = UploadDialog(self)
+            self._dlg_manual.finished.connect(self.on_upload_manual_ready)
+        self._dlg_manual.exec()
 
     @QtCore.pyqtSlot(object)
     def on_upload_manual_ready(self, upload_dialog):
@@ -129,7 +129,6 @@ class UploadWidget(QtWidgets.QWidget):
                     path=pp,
                     map_task_to_dataset_id=map_task_to_dataset_id,
                     api=get_ckan_api())
-                assert upload_job.task_id is not None
                 self.jobs.add_job(upload_job)
 
 

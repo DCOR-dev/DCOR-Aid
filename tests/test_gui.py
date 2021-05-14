@@ -18,7 +18,6 @@ def run_around_tests():
     # Run test
     yield
     # Make sure that all daemons are gone
-    time.sleep(2)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
                                          3000)
     time.sleep(2)
@@ -30,6 +29,7 @@ def test_upload_simple(qtbot, monkeypatch):
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
 
     dlg = UploadDialog(mw.panel_upload)
+    mw.panel_upload._dlg_manual = dlg
     dlg.finished.connect(mw.panel_upload.on_upload_manual_ready)
     # Fill data for testing
     dlg._autofill_for_testing()
@@ -69,6 +69,7 @@ def test_upload_private(qtbot, monkeypatch):
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
 
     dlg = UploadDialog(mw.panel_upload)
+    mw.panel_upload._dlg_manual = dlg
     dlg.finished.connect(mw.panel_upload.on_upload_manual_ready)
     # Fill data for testing
     dlg._autofill_for_testing()

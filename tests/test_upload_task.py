@@ -171,7 +171,7 @@ def test_no_ids():
                                         resource_names=[dpath.name],
                                         task_id=None)
     with pytest.raises(ValueError,
-                       match="must specify a dataset_id via dataset_kwargs"):
+                       match="or pass the dataset_id via the dataset_kwargs"):
         task.load_task(task_path, api=api)
 
 
