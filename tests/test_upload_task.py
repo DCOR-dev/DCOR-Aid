@@ -44,6 +44,32 @@ def test_custom_dataset_dict_2():
     assert ddict["authors"] == "Captain Hook!"
 
 
+def test_dataset_id_already_exists_active_fails():
+    api = common.get_api()
+    # create some metadata
+    dataset_dict = common.make_dataset_dict(hint="task_test")
+    # post dataset creation request
+    dataset_dict_with_id = create_dataset(dataset_dict=dataset_dict,
+                                          resources=[dpath],
+                                          api=api,
+                                          activate=True)
+    # create a new task with the same dataset ID but with different data
+    task_path = common.make_upload_task(
+        dataset_dict=dataset_dict_with_id,
+        resource_paths=[str(dpath), str(dpath)],
+        resource_names=["1.rtdc", "2.rtdc"])
+    uj = task.load_task(task_path, api=api)
+    assert len(uj.paths) == 2
+    assert len(uj.resource_names) == 2
+    assert uj.dataset_id == dataset_dict_with_id["id"]
+    # attempt to upload the task
+    uj.task_compress_resources()
+    assert uj.state == "parcel"
+    uj.task_upload_resources()
+    assert uj.state == "error"
+    assert "Access denied" in str(uj.traceback)
+
+
 def test_load_basic():
     api = common.get_api()
     task_path = common.make_upload_task(task_id="zpowiemsnh",
