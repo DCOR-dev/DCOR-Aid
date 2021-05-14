@@ -16,13 +16,39 @@ class PersistentUploadJobList:
         self.path_completed.mkdir(parents=True, exist_ok=True)
         self.path_queued.mkdir(parents=True, exist_ok=True)
 
+    def __contains__(self, item):
+        if isinstance(item, UploadJob):
+            dataset_id = item.dataset_id
+        else:
+            dataset_id = item
+        return self.job_exists(dataset_id)
+
     def get_queued_dataset_ids(self):
         return [pp.stem for pp in self.path_queued.glob("*.json")]
+
+    def is_job_done(self, dataset_id):
+        jp = self.path_completed / (dataset_id + ".json")
+        return jp.exists()
+
+    def is_job_queued(self, dataset_id):
+        jp = self.path_queued / (dataset_id + ".json")
+        return jp.exists()
 
     def immortalize_job(self, upload_job):
         """Put this job in the persistent queue list"""
         pout = self.path_queued / (upload_job.dataset_id + ".json")
+        if self.is_job_queued(upload_job.dataset_id):
+            raise FileExistsError(f"The job '{upload_job.dataset_id}' is "
+                                  f"already present at '{pout}'!")
+        elif self.is_job_done(upload_job.dataset_id):
+            # This is safe in async mode, because checking for "done"
+            # is done after checking for queued (above case).
+            raise FileExistsError(f"The job '{upload_job.dataset_id}' is "
+                                  f"already done!")
         save_task(upload_job=upload_job, path=pout)
+
+    def job_exists(self, dataset_id):
+        return self.is_job_queued(dataset_id) or self.is_job_done(dataset_id)
 
     def obliterate_job(self, dataset_id):
         """Remove a job from the persistent queue list"""
@@ -72,6 +98,9 @@ class UploadQueue:
         self.daemon_upload = UploadDaemon(self.jobs)
         self.daemon_verify = VerifyDaemon(self.jobs)
 
+    def __contains__(self, upload_job):
+        return upload_job in self.jobs
+
     def __getitem__(self, index):
         return self.jobs[index]
 
@@ -88,8 +117,11 @@ class UploadQueue:
             self.daemon_upload = UploadDaemon(self.jobs)
 
     def add_job(self, upload_job):
-        """Add an UploadJob to the job list"""
+        """Add an UploadJob to the queue"""
         if self.jobs_eternal is not None:
+            if upload_job in self.jobs_eternal:
+                # Do nothing more!
+                return
             # also add to eternal jobs for persistence
             self.jobs_eternal.immortalize_job(upload_job)
         self.jobs.append(upload_job)
@@ -108,7 +140,24 @@ class UploadQueue:
 
     def new_job(self, dataset_id, paths, resource_names=None,
                 supplements=None):
-        """Create an UploadJob and add it to the job list"""
+        """Create an UploadJob and add it to the upload queue
+
+        Parameters
+        ----------
+        dataset_id: str
+            The CKAN/DCOR dataset ID
+        paths: list of str or list of pathlib.Path
+            Paths to the resource to upload
+        resource_names: list of str
+            The names under which the resources are stored
+        supplements: list of dict
+            Resource schema supplements
+
+        Returns
+        -------
+        upload_job: dcoraid.upload.job.UploadJob
+            The upload job that was appended to the upload queue
+        """
         upload_job = UploadJob(
             api=self.api,
             dataset_id=dataset_id,
@@ -117,6 +166,7 @@ class UploadQueue:
             resource_supplements=supplements,
             )
         self.add_job(upload_job)
+        return upload_job
 
     def remove_job(self, dataset_id):
         """Remove an UploadJob from the queue and perform cleanup
@@ -130,7 +180,8 @@ class UploadQueue:
                 self.jobs.pop(ii)
                 job.cleanup()
         # also remove from eternal jobs
-        if self.jobs_eternal is not None:
+        if (self.jobs_eternal is not None
+                and self.jobs_eternal.is_job_queued(dataset_id)):
             self.jobs_eternal.obliterate_job(dataset_id)
 
 
