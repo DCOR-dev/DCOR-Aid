@@ -157,6 +157,21 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None):
             raise FileNotFoundError(
                 f"Resource path '{pi}' not found for task '{path}'!")
 
+    num_res = len(uj_state["resource_paths"])
+    if (uj_state["resource_names"]
+            and len(uj_state["resource_names"]) != num_res):
+        raise ValueError("Number of resource paths does not match number "
+                         f"of resource names in '{path}'!")
+    if uj_state["resource_supplements"]:
+        if len(uj_state["resource_supplements"]) != num_res:
+            raise ValueError("Number of resource paths does not match number "
+                             f"of resource supplements in '{path}'!")
+        for ii, pp in enumerate(uj_state["resource_paths"]):
+            if (not str(pp).endswith(".rtdc")
+                    and uj_state["resource_supplements"][ii]):
+                raise ValueError("Resource supplements must be empty for "
+                                 f"non-RT-DC datasets in '{path}'!")
+
     # determine the dataset id...
     # ...from the upload job state
     id_u = uj_state.get("dataset_id")

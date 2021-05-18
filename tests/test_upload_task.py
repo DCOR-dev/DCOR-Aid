@@ -216,6 +216,19 @@ def test_persistent_dict_override_forbidden():
     assert pd2["peter"] == "pan"
 
 
+def test_resource_name_lengths():
+    """Make sure ValueError is raised when list lengths do not match"""
+    task_path = common.make_upload_task(
+        resource_paths=[__file__, dpath],
+        resource_names=["other_data.rtdc"],
+        resource_supplements=[{},
+                              {"chip": {"name": "7x2",
+                                        "master name": "R1"}}])
+    with pytest.raises(ValueError,
+                       match="does not match number of resource names"):
+        task.load_task(task_path, api=common.get_api())
+
+
 def test_resource_path_is_relative():
     task_path = common.make_upload_task(resource_paths=["guess_my_name.rtdc"])
     new_data_path = pathlib.Path(task_path).parent / "guess_my_name.rtdc"
@@ -228,6 +241,52 @@ def test_resource_path_not_found():
     task_path = common.make_upload_task(resource_paths=["/home/unknown.rtdc"])
     with pytest.raises(FileNotFoundError,
                        match="not found for task"):
+        task.load_task(task_path, api=common.get_api())
+
+
+def test_resource_supplements():
+    task_path = common.make_upload_task(
+        resource_paths=[dpath],
+        resource_supplements=[{"chip": {"name": "7x2",
+                                        "master name": "R1"}}])
+    uj = task.load_task(task_path, api=common.get_api())
+    assert uj.supplements[0]["chip"]["name"] == "7x2"
+    assert uj.supplements[0]["chip"]["master name"] == "R1"
+
+
+def test_resource_supplements_must_be_empty_for_non_rtdc():
+    task_path = common.make_upload_task(
+        resource_paths=[__file__, dpath],
+        resource_names=["test.py", "other_data.rtdc"],
+        resource_supplements=[{"chip": {"name": "7x2",
+                                        "master name": "R1"}},
+                              {"chip": {"name": "7x2",
+                                        "master name": "R1"}}
+                              ])
+    with pytest.raises(ValueError, match="supplements must be empty"):
+        task.load_task(task_path, api=common.get_api())
+
+
+def test_resource_supplements_with_other_files():
+    task_path = common.make_upload_task(
+        resource_paths=[__file__, dpath],
+        resource_names=["test.py", "other_data.rtdc"],
+        resource_supplements=[{},
+                              {"chip": {"name": "7x2",
+                                        "master name": "R1"}}])
+    uj = task.load_task(task_path, api=common.get_api())
+    assert len(uj.supplements[0]) == 0
+
+
+def test_resource_supplements_lengths():
+    """Make sure ValueError is raised when list lengths do not match"""
+    task_path = common.make_upload_task(
+        resource_paths=[__file__, dpath],
+        resource_names=["test.py", "other_data.rtdc"],
+        resource_supplements=[{"chip": {"name": "7x2",
+                                        "master name": "R1"}}])
+    with pytest.raises(ValueError,
+                       match="does not match number of resource supplements"):
         task.load_task(task_path, api=common.get_api())
 
 
