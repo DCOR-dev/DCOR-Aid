@@ -128,12 +128,12 @@ class DCORAid(QtWidgets.QMainWindow):
         self.status_widget.clicked.connect(self.dlg_pref.on_show_server)
         self.refresh_login_status()
         # Call refresh_login status regularly
-        if self.settings.value("debug/without timers", True):
+        if self.settings.value("debug/without timers", False):
+            self.timer = None
+        else:
             self.timer = QtCore.QTimer()
             self.timer.timeout.connect(self.refresh_login_status)
             self.timer.start(300000)
-        else:
-            self.timer = None
         # Update private data tab
         self.refresh_private_data()
         # If a new dataset has been uploaded, refresh private data
