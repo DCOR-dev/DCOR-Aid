@@ -97,7 +97,7 @@ def test_load_with_existing_dataset():
     # skipping the upload should work, since it's already uploaded
     uj.set_state("online")
     uj.task_verify_resources()
-    for ii in range(30):
+    for ii in range(600):
         uj.task_verify_resources()
         if uj.state != "done":
             time.sleep(.1)
@@ -105,7 +105,7 @@ def test_load_with_existing_dataset():
         else:
             break
     else:
-        raise AssertionError("State not 'done' - No verification within 3s!")
+        raise AssertionError("State not 'done' - No verification within 60s!")
 
 
 def test_load_with_existing_dataset_map_from_task():
