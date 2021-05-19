@@ -128,7 +128,7 @@ class DCORAid(QtWidgets.QMainWindow):
         self.status_widget.clicked.connect(self.dlg_pref.on_show_server)
         self.refresh_login_status()
         # Call refresh_login status regularly
-        if self.settings.value("debug/without timers", False):
+        if bool(int(self.settings.value("debug/without timers", "0"))):
             self.timer = None
         else:
             self.timer = QtCore.QTimer()

@@ -74,7 +74,7 @@ class PersistentTaskDatasetIDDict:
         return self._dict.get(task_id, default)
 
 
-def save_task(upload_job, path):
+def save_task(upload_job, path, dataset_dict=None):
     """Save an upload job to a JSON file
 
     Parameters
@@ -83,9 +83,15 @@ def save_task(upload_job, path):
         Upload job from which to create a snapshot
     path: str or pathlib.Path
         Output path
+    dataset_dict: dict
+        An optional dataset dictionary. This dictionary is
+        purely informative; it only contains redundant
+        information (which is stored on the DCOR server).
     """
     path = pathlib.Path(path)
     uj_state = {"upload_job": upload_job.__getstate__()}
+    if dataset_dict:
+        uj_state["dataset_dict"] = dataset_dict
     with path.open("w") as fd:
         json.dump(uj_state, fd,
                   ensure_ascii=False,
@@ -94,7 +100,8 @@ def save_task(upload_job, path):
                   )
 
 
-def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None):
+def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
+              update_dataset_id=False):
     """Open a task file and load it into an UploadJob
 
     Parameters
@@ -119,6 +126,9 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None):
         you want to avoid uploading duplicate datasets. If task_id
         is given in the task file, then map_task_to_dataset_id will
         be updated with the dataset_id.
+    update_dataset_id: bool
+        If True, update the task file with the dataset identifier
+        assigned to by the CKAN/DCOR server.
 
     Returns
     -------
@@ -217,6 +227,7 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None):
 
     # Finally, set the dataset ID
     uj_state["dataset_id"] = dataset_id
+    dataset_dict["id"] = dataset_id
 
     # Proceed with instantiation of UploadJob
     uj = UploadJob.from_upload_job_state(uj_state, api=api)
@@ -227,6 +238,12 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None):
         # because that just might fail if the specified dataset_id is invalid
         # (and we don't want invalid IDs in our dictionary).
         map_task_to_dataset_id[task_id] = dataset_id
+
+    if update_dataset_id:
+        # If everything went well so far, then we can safely update the
+        # original json file with the new dictionary that contains
+        # the dataset id.
+        save_task(uj, path, dataset_dict=dataset_dict)
 
     return uj
 

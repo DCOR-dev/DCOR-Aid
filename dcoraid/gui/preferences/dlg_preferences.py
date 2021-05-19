@@ -28,6 +28,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         self.show_server.connect(self.on_show_server)
         self.show_user.connect(self.on_show_user)
         self.tabWidget.currentChanged.connect(self.on_tab_changed)
+        self.toolButton_uploads_apply.clicked.connect(self.on_uploads_apply)
         self.toolButton_user_update.clicked.connect(self.on_update_user)
         self.toolButton_server_update.clicked.connect(self.on_update_server)
         self.toolButton_api_token_renew.clicked.connect(
@@ -37,6 +38,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         self.toolButton_eye.clicked.connect(self.on_toggle_api_password_view)
 
         self.settings = QtCore.QSettings()
+        self.on_uploads_init()
         # hidden initially
         self.hide()
 
@@ -129,6 +131,18 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             QtWidgets.QApplication.quit()
 
     @QtCore.pyqtSlot()
+    def on_uploads_apply(self):
+        utwdid = int(self.checkBox_upload_write_task_id.isChecked())
+        self.settings.setValue("uploads/update task with dataset id", utwdid)
+
+    def on_uploads_init(self):
+        utwdid = int(self.settings.value("uploads/update task with dataset id",
+                                         "1"))
+        self.checkBox_upload_write_task_id.blockSignals(True)
+        self.checkBox_upload_write_task_id.setChecked(bool(utwdid))
+        self.checkBox_upload_write_task_id.blockSignals(False)
+
+    @QtCore.pyqtSlot()
     def on_show_server(self):
         self.comboBox_server.clear()
         for server in self.settings.value("server list",
@@ -167,9 +181,10 @@ class PreferencesDialog(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def on_tab_changed(self, index):
-        if index == 0:
+        widget = self.tabWidget.widget(index)
+        if widget is self.tab_server:
             self.on_show_server()
-        elif index == 1:
+        elif widget is self.tab_user:
             self.on_show_user()
 
     @QtCore.pyqtSlot()

@@ -1,3 +1,4 @@
+import json
 import pathlib
 import shutil
 import tempfile
@@ -175,6 +176,20 @@ def test_load_with_existing_dataset_map_from_task_control():
         api=api,
         map_task_to_dataset_id={"deathstar": dataset_dict_with_id["id"]})
     assert uj.dataset_id != dataset_dict_with_id["id"]
+
+
+def test_load_with_update():
+    api = common.get_api()
+    task_path = common.make_upload_task(task_id="blackfalcon",
+                                        resource_names=["marvel.rtdc"])
+    assert task.task_has_circle(task_path)
+    uj = task.load_task(task_path, api=api, update_dataset_id=True)
+    assert uj.task_id == "blackfalcon"
+    assert uj.resource_names == ["marvel.rtdc"]
+    # Load task and check dataset_id
+    with open(task_path) as fd:
+        task_dict = json.load(fd)
+        assert task_dict["dataset_dict"]["id"] == uj.dataset_id
 
 
 def test_missing_owner_org():

@@ -31,7 +31,7 @@ def pytest_configure(config):
     settings.value("user scenario", "dcor-dev")
     settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
     settings.setValue("auth/api key", common.get_api_key())
-    settings.setValue("debug/without timers", True)
+    settings.setValue("debug/without timers", 1)
     settings.sync()
     # remove persistent upload jobs
     shelf_path = os_path.join(
@@ -57,7 +57,6 @@ def pytest_unconfigure(config):
     """
     settings = QtCore.QSettings()
     settings.setIniCodec("utf-8")
-    settings.setValue("debug/without timers", False)
     settings.remove("debug/without timers")
     settings.sync()
     # clear global temp directory

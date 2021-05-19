@@ -1,4 +1,6 @@
 0.5.2
+ - enh: write the obtained dataset identifier to task files that
+   were successfully imported
  - enh: allow the user to select a circle when uploading tasks that
    don't have any circle defined
  - fix: interface was not updated (e.g. list of uploads), because

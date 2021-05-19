@@ -136,11 +136,15 @@ class UploadWidget(QtWidgets.QWidget):
                         break
                     else:
                         dataset_kwargs["owner_org"] = cdict["name"]
+                settings = QtCore.QSettings()
+                update_dataset_id = bool(int(settings.value(
+                    "uploads/update task with dataset id", "1")))
                 upload_job = task.load_task(
                     path=pp,
                     map_task_to_dataset_id=map_task_to_dataset_id,
                     api=api,
-                    dataset_kwargs=dataset_kwargs)
+                    dataset_kwargs=dataset_kwargs,
+                    update_dataset_id=update_dataset_id)
                 self.jobs.add_job(upload_job)
 
 
@@ -152,7 +156,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         self.jobs = []  # Will become UploadQueue with self.set_job_list
 
         settings = QtCore.QSettings()
-        if settings.value("debug/without timers", False):
+        if bool(int(settings.value("debug/without timers", "0"))):
             self.timer = None
         else:
             self.timer = QtCore.QTimer()
