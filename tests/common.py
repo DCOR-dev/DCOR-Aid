@@ -57,7 +57,7 @@ def make_upload_task(task_id="123456789",
     if dataset_dict and not isinstance(dataset_dict, dict):
         dataset_dict = make_dataset_dict(hint="task_test")
     if dataset_dict and dataset_id is None:
-        dataset_id = dataset_dict.get("dataset_id")
+        dataset_id = dataset_dict.get("id")
     uj_state = {
         "dataset_id": dataset_id,
         "task_id": task_id,

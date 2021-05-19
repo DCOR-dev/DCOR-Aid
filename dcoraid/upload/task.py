@@ -218,12 +218,16 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None):
     # Finally, set the dataset ID
     uj_state["dataset_id"] = dataset_id
 
-    if task_id is not None:
-        # also update the ID dictionary
-        map_task_to_dataset_id[task_id] = dataset_id
-
     # Proceed with instantiation of UploadJob
     uj = UploadJob.from_upload_job_state(uj_state, api=api)
+
+    if task_id is not None:
+        # Also update the ID dictionary
+        # This part here should come after instantiation of UploadJob,
+        # because that just might fail if the specified dataset_id is invalid
+        # (and we don't want invalid IDs in our dictionary).
+        map_task_to_dataset_id[task_id] = dataset_id
+
     return uj
 
 

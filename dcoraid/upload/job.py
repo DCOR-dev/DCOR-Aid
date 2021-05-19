@@ -56,9 +56,12 @@ class UploadJob(object):
             Supplementary resource information
         task_id: str
             Unique task ID (used for identifying jobs uploaded already)
+
         """
-        self.dataset_id = dataset_id
         self.api = api.copy()  # create a copy of the API
+        self.dataset_id = dataset_id
+        # make sure the dataset_id is valid
+        self.api.get("package_show", id=self.dataset_id)
         self.paths = [pathlib.Path(pp).resolve() for pp in resource_paths]
         if resource_names is None:
             resource_names = [pp.name for pp in self.paths]

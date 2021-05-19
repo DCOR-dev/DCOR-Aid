@@ -2,6 +2,7 @@ import pathlib
 import shutil
 import tempfile
 import time
+import uuid
 
 import pytest
 
@@ -69,6 +70,18 @@ def test_dataset_id_already_exists_active_fails():
     uj.task_upload_resources()
     assert uj.state == "error"
     assert "Access denied" in str(uj.traceback)
+
+
+def test_dataset_id_does_not_exist():
+    api = common.get_api()
+    # create a fake ID
+    dataset_id = str(uuid.uuid4())
+    # create a new task with the fake dataset ID
+    task_path = common.make_upload_task(dataset_id=dataset_id)
+    # create the upload job
+    with pytest.raises(dcoraid.api.APINotFoundError,
+                       match=dataset_id):
+        task.load_task(task_path, api=api)
 
 
 def test_load_basic():
