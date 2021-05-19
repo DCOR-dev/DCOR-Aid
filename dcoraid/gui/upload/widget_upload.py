@@ -152,7 +152,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         self.jobs = []  # Will become UploadQueue with self.set_job_list
 
         settings = QtCore.QSettings()
-        if settings.value("debug/without timers", False):
+        if settings.value("debug/without timers", True):
             self.timer = QtCore.QTimer()
             self.timer.timeout.connect(self.update_job_status)
             self.timer.start(30)
