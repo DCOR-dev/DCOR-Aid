@@ -64,6 +64,30 @@ def test_upload_task(qtbot, monkeypatch):
     mw.close()
 
 
+def test_upload_task_missing_circle(qtbot, monkeypatch):
+    """When the organization is missing, DCOR-Aid should ask for it"""
+    task_id = str(uuid.uuid4())
+    dataset_dict = common.make_dataset_dict(hint="task_upload_no_org_")
+    dataset_dict.pop("owner_org")
+    tpath = common.make_upload_task(task_id=task_id,
+                                    dataset_dict=dataset_dict)
+    mw = DCORAid()
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+    monkeypatch.setattr(QtWidgets.QFileDialog, "getOpenFileNames",
+                        lambda *args: ([tpath], None))
+    # We actually only need this monkeypatch if there is more than
+    # one circle for the present user.
+    monkeypatch.setattr(QtWidgets.QInputDialog, "getItem",
+                        # return the first item in the circle list
+                        lambda *args: (args[3][0], True))
+    act = QtWidgets.QAction("some unimportant text")
+    act.setData("single")
+    mw.panel_upload.on_upload_task(action=act)
+    uj = mw.panel_upload.jobs[-1]
+    assert uj.task_id == task_id
+    mw.close()
+
+
 def test_upload_private(qtbot, monkeypatch):
     """Upload a private test dataset"""
     mw = DCORAid()

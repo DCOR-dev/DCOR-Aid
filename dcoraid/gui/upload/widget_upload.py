@@ -7,11 +7,12 @@ from PyQt5 import uic, QtCore, QtWidgets
 from PyQt5.QtCore import QStandardPaths
 
 from ...upload import UploadQueue
-from ...upload.task import PersistentTaskDatasetIDDict, load_task
+from ...upload import task
 
 from ..api import get_ckan_api
 from ..tools import ShowWaitCursor
 
+from . import circle_mgr
 from .dlg_upload import UploadDialog
 from .widget_tablecell_actions import TableCellActions
 
@@ -122,13 +123,24 @@ class UploadWidget(QtWidgets.QWidget):
             QStandardPaths.writableLocation(
                 QStandardPaths.AppLocalDataLocation),
             "map_task_to_dataset_id.txt")
-        map_task_to_dataset_id = PersistentTaskDatasetIDDict(path_id_dict)
+        map_task_to_dataset_id = task.PersistentTaskDatasetIDDict(path_id_dict)
+        dataset_kwargs = {}
         with ShowWaitCursor():
+            api = get_ckan_api()
             for pp in files:
-                upload_job = load_task(
+                if not task.task_has_circle(pp):
+                    # let the user choose a circle
+                    cdict = circle_mgr.request_circle(self)
+                    if cdict is None:
+                        # The user aborted, so we won't continue!
+                        break
+                    else:
+                        dataset_kwargs["owner_org"] = cdict["name"]
+                upload_job = task.load_task(
                     path=pp,
                     map_task_to_dataset_id=map_task_to_dataset_id,
-                    api=get_ckan_api())
+                    api=api,
+                    dataset_kwargs=dataset_kwargs)
                 self.jobs.add_job(upload_job)
 
 

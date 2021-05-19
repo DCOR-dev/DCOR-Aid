@@ -5,6 +5,7 @@ import time
 
 import pytest
 
+import dcoraid
 from dcoraid.upload.dataset import create_dataset
 from dcoraid.upload import job, task
 
@@ -74,6 +75,7 @@ def test_load_basic():
     api = common.get_api()
     task_path = common.make_upload_task(task_id="zpowiemsnh",
                                         resource_names=["humdinger.rtdc"])
+    assert task.task_has_circle(task_path)
     uj = task.load_task(task_path, api=api)
     assert uj.task_id == "zpowiemsnh"
     assert uj.resource_names == ["humdinger.rtdc"]
@@ -160,6 +162,18 @@ def test_load_with_existing_dataset_map_from_task_control():
         api=api,
         map_task_to_dataset_id={"deathstar": dataset_dict_with_id["id"]})
     assert uj.dataset_id != dataset_dict_with_id["id"]
+
+
+def test_missing_owner_org():
+    api = common.get_api()
+    # create some metadata
+    dataset_dict = common.make_dataset_dict(hint="task_test")
+    dataset_dict.pop("owner_org")
+    task_path = common.make_upload_task(dataset_dict=dataset_dict)
+    assert not task.task_has_circle(task_path)
+    with pytest.raises(dcoraid.api.APIConflictError,
+                       match="A circle must be provided"):
+        task.load_task(task_path, api=api)
 
 
 def test_no_ids():

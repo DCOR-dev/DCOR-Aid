@@ -1,3 +1,6 @@
+0.5.2
+ - enh: allow the user to select a circle when uploading tasks that
+   don't have any circle defined
 0.5.1
  - build: fix Windows build pipeline
 0.5.0

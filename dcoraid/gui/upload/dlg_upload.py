@@ -9,6 +9,7 @@ from ...upload import create_dataset
 
 from ..api import get_ckan_api
 
+from . import circle_mgr
 from .resources_model import ResourcesModel
 from .resource_schema_preset import PersistentResourceSchemaPresets
 
@@ -132,33 +133,14 @@ class UploadDialog(QtWidgets.QDialog):
         if path.exists():
             self.on_add_resources([str(path.resolve())])
 
-    @lru_cache(maxsize=1)
     def get_user_circle_dicts(self):
-        circles = self.api.get("organization_list_for_user",
-                               permission="create_dataset")
+        circles = circle_mgr.get_user_circle_dicts()
         if not circles:
-            # Ask the user whether he would like to create a circle.
-            ud = self.api.get_user_dict()
-            name = ud["fullname"] if ud["fullname"] else ud["name"]
-            text, okPressed = QtWidgets.QInputDialog.getText(
-                self,
-                "Circle required",
-                "You do not have access to any existing Circles. To upload\n"
-                + "datasets, you need to be either Editor or Admin in\n"
-                + "a Circle. You may create a Circle now or cancel and ask\n"
-                + "a colleague to add you to a Circle (Your user name is "
-                + "'{}').".format(ud["name"])
-                + "\n\nTo proceed with Circle creation, please choose a name:",
-                QtWidgets.QLineEdit.Normal,
-                "{}'s Circle".format(name))
-            if okPressed and text != '':
-                cname = "user-circle-{}".format(ud["name"])
-                cdict = self.api.post("organization_create",
-                                      data={"name": cname,
-                                            "title": text.strip(),
-                                            })
+            cdict = circle_mgr.ask_for_new_circle()
+            if cdict:
                 circles.append(cdict)
             else:
+                # abort here
                 self.deleteLater()
                 self.close()
         return circles

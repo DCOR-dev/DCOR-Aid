@@ -57,6 +57,7 @@ def pytest_unconfigure(config):
     """
     settings = QtCore.QSettings()
     settings.setIniCodec("utf-8")
+    settings.setValue("debug/without timers", False)
     settings.remove("debug/without timers")
     settings.sync()
     # clear global temp directory

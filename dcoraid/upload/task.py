@@ -225,3 +225,13 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None):
     # Proceed with instantiation of UploadJob
     uj = UploadJob.from_upload_job_state(uj_state, api=api)
     return uj
+
+
+def task_has_circle(path):
+    """Check whether a circle (owner_org) is specified in a task file"""
+    path = pathlib.Path(path)
+    with path.open() as fd:
+        task_dict = json.load(fd)
+    has_org = ("owner_org" in task_dict.get("dataset_dict", {})
+               and task_dict["dataset_dict"]["owner_org"])
+    return has_org
