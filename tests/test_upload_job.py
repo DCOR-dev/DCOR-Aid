@@ -1,5 +1,6 @@
 import pathlib
 import time
+from unittest import mock
 
 from dcoraid.upload.dataset import create_dataset
 from dcoraid.upload import job
@@ -7,7 +8,10 @@ from dcoraid.upload import job
 import common
 
 
-dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
+data_path = pathlib.Path(__file__).parent / "data"
+rtdc_paths = [data_path / "calibration_beads_47.rtdc",
+              data_path / "calibration_beads_47_nocomp.rtdc",
+              ]
 
 
 def test_initialize():
@@ -17,7 +21,7 @@ def test_initialize():
     # create dataset (to get the "id")
     dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
     uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
-                       resource_paths=[dpath])
+                       resource_paths=rtdc_paths)
     assert uj.state == "init"
 
 
@@ -28,7 +32,7 @@ def test_full_upload():
     # create dataset (to get the "id")
     dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
     uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
-                       resource_paths=[dpath])
+                       resource_paths=rtdc_paths)
     assert uj.state == "init"
     uj.task_compress_resources()
     assert uj.state == "parcel"
@@ -52,19 +56,46 @@ def test_saveload():
     # create dataset (to get the "id")
     dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
     uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
-                       resource_paths=[dpath], task_id="hanspeter")
+                       resource_paths=rtdc_paths, task_id="hanspeter")
     state = uj.__getstate__()
     assert state["dataset_id"] == dataset_dict["id"]
-    assert dpath.samefile(state["resource_paths"][0])
-    assert dpath.name == state["resource_names"][0]
+    assert rtdc_paths[0].samefile(state["resource_paths"][0])
+    assert rtdc_paths[0].name == state["resource_names"][0]
 
     # now create a new job from the state
     uj2 = job.UploadJob.from_upload_job_state(state, api=api)
     state2 = uj2.__getstate__()
     assert state2["dataset_id"] == dataset_dict["id"]
-    assert dpath.samefile(state2["resource_paths"][0])
-    assert dpath.name == state2["resource_names"][0]
+    assert rtdc_paths[0].samefile(state2["resource_paths"][0])
+    assert rtdc_paths[0].name == state2["resource_names"][0]
     assert state2["task_id"] == "hanspeter"
+
+
+@mock.patch.object(job.shutil, "disk_usage")
+def test_state_compress_disk_wait(disk_usage_mock):
+    """If not space left on disk, upload job goes to state "disk-wait"""""
+    api = common.get_api()
+    # create some metadata
+    bare_dict = common.make_dataset_dict(hint="create-with-resource")
+    # create dataset (to get the "id")
+    dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
+    uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
+                       resource_paths=[rtdc_paths[1]])
+    assert uj.state == "init"
+
+    class DiskUsageReturn1:
+        free = 0
+
+    class DiskUsageReturn2:
+        free = 1024**3
+
+    disk_usage_mock.side_effect = [DiskUsageReturn1, DiskUsageReturn2]
+
+    t0 = time.perf_counter()
+    uj.task_compress_resources()
+    t1 = time.perf_counter()
+    assert t1-t0 > 0.15, "function waits 0.2s in-between checks"
+    disk_usage_mock.assert_called()
 
 
 if __name__ == "__main__":

@@ -16,6 +16,7 @@ from . import dataset
 #: Valid job states (in more or less chronological order)
 JOB_STATES = [
     "init",  # initial
+    "wait-disk",  # waiting for free disk space to compress
     "compress",  # compression (only for DC data)
     "parcel",  # ready for upload
     "transfer",  # upload in progress
@@ -282,6 +283,13 @@ class UploadJob(object):
                     res_dir = self.cache_dir / "{}".format(ii)
                     res_dir.mkdir(exist_ok=True, parents=True)
                     path_out = res_dir / path.name
+                    size_in = path.stat().st_size
+                    while shutil.disk_usage(path).free < size_in:
+                        # As long as there is less space free than the
+                        # input file size, we stall here.
+                        self.set_state("wait-disk")
+                        time.sleep(0.2)
+                    self.set_state("compress")
                     compress(path_out=path_out, path_in=path)
                     self.paths[ii] = path_out
         self.set_state("parcel")
