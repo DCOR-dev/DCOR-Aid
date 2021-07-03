@@ -6,9 +6,9 @@ import time
 import traceback as tb
 import warnings
 
-import appdirs
 from dclab.rtdc_dataset.check import IntegrityChecker
 from dclab.cli import compress
+from PyQt5 import QtCore
 
 from . import dataset
 
@@ -86,7 +86,9 @@ class UploadJob(object):
         self._last_bytes = 0
         self._last_rate = 0
         # caching
-        dcoraid_cache = pathlib.Path(appdirs.user_cache_dir()) / "dcoraid"
+        dcoraid_cache = pathlib.Path(
+            QtCore.QStandardPaths.writableLocation(
+                QtCore.QStandardPaths.CacheLocation))
         self.cache_dir = dcoraid_cache / "compress-{}".format(self.dataset_id)
 
     def __getstate__(self):

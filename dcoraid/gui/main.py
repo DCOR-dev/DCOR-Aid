@@ -1,10 +1,12 @@
 import os
 import pathlib
 import pkg_resources
+import shutil
 import signal
 import sys
 import traceback as tb
 
+import appdirs
 import dclab
 import requests
 import requests_toolbelt
@@ -99,6 +101,27 @@ class DCORAid(QtWidgets.QMainWindow):
         QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
         QtCore.QCoreApplication.setApplicationName("dcoraid")
         QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+
+        # TODO: Remove this block in a future release
+        # BEGIN REMOVE
+        # Migrate all previous compressed datasets that are located in the old
+        # cache directory to the new directory
+        old_cache = pathlib.Path(appdirs.user_cache_dir()) / "dcoraid"
+        new_cache = pathlib.Path(QtCore.QStandardPaths.writableLocation(
+            QtCore.QStandardPaths.CacheLocation))
+        if old_cache.exists():
+            new_cache.mkdir(parents=True, exist_ok=True)
+            for source in old_cache.glob("compress-*"):
+                if source.is_dir():
+                    target = new_cache / source.name
+                    if target.exists():
+                        # remove old directory if new is already in use
+                        shutil.rmtree(source, ignore_errors=True)
+                    else:
+                        shutil.copytree(source, target)
+            shutil.rmtree(old_cache, ignore_errors=True)
+        # END REMOVE
+
         #: DCOR-Aid settings
         self.settings = QtCore.QSettings()
         super(DCORAid, self).__init__(*args, **kwargs)
