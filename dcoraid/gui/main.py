@@ -245,13 +245,9 @@ class DCORAid(QtWidgets.QMainWindow):
         # TODO:
         # - what happens if the user changes the server? Ask to restart?
         api = get_ckan_api()
-        try:
-            am = APIModel(api=api)
-            if am.api.is_available():
-                db_extract = am.get_user_datasets()
-        except BaseException:
-            pass
-        else:
+        am = APIModel(api=api)
+        if api.is_available():
+            db_extract = am.get_user_datasets()
             self.user_filter_chain.set_db_extract(db_extract)
         self.tab_user.setCursor(QtCore.Qt.ArrowCursor)
 
