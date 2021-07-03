@@ -5,7 +5,6 @@ import signal
 import sys
 import traceback as tb
 
-import appdirs
 import dclab
 import requests
 import requests_toolbelt
@@ -48,9 +47,12 @@ class StatusWidget(QtWidgets.QWidget):
         self.layout.addWidget(self.toolButton_user)
         self.toolButton_user.clicked.connect(self.clicked)
 
-    def get_favicon(self, server):
-        dldir = pathlib.Path(appdirs.user_cache_dir(appname="DCOR-Aid",
-                                                    appauthor="DCOR"))
+    @staticmethod
+    def get_favicon(server):
+        dldir = pathlib.Path(
+            QtCore.QStandardPaths.writableLocation(
+                QtCore.QStandardPaths.AppDataLocation)) / "favicons"
+
         dldir.mkdir(exist_ok=True, parents=True)
         favname = dldir / (server.split("://")[1] + "_favicon.ico")
         if not favname.exists():
@@ -180,8 +182,7 @@ class DCORAid(QtWidgets.QMainWindow):
                                     about_text)
 
     def on_action_software(self):
-        libs = [appdirs,
-                dclab,
+        libs = [dclab,
                 requests,
                 requests_toolbelt,
                 ]

@@ -55,7 +55,7 @@ class DBExtract():
         return self.datasets[self._dataset_name_index[dataset_name]]
 
 
-class DBModel():
+class DBModel:
     def __init__(self, interrogator, mode="public", *args, **kwargs):
         """User-convenient interface for DCOR/CKAN DBInterrogator
 
