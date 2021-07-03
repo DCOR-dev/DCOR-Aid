@@ -58,7 +58,8 @@ class APIInterrogator(DBInterrogator):
                              fq="creator_user_id:{}".format(user_data["id"]),
                              rows=numd+1)
         if data2["count"] != numd:
-            raise ValueError("Number of user datasets don't match!")
+            raise ValueError("Number of user datasets don't match "
+                             + f"(expected {numd}, got {data2['count']})!")
 
         return data2["results"]
 
