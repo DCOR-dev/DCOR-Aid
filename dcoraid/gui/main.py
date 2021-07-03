@@ -104,21 +104,13 @@ class DCORAid(QtWidgets.QMainWindow):
 
         # TODO: Remove this block in a future release
         # BEGIN REMOVE
-        # Migrate all previous compressed datasets that are located in the old
-        # cache directory to the new directory
+        # Clear the old cache. Unfortunately, it does not make sense to
+        # move the cache to a new location, because the old version
+        # of dclab did not use temporary files when compressing data.
+        # Hence, we cannot be sure that the compression task successfully
+        # finished.
         old_cache = pathlib.Path(appdirs.user_cache_dir()) / "dcoraid"
-        new_cache = pathlib.Path(QtCore.QStandardPaths.writableLocation(
-            QtCore.QStandardPaths.CacheLocation))
         if old_cache.exists():
-            new_cache.mkdir(parents=True, exist_ok=True)
-            for source in old_cache.glob("compress-*"):
-                if source.is_dir():
-                    target = new_cache / source.name
-                    if target.exists():
-                        # remove old directory if new is already in use
-                        shutil.rmtree(source, ignore_errors=True)
-                    else:
-                        shutil.copytree(source, target)
             shutil.rmtree(old_cache, ignore_errors=True)
         # END REMOVE
 

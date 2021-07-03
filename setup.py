@@ -25,7 +25,7 @@ setup(
     description=description,
     long_description=open('README.rst').read() if exists('README.rst') else '',
     install_requires=["appdirs",  # cache directory for data compression
-                      "dclab[dcor]==0.33.3",  # pin for triage
+                      "dclab[dcor]==0.34.4",  # pin for triage
                       "pyqt5",
                       "requests>=2.13",
                       "requests_toolbelt",  # multipart uploads with progress

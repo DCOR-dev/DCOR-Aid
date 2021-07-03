@@ -285,14 +285,23 @@ class UploadJob(object):
                     res_dir = self.cache_dir / "{}".format(ii)
                     res_dir.mkdir(exist_ok=True, parents=True)
                     path_out = res_dir / path.name
-                    size_in = path.stat().st_size
-                    while shutil.disk_usage(path).free < size_in:
-                        # As long as there is less space free than the
-                        # input file size, we stall here.
-                        self.set_state("wait-disk")
-                        time.sleep(0.2)
-                    self.set_state("compress")
-                    compress(path_out=path_out, path_in=path)
+                    # Check if the output path already exists:
+                    # We can trust dclab version 0.34.4 that the
+                    # compression was successful, because it uses
+                    # temporary file paths and only renames the
+                    # temporary files to the output files when
+                    # the conversion was successful.
+                    if not path_out.exists():
+                        # perform compression
+                        size_in = path.stat().st_size
+                        while shutil.disk_usage(path).free < size_in:
+                            # As long as there is less space free than the
+                            # input file size, we stall here.
+                            self.set_state("wait-disk")
+                            time.sleep(0.2)
+                        self.set_state("compress")
+                        compress(path_out=path_out, path_in=path)
+                    # replace current path_out with compressed path
                     self.paths[ii] = path_out
         self.set_state("parcel")
 

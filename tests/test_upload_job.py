@@ -2,6 +2,8 @@ import pathlib
 import time
 from unittest import mock
 
+import pytest
+import dclab.cli
 from dcoraid.upload.dataset import create_dataset
 from dcoraid.upload import job
 
@@ -96,6 +98,29 @@ def test_state_compress_disk_wait(disk_usage_mock):
     t1 = time.perf_counter()
     assert t1-t0 > 0.15, "function waits 0.2s in-between checks"
     disk_usage_mock.assert_called()
+
+
+def test_state_compress_reuse():
+    """Reuse previously compressed datasets"""""
+    api = common.get_api()
+    # create some metadata
+    bare_dict = common.make_dataset_dict(hint="create-with-resource")
+    # create dataset (to get the "id")
+    dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
+    uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
+                       resource_paths=[rtdc_paths[1]])
+    assert uj.state == "init"
+
+    with mock.patch.object(job, "compress",
+                           side_effect=dclab.cli.compress) as mockobj:
+        uj.task_compress_resources()
+        mockobj.assert_called_once()
+
+    with mock.patch.object(job, "compress",
+                           side_effect=dclab.cli.compress) as mockobj:
+        uj.task_compress_resources()
+        with pytest.raises(AssertionError):
+            mockobj.assert_called()
 
 
 if __name__ == "__main__":

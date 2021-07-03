@@ -1,5 +1,6 @@
 0.5.3
- - fix: check disk usage before compressing data for upload
+ - enh: re-use compressed resources from now on
+ - enh: check disk usage before compressing data for upload
  - ref: migrate favicon location to AppDataLocation
  - ref: migrate upload compress cache to CacheLocation
    (automatically move cached data from old appdirs location)
