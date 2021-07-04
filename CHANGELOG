@@ -7,6 +7,7 @@
  - ref: migrate favicon location to AppDataLocation
  - ref: migrate upload compress cache to CacheLocation
    (automatically move cached data from old appdirs location)
+ - build: base Windows release on Python 3.8
 0.5.2
  - enh: write the obtained dataset identifier to task files that
    were successfully imported

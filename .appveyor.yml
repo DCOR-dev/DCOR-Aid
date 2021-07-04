@@ -9,7 +9,7 @@ notifications:
 
 environment:
   matrix:
-    - PYTHON: "C:\\Python36-x64"
+    - PYTHON: "C:\\Python38-x64"
   DCOR_API_KEY:
     secure: fZWCZrKoGp2a/bNqd+quJRsVcRI5Jx774LLx3BX3jDuFAqHEAkGR3M/Wq7IwxXua
 
@@ -25,7 +25,7 @@ install:
   - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%
   # Check that we have the expected version and architecture for Python
   - python --version
-  # Install dckit and its dependencies
+  # Install dcoraid and its dependencies
   - appveyor-retry python -m pip install --upgrade pip wheel
   # install build requirements (pinned versions of some packages)
   - python -m pip install -r build-recipes\\win_build_requirements.txt
