@@ -30,7 +30,7 @@ setup(
                       "requests>=2.13",
                       "requests_toolbelt",  # multipart uploads with progress
                       ],
-    python_requires='>=3.6, <4',
+    python_requires='>=3.8, <4',
     entry_points={"gui_scripts": ['dcoraid = dcoraid.__main__:main']},
     keywords=["RT-DC", "deformability", "cytometry", "zellmechanik"],
     classifiers=['Operating System :: OS Independent',
