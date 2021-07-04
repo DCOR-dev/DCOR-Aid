@@ -101,7 +101,7 @@ def save_task(upload_job, path, dataset_dict=None):
 
 
 def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
-              update_dataset_id=False):
+              update_dataset_id=False, cache_dir=None):
     """Open a task file and load it into an UploadJob
 
     Parameters
@@ -129,6 +129,9 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
     update_dataset_id: bool
         If True, update the task file with the dataset identifier
         assigned to by the CKAN/DCOR server.
+    cache_dir: str or pathlib.Path
+        Cache directory for storing compressed .rtdc files;
+        if not supplied, a temporary directory is created
 
     Returns
     -------
@@ -230,7 +233,8 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
     dataset_dict["id"] = dataset_id
 
     # Proceed with instantiation of UploadJob
-    uj = UploadJob.from_upload_job_state(uj_state, api=api)
+    uj = UploadJob.from_upload_job_state(uj_state, api=api,
+                                         cache_dir=cache_dir)
 
     if task_id is not None:
         # Also update the ID dictionary

@@ -1,6 +1,9 @@
 0.5.3
  - enh: re-use compressed resources from now on
  - enh: check disk usage before compressing data for upload
+ - enh: allow to remove zombie cache folders via Maintenance tab
+ - ref: upload cache location is now handled with keyword arguments;
+   the default is a temporary directory; the GUI uses QStandardPaths
  - ref: migrate favicon location to AppDataLocation
  - ref: migrate upload compress cache to CacheLocation
    (automatically move cached data from old appdirs location)

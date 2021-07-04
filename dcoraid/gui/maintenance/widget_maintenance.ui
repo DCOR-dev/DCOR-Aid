@@ -25,10 +25,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QToolButton" name="toolButton">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
+    <widget class="QToolButton" name="toolButton_cache">
      <property name="toolTip">
       <string>Remove the local DCOR-Aid cache directory (this directory might contain compressed resource files from unexpectedly interrupted uploads)</string>
      </property>

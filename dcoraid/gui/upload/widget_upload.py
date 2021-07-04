@@ -49,8 +49,11 @@ class UploadWidget(QtWidgets.QWidget):
             QStandardPaths.writableLocation(
                 QStandardPaths.AppLocalDataLocation),
             "persistent_upload_jobs")
+        self.cache_dir = QtCore.QStandardPaths.writableLocation(
+            QtCore.QStandardPaths.CacheLocation)
         self.jobs = UploadQueue(api=get_ckan_api(),
-                                path_persistent_job_list=shelf_path)
+                                path_persistent_job_list=shelf_path,
+                                cache_dir=self.cache_dir)
         self.widget_jobs.set_job_list(self.jobs)
 
         # upload finished signal
@@ -144,7 +147,9 @@ class UploadWidget(QtWidgets.QWidget):
                     map_task_to_dataset_id=map_task_to_dataset_id,
                     api=api,
                     dataset_kwargs=dataset_kwargs,
-                    update_dataset_id=update_dataset_id)
+                    update_dataset_id=update_dataset_id,
+                    cache_dir=self.cache_dir,
+                )
                 self.jobs.add_job(upload_job)
 
 

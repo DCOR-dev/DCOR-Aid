@@ -61,16 +61,16 @@ class PersistentUploadJobList:
         pout = self.path_completed / (dataset_id + ".json")
         pin.rename(pout)
 
-    def summon_job(self, dataset_id, api):
+    def summon_job(self, dataset_id, api, cache_dir=None):
         """Instantiate job from the persistent queue list"""
         pin = self.path_queued / (dataset_id + ".json")
-        upload_job = load_task(path=pin, api=api)
+        upload_job = load_task(path=pin, api=api, cache_dir=cache_dir)
         assert upload_job.dataset_id == dataset_id
         return upload_job
 
 
 class UploadQueue:
-    def __init__(self, api, path_persistent_job_list=None):
+    def __init__(self, api, path_persistent_job_list=None, cache_dir=None):
         """Manager for running multiple UploadJobs in sequence
 
         Parameters
@@ -80,17 +80,24 @@ class UploadQueue:
         path_persistent_job_list: str or pathlib.Path
             Path to a directory for storing UploadJobs in a
             persistent manner across restarts.
+        cache_dir: str or pathlib.Path
+            Cache directory for storing compressed .rtdc files;
+            if not supplied, a temporary directory is created for
+            each UploadJob
         """
         self.api = api.copy()
         if not api.api_key:
             warnings.warn("No API key is set! Upload will not work!")
+        self.cache_dir = cache_dir
         self.jobs = []
         if path_persistent_job_list is not None:
             self.jobs_eternal = PersistentUploadJobList(
                 path_persistent_job_list)
             # add any previously queued jobs
             for dataset_id in self.jobs_eternal.get_queued_dataset_ids():
-                uj = self.jobs_eternal.summon_job(dataset_id, api=self.api)
+                uj = self.jobs_eternal.summon_job(dataset_id,
+                                                  api=self.api,
+                                                  cache_dir=self.cache_dir)
                 self.jobs.append(uj)
         else:
             self.jobs_eternal = None
@@ -106,6 +113,26 @@ class UploadQueue:
 
     def __len__(self):
         return len(self.jobs)
+
+    def find_zombie_caches(self):
+        """Return list of cache directories that don't belong to this Queue
+
+        Returns
+        -------
+        zombies: list of pathlib.Path
+            List of zombie cache directories
+        """
+        if self.cache_dir is None:
+            # We can only check if the directory was given
+            raise ValueError("UploadQueue was instantiated without cache_dir!")
+        else:
+            dataset_ids = [job.dataset_id for job in self]
+            zombies = []
+            for pp in pathlib.Path(self.cache_dir).glob("compress-*"):
+                did = pp.name.split("-", 1)[1]
+                if did not in dataset_ids:
+                    zombies.append(pp)
+        return zombies
 
     def abort_job(self, dataset_id):
         """Abort a running job but don't remove it from the queue"""
@@ -164,6 +191,7 @@ class UploadQueue:
             resource_paths=paths,
             resource_names=resource_names,
             resource_supplements=supplements,
+            cache_dir=self.cache_dir,
             )
         self.add_job(upload_job)
         return upload_job

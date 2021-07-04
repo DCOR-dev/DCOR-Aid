@@ -1,3 +1,4 @@
+import tempfile
 from functools import lru_cache
 import hashlib
 import pathlib
@@ -8,7 +9,6 @@ import warnings
 
 from dclab.rtdc_dataset.check import IntegrityChecker
 from dclab.cli import compress
-from PyQt5 import QtCore
 
 from . import dataset
 
@@ -32,7 +32,7 @@ JOB_STATES = [
 class UploadJob(object):
     def __init__(self, api, dataset_id, resource_paths,
                  resource_names=None, resource_supplements=None,
-                 task_id=None):
+                 task_id=None, cache_dir=None):
         """Wrapper for resource uploads
 
         This job is meant to be run from a separate thread.
@@ -57,7 +57,9 @@ class UploadJob(object):
             Supplementary resource information
         task_id: str
             Unique task ID (used for identifying jobs uploaded already)
-
+        cache_dir: str or pathlib.Path
+            Cache directory for storing compressed .rtdc files;
+            if not supplied, a temporary directory is created
         """
         self.api = api.copy()  # create a copy of the API
         self.dataset_id = dataset_id
@@ -86,10 +88,12 @@ class UploadJob(object):
         self._last_bytes = 0
         self._last_rate = 0
         # caching
-        dcoraid_cache = pathlib.Path(
-            QtCore.QStandardPaths.writableLocation(
-                QtCore.QStandardPaths.CacheLocation))
-        self.cache_dir = dcoraid_cache / "compress-{}".format(self.dataset_id)
+        if cache_dir is None:
+            cache_dir = pathlib.Path(tempfile.mkdtemp(
+                prefix=f"dcoraid_upload_compress-{self.dataset_id}_"))
+        else:
+            cache_dir = pathlib.Path(cache_dir) / f"compress-{self.dataset_id}"
+        self.cache_dir = cache_dir
 
     def __getstate__(self):
         """Get the state of the UploadJob instance
@@ -112,7 +116,7 @@ class UploadJob(object):
         return uj_state
 
     @staticmethod
-    def from_upload_job_state(uj_state, api):
+    def from_upload_job_state(uj_state, api, cache_dir=None):
         """Reinstantiate a job from an `UploadJob.__getstate__` dict
 
         Note that there is no `UploadJob.__setstate__` function,
@@ -128,7 +132,7 @@ class UploadJob(object):
         The `uj_state` dictionary must contain the "dataset_id",
         otherwise we won't know where to upload the resources to.
         """
-        return UploadJob(api=api, **uj_state)
+        return UploadJob(api=api, cache_dir=cache_dir, **uj_state)
 
     def cleanup(self):
         """cleanup temporary files in the user's cache directory"""

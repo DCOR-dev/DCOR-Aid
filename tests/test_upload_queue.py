@@ -1,6 +1,7 @@
 import pathlib
 import tempfile
 import time
+import uuid
 
 import pytest
 
@@ -11,7 +12,8 @@ from dcoraid.upload.task import load_task
 import common
 
 
-dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
+data_path = pathlib.Path(__file__).parent / "data"
+dpath = data_path / "calibration_beads_47.rtdc"
 
 
 def test_queue_basic_functionalities():
@@ -51,6 +53,32 @@ def test_queue_create_dataset_with_resource():
         time.sleep(.1)
     else:
         assert False, "Job not finished: {}".format(joblist[0].get_status())
+
+
+def test_queue_find_zombie_caches():
+    api = common.get_api()
+    # create some metadata
+    dataset_dict = common.make_dataset_dict(hint="create-with-resource")
+    # post dataset creation request
+    data = create_dataset(dataset_dict=dataset_dict, api=api)
+    # post dataset creation request
+    cache_dir = tempfile.mkdtemp("dcoraid_test_upload_cache_")
+    fakecache = pathlib.Path(cache_dir) / f"compress-{uuid.uuid4()}"
+    fakecache.mkdir()
+    realcache = pathlib.Path(cache_dir) / f"compress-{data['id']}"
+    joblist = UploadQueue(api=api, cache_dir=cache_dir)
+    # disable all daemons, so no uploading happens
+    joblist.daemon_compress.join()
+    joblist.daemon_upload.join()
+    joblist.daemon_verify.join()
+    uj = joblist.new_job(
+        dataset_id=data["id"],
+        paths=[data_path / "calibration_beads_47_nocomp.rtdc"])
+    assert uj.state == "init"
+    zombies = joblist.find_zombie_caches()
+    assert fakecache in zombies
+    assert realcache not in zombies
+    assert len(zombies) == 1
 
 
 def test_queue_remove_job():
