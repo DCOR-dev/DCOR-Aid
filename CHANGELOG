@@ -1,3 +1,5 @@
+0.5.4
+ - fix: start persistent upload jobs always in same order
 0.5.3
  - enh: re-use compressed resources from now on
  - enh: check disk usage before compressing data for upload

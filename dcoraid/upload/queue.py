@@ -24,7 +24,8 @@ class PersistentUploadJobList:
         return self.job_exists(dataset_id)
 
     def get_queued_dataset_ids(self):
-        return [pp.stem for pp in self.path_queued.glob("*.json")]
+        """Return list of DCOR dataset IDs corresponding to queued jobs"""
+        return sorted([pp.stem for pp in self.path_queued.glob("*.json")])
 
     def is_job_done(self, dataset_id):
         jp = self.path_completed / (dataset_id + ".json")
