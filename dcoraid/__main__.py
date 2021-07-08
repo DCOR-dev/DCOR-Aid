@@ -1,9 +1,20 @@
 def main(splash=True):
     import os
     import pkg_resources
+    import platform
     import sys
 
     from PyQt5.QtWidgets import QApplication
+
+    if platform.win32_ver()[0] == "7":
+        # Use software OpenGL on Windows 7, because sometimes the
+        # window content becomes plain white.
+        # Not sure whether this actually works.
+        from PyQt5.QtCore import Qt, QCoreApplication
+        from PyQt5.QtGui import QGuiApplication
+        QApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
+        QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
+        QGuiApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
 
     app = QApplication(sys.argv)
     imdir = pkg_resources.resource_filename("dcoraid", "img")
