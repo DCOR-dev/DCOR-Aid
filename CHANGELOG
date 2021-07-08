@@ -1,3 +1,7 @@
+0.5.5
+ - fix: prevent disk filling up with cached compressed resources if
+   new upload jobs are added with dataset IDs that are sorted above
+   existing cache directories
 0.5.4
  - fix: possibly fix white UI window on Windows 7
  - fix: start persistent upload jobs always in same order

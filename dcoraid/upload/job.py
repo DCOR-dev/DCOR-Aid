@@ -298,7 +298,33 @@ class UploadJob(object):
                     if not path_out.exists():
                         # perform compression
                         size_in = path.stat().st_size
-                        while shutil.disk_usage(path).free < size_in:
+                        while shutil.disk_usage(res_dir).free < size_in:
+                            # OK, now there might be the possibility that
+                            # there are rogue upload caches from jobs that
+                            # were created during previous runs. Since
+                            # DCOR-Aid 0.5.4, upload jobs are run in
+                            # alphabetical order. This means that we may
+                            # delete the upload cache of jobs that would
+                            # be uploaded after this job here.
+                            # This is important so that for slow uploads,
+                            # the hard disk is not filled up and then no more
+                            # jobs can be uploaded because the existing cache
+                            # data blocks jobs that are earlier in the queue
+                            # from compressing themselves.
+                            # find all upload job cache candidates
+                            cands = sorted(
+                                self.cache_dir.parent.glob("compress-*"))
+                            # determine the index of the current curve
+                            for ci, cand in enumerate(cands):
+                                if cand.samefile(self.cache_dir):
+                                    # we have found ourself
+                                    for rogue in cands[ci+1:]:
+                                        # Remove rogue cache data
+                                        shutil.rmtree(rogue,
+                                                      ignore_errors=True)
+                                    # don't continue
+                                    break
+
                             # As long as there is less space free than the
                             # input file size, we stall here.
                             self.set_state("wait-disk")
