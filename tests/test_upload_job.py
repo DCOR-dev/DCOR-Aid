@@ -42,7 +42,7 @@ def test_full_upload():
     assert uj.state == "parcel"
     uj.task_upload_resources()
     assert uj.state == "online"
-    for ii in range(30):
+    for ii in range(100):
         uj.task_verify_resources()
         if uj.state != "done":
             time.sleep(.1)
@@ -50,7 +50,7 @@ def test_full_upload():
         else:
             break
     else:
-        raise AssertionError("State not 'done' - No verification within 3s!")
+        raise AssertionError("State not 'done' - No verification within 10s!")
 
 
 def test_saveload():
