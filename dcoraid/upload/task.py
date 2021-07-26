@@ -18,6 +18,12 @@ from .dataset import create_dataset
 from .job import UploadJob
 
 
+class LocalTaskResourcesNotFoundError(FileNotFoundError):
+    def __init__(self, missing_resources, *args, **kwargs):
+        self.missing_resources = missing_resources
+        super(LocalTaskResourcesNotFoundError, self).__init__(*args, **kwargs)
+
+
 class PersistentTaskDatasetIDDict:
     def __init__(self, path):
         """A file-based dictionary with task_id as keys
@@ -158,6 +164,7 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
     uj_state = task_dict["upload_job"]
 
     # make sure the paths exist (if not, try with name relative to task path)
+    missing_resources = []
     for ii in range(len(uj_state["resource_paths"])):
         pi = pathlib.Path(uj_state["resource_paths"][ii])
         pi_alt = pathlib.Path(path).parent / pi.name
@@ -167,8 +174,13 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
             # replace with path relative to task file
             uj_state["resource_paths"][ii] = str(pi_alt)
         else:
-            raise FileNotFoundError(
-                f"Resource path '{pi}' not found for task '{path}'!")
+            missing_resources.append(pi)
+
+    if missing_resources:
+        resstr = ", ".join([str(pp) for pp in missing_resources])
+        raise LocalTaskResourcesNotFoundError(
+            missing_resources,
+            f"Task '{path}' is missing local resources files: {resstr}")
 
     num_res = len(uj_state["resource_paths"])
     if (uj_state["resource_names"]

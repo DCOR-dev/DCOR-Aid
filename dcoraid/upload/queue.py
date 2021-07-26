@@ -4,8 +4,12 @@ import warnings
 
 from ..api import APINotFoundError
 from .job import UploadJob
-from .task import load_task, save_task
+from .task import LocalTaskResourcesNotFoundError, load_task, save_task
 from .kthread import KThread
+
+
+class DCORAidQueueWarning(UserWarning):
+    pass
 
 
 class PersistentUploadJobList:
@@ -106,7 +110,14 @@ class UploadQueue:
                     warnings.warn(f"Datast {dataset_id} could not be found "
                                   f"on {self.api.server}! If the dataset has "
                                   f"been deleted, please remove the local "
-                                  f"file {pp}.")
+                                  f"file {pp}.",
+                                  DCORAidQueueWarning)
+                except LocalTaskResourcesNotFoundError as e:
+                    resstr = ", ".join([str(pp) for pp in e.missing_resources])
+                    warnings.warn("The following resources are missing for "
+                                  f"dataset {dataset_id}: {resstr}. The "
+                                  "job will not be queued.",
+                                  DCORAidQueueWarning)
                 else:
                     self.jobs.append(uj)
         else:

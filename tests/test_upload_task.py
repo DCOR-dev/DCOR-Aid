@@ -281,8 +281,8 @@ def test_resource_path_is_relative():
 
 def test_resource_path_not_found():
     task_path = common.make_upload_task(resource_paths=["/home/unknown.rtdc"])
-    with pytest.raises(FileNotFoundError,
-                       match="not found for task"):
+    with pytest.raises(task.LocalTaskResourcesNotFoundError,
+                       match="is missing local resources files"):
         task.load_task(task_path, api=common.get_api())
 
 
