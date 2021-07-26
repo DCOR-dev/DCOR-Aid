@@ -28,6 +28,11 @@ class PersistentUploadJobList:
             dataset_id = item
         return self.job_exists(dataset_id)
 
+    @property
+    def num_queued(self):
+        """Return number of queued tasks"""
+        return len(list(self.path_queued.glob("*.json")))
+
     def get_queued_dataset_ids(self):
         """Return list of DCOR dataset IDs corresponding to queued jobs"""
         return sorted([pp.stem for pp in self.path_queued.glob("*.json")])
@@ -166,11 +171,32 @@ class UploadQueue:
 
     def add_job(self, upload_job):
         """Add an UploadJob to the queue"""
-        if self.jobs_eternal is not None:
-            if upload_job in self.jobs_eternal:
-                # Do nothing more!
+        if self.jobs_eternal is not None and upload_job in self.jobs_eternal:
+            # Previously, this function would break hard here, because a
+            # job cannot be immortalized twice. The thing is, however, that
+            # sometimes a user moves the resource files to a different hard
+            # drive or folder and then the upload job cannot be summoned
+            # (The immortalized job has the wrong resource paths)! We offer
+            # the user a workaround: If the dataset_id is in the eternal
+            # job list, but not in self (because summoning it failed),
+            # then we remove the old task from the eternal job list and
+            # add the new task.
+            if self.jobs_eternal.is_job_queued(upload_job.dataset_id):
+                try:
+                    self.get_job(upload_job.dataset_id)
+                except KeyError:
+                    # Job is immortalized, but failed to be summoned to Queue
+                    # during initialization.
+                    self.jobs_eternal.obliterate_job(upload_job.dataset_id)
+                else:
+                    # Job is immortalized and already in the queue. Everything
+                    # is fine and we need not worry. Must not append job!
+                    return
+            else:
+                # Job is immortalized and already done! Under no circumstance
+                # should we add this job.
                 return
-            # also add to eternal jobs for persistence
+            # Add to eternal jobs for persistence
             self.jobs_eternal.immortalize_job(upload_job)
         self.jobs.append(upload_job)
 

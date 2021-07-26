@@ -6,7 +6,7 @@ import uuid
 import pytest
 
 from dcoraid.upload import UploadQueue, create_dataset
-from dcoraid.upload.queue import PersistentUploadJobList
+from dcoraid.upload.queue import DCORAidQueueWarning, PersistentUploadJobList
 from dcoraid.upload.task import load_task
 
 import common
@@ -169,6 +169,109 @@ def test_persistent_upload_joblist_error_exists():
     pujl.immortalize_job(uj)
     with pytest.raises(FileExistsError, match="already present at"):
         pujl.immortalize_job(uj)
+
+
+def test_persistent_upload_joblist_skip_finished_resources():
+    api = common.get_api()
+    td = pathlib.Path(tempfile.mkdtemp(prefix="persistent_uj_list_"))
+    pujl_path = td / "joblistdir"
+    task_path = pathlib.Path(common.make_upload_task())
+    pujl = PersistentUploadJobList(pujl_path)
+    uj = load_task(task_path,
+                   api=api,
+                   update_dataset_id=True)
+    pujl.immortalize_job(uj)
+
+    uq = UploadQueue(api=api, path_persistent_job_list=pujl_path)
+    assert len(uq) == 1
+    assert uq.jobs_eternal.num_queued == 1
+
+    # wait for the upload to finish
+    for _ in range(600):  # 60 seconds to upload
+        if uq[0].state == "done":
+            # We do this manually here. Actually, a better solution would
+            # be to implement a signal-slot type of workflow where the
+            # job tells the queue when it is done.
+            pujl.set_job_done(uj.dataset_id)
+            break
+        time.sleep(.1)
+    else:
+        assert False, "Job not finished: {}".format(uq[0].get_status())
+
+    # sanity check
+    assert pujl.is_job_done(uj.dataset_id)
+
+    # try to add the task again
+    same_job = load_task(task_path,
+                         api=api,
+                         update_dataset_id=True)
+    uq.add_job(same_job)
+    assert len(uq) == 1
+    assert uq.jobs_eternal.num_queued == 0
+
+
+def test_persistent_upload_joblist_skip_missing_resources():
+    api = common.get_api()
+    td = pathlib.Path(tempfile.mkdtemp(prefix="persistent_uj_list_"))
+    pujl_path = td / "joblistdir"
+    task_path = pathlib.Path(common.make_upload_task())
+    pujl = PersistentUploadJobList(pujl_path)
+    uj = load_task(task_path,
+                   api=api,
+                   update_dataset_id=True)
+    pujl.immortalize_job(uj)
+
+    # hide the original data directory so loading the task fails
+    task_dir = task_path.parent
+    temp_task_dir = task_path.parent.with_name("test_rename_temp")
+    task_dir.rename(temp_task_dir)
+    assert not task_dir.exists()
+    with pytest.warns(DCORAidQueueWarning, match="resources are missing"):
+        uq = UploadQueue(api=api, path_persistent_job_list=pujl_path)
+    uq.daemon_compress.join()
+    uq.daemon_upload.join()
+    uq.daemon_verify.join()
+    # sanity checks
+    assert len(uq) == 0
+    assert uq.jobs_eternal.num_queued == 1
+    # now add the new task
+    same_job = load_task(temp_task_dir / task_path.name,
+                         api=api,
+                         update_dataset_id=True)
+    uq.add_job(same_job)
+    assert len(uq) == 1
+    assert uq.jobs_eternal.num_queued == 1
+
+
+def test_persistent_upload_joblist_skip_queued_resources():
+    api = common.get_api()
+    td = pathlib.Path(tempfile.mkdtemp(prefix="persistent_uj_list_"))
+    pujl_path = td / "joblistdir"
+    task_path = pathlib.Path(common.make_upload_task())
+    pujl = PersistentUploadJobList(pujl_path)
+    uj = load_task(task_path,
+                   api=api,
+                   update_dataset_id=True)
+    pujl.immortalize_job(uj)
+
+    uq = UploadQueue(api=api, path_persistent_job_list=pujl_path)
+    uq.daemon_compress.join()
+    uq.daemon_upload.join()
+    uq.daemon_verify.join()
+
+    assert len(uq) == 1
+    assert uq.jobs_eternal.num_queued == 1
+
+    # sanity check
+    assert pujl.is_job_queued(uj.dataset_id)
+
+    # try to add the task again
+    same_job = load_task(task_path,
+                         api=api,
+                         update_dataset_id=True)
+    uq.add_job(same_job)
+    assert len(uq) == 1
+    assert uq.jobs_eternal.num_queued == 1
 
 
 def test_persistent_upload_joblist_error_exists_done():

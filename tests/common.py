@@ -1,6 +1,7 @@
 import json
 import os
 import pathlib
+import shutil
 import tempfile
 import time
 
@@ -58,17 +59,27 @@ def make_upload_task(task_id="123456789",
         dataset_dict = make_dataset_dict(hint="task_test")
     if dataset_dict and dataset_id is None:
         dataset_id = dataset_dict.get("id")
+    td = pathlib.Path(tempfile.mkdtemp(prefix="task_"))
+    # copy resources there
+    new_resource_paths = []
+    for pp in resource_paths:
+        newpp = td / pathlib.Path(pp).name
+        if pathlib.Path(pp).exists():
+            # only move the file if the test uses an actual file
+            shutil.copy2(pp, newpp)
+            new_resource_paths.append(newpp)
+        else:
+            new_resource_paths.append(pp)
     uj_state = {
         "dataset_id": dataset_id,
         "task_id": task_id,
-        "resource_paths": [str(pp) for pp in resource_paths],
+        "resource_paths": [str(pp) for pp in new_resource_paths],
         "resource_names": resource_names,
         "resource_supplements": resource_supplements,
     }
     data = {"upload_job": uj_state}
     if dataset_dict:
         data["dataset_dict"] = dataset_dict
-    td = pathlib.Path(tempfile.mkdtemp(prefix="task_"))
     taskp = td / "test.dcoraid-task"
     with taskp.open("w") as fd:
         json.dump(data, fd,

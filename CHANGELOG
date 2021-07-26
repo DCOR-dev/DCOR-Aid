@@ -5,6 +5,9 @@
    previously, this scenario resulted in a FileNotFoundError
  - fix: when loading tasks recursively from a directory, only ask
    once for the circle (if there are multiple available to the user)
+ - fix: immortalized jobs that fail to be summoned (e.g. because the
+   user moved the resources to a different directory), can now be
+   imported again from the orgiginal (albeit moved) .dcoraid-task file
 0.5.7
  - tests: fix test logic for new anonymous test (#15)
 0.5.6

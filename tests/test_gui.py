@@ -24,10 +24,10 @@ def run_around_tests():
     # Run test
     yield
     # Make sure that all daemons are gone
-    time.sleep(2)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
                                          3000)
-    time.sleep(2)
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
+                                         3000)
 
 
 def test_anonymous(qtbot):
@@ -63,6 +63,7 @@ def test_anonymous(qtbot):
     else:
         spath.unlink()
         shutil.copy2(stmp, spath)
+    mw.close()
 
 
 def test_upload_simple(qtbot, monkeypatch):
@@ -86,7 +87,7 @@ def test_upload_simple(qtbot, monkeypatch):
             break
         time.sleep(.1)
     else:
-        raise ValueError("Job did not complete, state: '{}'".format(state))
+        raise ValueError(f"Job did not complete, state: '{state}'")
     mw.close()
 
 
@@ -203,8 +204,3 @@ def test_upload_private(qtbot, monkeypatch):
     dataset_dict = api.get(api_call="package_show", id=dataset_id)
     assert dataset_dict["private"]
     assert isinstance(dataset_dict["private"], bool)
-
-
-def test_zzz_final():
-    # give remaining threads time to join?
-    time.sleep(5)
