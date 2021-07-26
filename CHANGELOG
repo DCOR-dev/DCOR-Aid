@@ -3,6 +3,8 @@
    which results in a custom DCORAidQueueWarning in upload.queue
    in case a dataset resource is not available at the moment;
    previously, this scenario resulted in a FileNotFoundError
+ - fix: when loading tasks recursively from a directory, only ask
+   once for the circle (if there are multiple available to the user)
 0.5.7
  - tests: fix test logic for new anonymous test (#15)
 0.5.6

@@ -1,12 +1,14 @@
 import pathlib
 import shutil
 import tempfile
+from unittest import mock
 
 import time
 import uuid
 
 from dcoraid.gui.main import DCORAid
 from dcoraid.gui.upload.dlg_upload import UploadDialog
+from dcoraid.gui.upload import widget_upload
 
 import pytest
 from PyQt5 import QtCore, QtWidgets
@@ -124,6 +126,49 @@ def test_upload_task_missing_circle(qtbot, monkeypatch):
     mw.panel_upload.on_upload_task(action=act)
     uj = mw.panel_upload.jobs[-1]
     assert uj.task_id == task_id
+    mw.close()
+
+
+def test_upload_task_missing_circle_multiple(qtbot, monkeypatch):
+    """DCOR-Aid should only ask *once* for the circle (not for every task)"""
+    task_id1 = str(uuid.uuid4())
+    dataset_dict1 = common.make_dataset_dict(hint="task_upload_no_org_")
+    dataset_dict1.pop("owner_org")
+    tpath1 = common.make_upload_task(task_id=task_id1,
+                                     dataset_dict=dataset_dict1)
+    tpath1 = pathlib.Path(tpath1)
+
+    task_id2 = str(uuid.uuid4())
+    dataset_dict2 = common.make_dataset_dict(hint="task_upload_no_org_")
+    dataset_dict2.pop("owner_org")
+    tpath2 = common.make_upload_task(task_id=task_id2,
+                                     dataset_dict=dataset_dict2)
+    tpath2 = pathlib.Path(tpath2)
+
+    tdir = pathlib.Path(tempfile.mkdtemp(prefix="recursive_task_"))
+    shutil.copytree(tpath1.parent, tdir / tpath1.parent.name)
+    shutil.copytree(tpath2.parent, tdir / tpath2.parent.name)
+
+    mw = DCORAid()
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+    monkeypatch.setattr(QtWidgets.QFileDialog, "getExistingDirectory",
+                        lambda *args: str(tdir))
+    # We actually only need this monkeypatch if there is more than
+    # one circle for the present user.
+    monkeypatch.setattr(QtWidgets.QInputDialog, "getItem",
+                        # return the first item in the circle list
+                        lambda *args: (args[3][0], True))
+    act = QtWidgets.QAction("some unimportant text")
+    act.setData("bulk")
+    request_circle = widget_upload.circle_mgr.request_circle
+    with mock.patch.object(widget_upload.circle_mgr,
+                           "request_circle",
+                           wraps=request_circle) as rw:
+        mw.panel_upload.on_upload_task(action=act)
+        uj1 = mw.panel_upload.jobs[-2]
+        uj2 = mw.panel_upload.jobs[-1]
+        assert {uj1.task_id, uj2.task_id} == {task_id1, task_id2}
+        assert rw.call_count == 1
     mw.close()
 
 

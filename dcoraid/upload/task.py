@@ -153,7 +153,8 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
         task_dict = json.load(fd)
 
     if "dataset_dict" in task_dict:
-        # separate "dataset_dict" from the
+        # separate "dataset_dict" from the task file
+        # (e.g. the dataset_id and other things might be in here)
         dataset_dict = task_dict["dataset_dict"]
     else:
         dataset_dict = {}

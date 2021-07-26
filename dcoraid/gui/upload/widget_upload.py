@@ -131,8 +131,11 @@ class UploadWidget(QtWidgets.QWidget):
         with ShowWaitCursor():
             api = get_ckan_api()
             for pp in files:
-                if not task.task_has_circle(pp):
-                    # let the user choose a circle
+                if (not task.task_has_circle(pp)
+                        and "owner_org" not in dataset_kwargs):
+                    # Let the user choose a circle.
+                    # Note the above test for "owner_org": The user only
+                    # chooses the circle *once* for *all* task files.
                     cdict = circle_mgr.request_circle(self)
                     if cdict is None:
                         # The user aborted, so we won't continue!
