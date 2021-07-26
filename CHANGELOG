@@ -1,3 +1,5 @@
+0.5.7
+ - tests: fix test logic for new anonymous test (#15)
 0.5.6
  - fix: UnboundLocalError "progress" referenced before assignment,
    because "wait-disk" status was not handled
