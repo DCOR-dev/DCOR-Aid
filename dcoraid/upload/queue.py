@@ -2,6 +2,7 @@ import pathlib
 import time
 import warnings
 
+from ..api import APINotFoundError
 from .job import UploadJob
 from .task import load_task, save_task
 from .kthread import KThread
@@ -96,10 +97,18 @@ class UploadQueue:
                 path_persistent_job_list)
             # add any previously queued jobs
             for dataset_id in self.jobs_eternal.get_queued_dataset_ids():
-                uj = self.jobs_eternal.summon_job(dataset_id,
-                                                  api=self.api,
-                                                  cache_dir=self.cache_dir)
-                self.jobs.append(uj)
+                try:
+                    uj = self.jobs_eternal.summon_job(dataset_id,
+                                                      api=self.api,
+                                                      cache_dir=self.cache_dir)
+                except APINotFoundError:
+                    pp = self.jobs_eternal.path_queued / (dataset_id + ".json")
+                    warnings.warn(f"Datast {dataset_id} could not be found "
+                                  f"on {self.api.server}! If the dataset has "
+                                  f"been deleted, please remove the local "
+                                  f"file {pp}.")
+                else:
+                    self.jobs.append(uj)
         else:
             self.jobs_eternal = None
         self.daemon_compress = CompressDaemon(self.jobs)

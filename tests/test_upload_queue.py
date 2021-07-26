@@ -160,7 +160,6 @@ def test_persistent_upload_joblist_done():
 
 
 def test_persistent_upload_joblist_error_exists():
-    """test things when a job is done"""
     api = common.get_api()
     td = pathlib.Path(tempfile.mkdtemp(prefix="persistent_uj_list_"))
     pujl_path = td / "joblistdir"
@@ -184,6 +183,30 @@ def test_persistent_upload_joblist_error_exists_done():
     pujl.set_job_done(uj.dataset_id)
     with pytest.raises(FileExistsError, match="is already done"):
         pujl.immortalize_job(uj)
+
+
+def test_persistent_upload_joblist_warning_dataset_deleted_on_server():
+    """warning when dataset has been deleted on server"""
+    api = common.get_api()
+    td = pathlib.Path(tempfile.mkdtemp(prefix="persistent_uj_list_"))
+    pujl_path = td / "joblistdir"
+    task_path = common.make_upload_task()
+    pujl = PersistentUploadJobList(pujl_path)
+    uj = load_task(task_path, api=api)
+    pujl.immortalize_job(uj)
+
+    # Now change the dataset ID of the job
+    new_id = str(uuid.uuid4())
+    pj_path_old = pujl.path_queued / (uj.dataset_id + ".json")
+    pj_path_new = pujl.path_queued / (new_id + ".json")
+
+    json_data = pj_path_old.read_text(encoding="utf-8")
+    json_data = json_data.replace(uj.dataset_id, new_id)
+    pj_path_new.write_text(json_data, encoding="utf-8")
+    pj_path_old.unlink()
+
+    with pytest.warns(UserWarning, match=f"{new_id} could not be found"):
+        UploadQueue(api=api, path_persistent_job_list=pujl_path)
 
 
 if __name__ == "__main__":
