@@ -159,7 +159,7 @@ class UploadJob(object):
         state = status["state"]
         plural = "s" if status["files total"] > 1 else ""
 
-        if state in ["init", "compress", "parcel"]:
+        if state in ["init", "compress", "parcel", "wait-disk"]:
             progress = "0% ({} file{})".format(status["files total"], plural)
         elif state == "transfer":
             progress = "{:.0f}% (file {}/{})".format(
@@ -173,6 +173,10 @@ class UploadJob(object):
             progress = "-- ({}/{} file{})".format(status["files uploaded"],
                                                   status["files total"],
                                                   plural)
+        elif state in JOB_STATES:
+            # seems like you missed to update a case here?
+            warnings.warn(f"Please add state '{state}' to these cases!")
+            progress = "undefined"
         return progress
 
     def get_rate_string(self):

@@ -1,3 +1,6 @@
+0.5.6
+ - fix: UnboundLocalError "progress" referenced before assignment,
+   because "wait-disk" status was not handled
 0.5.5
  - fix: prevent disk filling up with cached compressed resources if
    new upload jobs are added with dataset IDs that are sorted above
