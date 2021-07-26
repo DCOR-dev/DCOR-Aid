@@ -30,6 +30,10 @@ def run_around_tests():
 
 def test_anonymous(qtbot):
     """Start DCOR-Aid in anonymous mode"""
+    QtCore.QCoreApplication.setOrganizationName("DCOR")
+    QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+    QtCore.QCoreApplication.setApplicationName("dcoraid")
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
     settings = QtCore.QSettings()
     spath = pathlib.Path(settings.fileName())
     # temporarily move settings to temporary location
@@ -44,8 +48,11 @@ def test_anonymous(qtbot):
         "server = dcor.mpl.mpg.de",
         ]))
     try:
-        DCORAid()
+        mw = DCORAid()
         QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 3000)
+        # sanity check
+        assert mw.settings.value("user scenario") == "anonymous"
+        assert mw.settings.value("auth/server") == "dcor.mpl.mpg.de"
     except BaseException:
         # cleanup first (copy back original settings for other tests)
         spath.unlink()
