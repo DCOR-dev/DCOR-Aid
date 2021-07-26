@@ -130,7 +130,7 @@ class DCORAid(QtWidgets.QMainWindow):
         # Preferences dialog
         self.dlg_pref = PreferencesDialog()
         # Window title
-        self.setWindowTitle("DCOR-Aid {}".format(__version__))
+        self.setWindowTitle(f"DCOR-Aid {__version__}")
         # Disable native menubar (e.g. on Mac)
         self.menubar.setNativeMenuBar(False)
         # File menu
@@ -143,8 +143,8 @@ class DCORAid(QtWidgets.QMainWindow):
         self.status_widget = StatusWidget(self)
         self.tabWidget.setCornerWidget(self.status_widget)
         self.status_widget.clicked.connect(self.dlg_pref.on_show_server)
-        self.refresh_login_status()
         # Call refresh_login status regularly
+        self.refresh_login_status()  # runs asynchronously
         if bool(int(self.settings.value("debug/without timers", "0"))):
             self.timer = None
         else:
@@ -260,10 +260,14 @@ class DCORAid(QtWidgets.QMainWindow):
         # TODO:
         # - what happens if the user changes the server? Ask to restart?
         api = get_ckan_api()
-        am = APIModel(api=api)
-        if api.is_available():
-            db_extract = am.get_user_datasets()
-            self.user_filter_chain.set_db_extract(db_extract)
+        if api.is_available() and api.api_key:
+            am = APIModel(api=api)
+            try:
+                db_extract = am.get_user_datasets()
+            except APIKeyError:
+                pass
+            else:
+                self.user_filter_chain.set_db_extract(db_extract)
         self.tab_user.setCursor(QtCore.Qt.ArrowCursor)
 
 

@@ -1,8 +1,10 @@
 0.5.6
  - fix: UnboundLocalError "progress" referenced before assignment,
    because "wait-disk" status was not handled
- - fix: UploadQue could not handle jobs in PersistentUploadJobList that
+ - fix: UploadQueue could not handle jobs in PersistentUploadJobList that
    had been deleted on the server
+ - fix: Initial startup and anonymous mode did not work, because
+   there was an attempt to access the API (#15)
 0.5.5
  - fix: prevent disk filling up with cached compressed resources if
    new upload jobs are added with dataset IDs that are sorted above

@@ -1,3 +1,7 @@
+import pathlib
+import shutil
+import tempfile
+
 import time
 import uuid
 
@@ -22,6 +26,34 @@ def run_around_tests():
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
                                          3000)
     time.sleep(2)
+
+
+def test_anonymous(qtbot):
+    """Start DCOR-Aid in anonymous mode"""
+    settings = QtCore.QSettings()
+    spath = pathlib.Path(settings.fileName())
+    # temporarily move settings to temporary location
+    stmp = pathlib.Path(tempfile.mkdtemp(prefix="settings_stash_")) / "set.ini"
+    shutil.copy2(spath, stmp)
+    spath.unlink()
+    spath.write_text("\n".join([
+        "[General]",
+        "user%20scenario = anonymous",
+        "[auth]",
+        "api%20key =",
+        "server = dcor.mpl.mpg.de",
+        ]))
+    try:
+        DCORAid()
+        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 3000)
+    except BaseException:
+        # cleanup first (copy back original settings for other tests)
+        spath.unlink()
+        shutil.copy2(stmp, spath)
+        raise
+    else:
+        spath.unlink()
+        shutil.copy2(stmp, spath)
 
 
 def test_upload_simple(qtbot, monkeypatch):
