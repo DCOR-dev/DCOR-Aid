@@ -4,6 +4,7 @@ import traceback as tb
 
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
+from ..tools import ShowWaitCursor
 from ...upload import create_dataset
 
 from ..api import get_ckan_api
@@ -11,6 +12,11 @@ from ..api import get_ckan_api
 from . import circle_mgr
 from .resources_model import ResourcesModel
 from .resource_schema_preset import PersistentResourceSchemaPresets
+
+
+class NoCircleSelectedError(ValueError):
+    """Used to tell UploadWidget that the user did not select a circle"""
+    pass
 
 
 class UploadDialog(QtWidgets.QDialog):
@@ -45,22 +51,23 @@ class UploadDialog(QtWidgets.QDialog):
         # Initialize api
         self.api = get_ckan_api()
 
-        # Set license choices
-        licenses = self.api.get_license_list()
-        for lic in licenses:
-            if lic["domain_data"]:  # just some identifier to exclude "none"
-                self.comboBox_license.addItem(
-                    "{} ({})".format(lic["title"], lic["id"]), lic["id"])
-
-        # Set supplementary resource schema
-        rss = self.api.get_supplementary_resource_schema()
-        self.widget_schema.populate_schema(rss)
-
         # Set circle choices
         circles = self.get_user_circle_dicts()
         for ci in circles:
             self.comboBox_circles.addItem(
                 ci["title"] if ci["title"] else ci["name"], ci["name"])
+
+        with ShowWaitCursor():
+            # Set license choices
+            licenses = self.api.get_license_list()
+            for lic in licenses:
+                if lic["domain_data"]:  # just a identifier to exclude "none"
+                    self.comboBox_license.addItem(
+                        "{} ({})".format(lic["title"], lic["id"]), lic["id"])
+
+            # Set supplementary resource schema
+            rss = self.api.get_supplementary_resource_schema()
+            self.widget_schema.populate_schema(rss)
 
         # Set visibility choices
         settings = QtCore.QSettings()
@@ -133,15 +140,15 @@ class UploadDialog(QtWidgets.QDialog):
             self.on_add_resources([str(path.resolve())])
 
     def get_user_circle_dicts(self):
-        circles = circle_mgr.get_user_circle_dicts()
+        with ShowWaitCursor():
+            circles = circle_mgr.get_user_circle_dicts()
         if not circles:
             cdict = circle_mgr.ask_for_new_circle(self)
             if cdict:
                 circles.append(cdict)
             else:
                 # abort here
-                self.deleteLater()
-                self.close()
+                raise NoCircleSelectedError("User did not specify a circle!")
         return circles
 
     def assemble_metadata(self):

@@ -13,7 +13,7 @@ from ..api import get_ckan_api
 from ..tools import ShowWaitCursor
 
 from . import circle_mgr
-from .dlg_upload import UploadDialog
+from .dlg_upload import NoCircleSelectedError, UploadDialog
 from .widget_tablecell_actions import TableCellActions
 
 
@@ -27,6 +27,8 @@ class UploadWidget(QtWidgets.QWidget):
         path_ui = pkg_resources.resource_filename(
             "dcoraid.gui.upload", "widget_upload.ui")
         uic.loadUi(path_ui, self)
+
+        self._dlg_manual = None
 
         # button for adding new dataset manually
         self.toolButton_new_upload.clicked.connect(self.on_upload_manual)
@@ -66,10 +68,14 @@ class UploadWidget(QtWidgets.QWidget):
         A draft dataset is created to which the resources are then
         uploaded.
         """
-        with ShowWaitCursor():
+        try:
             self._dlg_manual = UploadDialog(self)
+        except NoCircleSelectedError:
+            self._dlg_manual = None
+        else:
             self._dlg_manual.finished.connect(self.on_upload_manual_ready)
-        self._dlg_manual.exec()
+            self._dlg_manual.close()
+            self._dlg_manual.exec()
 
     @QtCore.pyqtSlot(object)
     def on_upload_manual_ready(self, upload_dialog):

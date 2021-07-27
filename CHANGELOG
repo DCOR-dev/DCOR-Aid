@@ -1,5 +1,7 @@
 0.5.10
  - fix: removed confusing wait-cursor during circle selection
+ - fix: manual upload dialog was shown even thoug user pressed
+   cancel on circle creation (#20)
  - tests: add complementary tests for upload queue and persistent job
    list
 0.5.9
