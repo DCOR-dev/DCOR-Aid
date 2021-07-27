@@ -135,7 +135,7 @@ class UploadDialog(QtWidgets.QDialog):
     def get_user_circle_dicts(self):
         circles = circle_mgr.get_user_circle_dicts()
         if not circles:
-            cdict = circle_mgr.ask_for_new_circle()
+            cdict = circle_mgr.ask_for_new_circle(self)
             if cdict:
                 circles.append(cdict)
             else:
