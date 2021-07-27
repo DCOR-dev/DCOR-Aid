@@ -127,24 +127,24 @@ class UploadWidget(QtWidgets.QWidget):
                 QStandardPaths.AppLocalDataLocation),
             "map_task_to_dataset_id.txt")
         map_task_to_dataset_id = task.PersistentTaskDatasetIDDict(path_id_dict)
+        api = get_ckan_api()
+        settings = QtCore.QSettings()
+        update_dataset_id = bool(int(settings.value(
+            "uploads/update task with dataset id", "1")))
         dataset_kwargs = {}
-        with ShowWaitCursor():
-            api = get_ckan_api()
-            for pp in files:
-                if (not task.task_has_circle(pp)
-                        and "owner_org" not in dataset_kwargs):
-                    # Let the user choose a circle.
-                    # Note the above test for "owner_org": The user only
-                    # chooses the circle *once* for *all* task files.
-                    cdict = circle_mgr.request_circle(self)
-                    if cdict is None:
-                        # The user aborted, so we won't continue!
-                        break
-                    else:
-                        dataset_kwargs["owner_org"] = cdict["name"]
-                settings = QtCore.QSettings()
-                update_dataset_id = bool(int(settings.value(
-                    "uploads/update task with dataset id", "1")))
+        for pp in files:
+            if (not task.task_has_circle(pp)
+                    and "owner_org" not in dataset_kwargs):
+                # Let the user choose a circle.
+                # Note the above test for "owner_org": The user only
+                # chooses the circle *once* for *all* task files.
+                cdict = circle_mgr.request_circle(self)
+                if cdict is None:
+                    # The user aborted, so we won't continue!
+                    break
+                else:
+                    dataset_kwargs["owner_org"] = cdict["name"]
+            with ShowWaitCursor():
                 upload_job = task.load_task(
                     path=pp,
                     map_task_to_dataset_id=map_task_to_dataset_id,
