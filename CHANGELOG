@@ -1,6 +1,7 @@
 0.5.9
  - fix: TypeError when attempting a manual upload when the user did not
    have a circle set-up (#17)
+ - fix: manual uploads were not added to persistent job list
 0.5.8
  - fix: introduce LocalTaskResourcesNotFoundError in upload.task
    which results in a custom DCORAidQueueWarning in upload.queue
