@@ -87,3 +87,33 @@ def make_upload_task(task_id="123456789",
                   indent=2,
                   sort_keys=True)
     return str(taskp)
+
+
+def wait_for_job(upload_queue, dataset_id, wait_time=60):
+    uq = upload_queue
+    uj = uq.get_job(dataset_id)
+    # wait for the upload to finish
+    for _ in range(wait_time*10):
+        if uj.state == "done":
+            if uq.jobs_eternal:
+                # TODO:
+                # We do this manually here. Actually, a better solution would
+                # be to implement a signal-slot type of workflow where the
+                # job tells the queue when it is done.
+                uq.jobs_eternal.set_job_done(dataset_id)
+            break
+        time.sleep(.1)
+    else:
+        assert False, f"Job '{uj}' not done in {wait_time}s, state {uj.state}!"
+
+
+def wait_for_job_no_queue(upload_job, wait_time=60):
+    uj = upload_job
+    # wait for the upload to finish
+    for _ in range(wait_time*10):
+        uj.task_verify_resources()
+        if uj.state == "done":
+            break
+        time.sleep(.1)
+    else:
+        assert False, f"Job '{uj}' not done in {wait_time}s, state {uj.state}!"

@@ -3,7 +3,6 @@ import shutil
 import tempfile
 from unittest import mock
 
-import time
 import uuid
 
 from dcoraid.gui.main import DCORAid
@@ -30,6 +29,7 @@ def run_around_tests():
                                          3000)
 
 
+@pytest.mark.filterwarnings("ignore::UserWarning", match="No API key is set!")
 def test_anonymous(qtbot):
     """Start DCOR-Aid in anonymous mode"""
     QtCore.QCoreApplication.setOrganizationName("DCOR")
@@ -81,13 +81,9 @@ def test_upload_simple(qtbot, monkeypatch):
     # Commence upload
     dlg.on_proceed()
     assert dlg.dataset_id is not None
-    for ii in range(200):  # give it 20secs to upload
-        state = mw.panel_upload.jobs[0].get_status()["state"]
-        if state == "done":
-            break
-        time.sleep(.1)
-    else:
-        raise ValueError(f"Job did not complete, state: '{state}'")
+
+    common.wait_for_job(upload_queue=mw.panel_upload.jobs,
+                        dataset_id=mw.panel_upload.jobs[0].dataset_id)
     mw.close()
 
 
@@ -191,13 +187,9 @@ def test_upload_private(qtbot, monkeypatch):
     dlg.on_proceed()
     dataset_id = dlg.dataset_id
     assert dataset_id is not None
-    for ii in range(200):  # give it 20secs to upload
-        state = mw.panel_upload.jobs[0].get_status()["state"]
-        if state == "done":
-            break
-        time.sleep(.1)
-    else:
-        raise ValueError("Job did not complete, state: '{}'".format(state))
+
+    common.wait_for_job(upload_queue=mw.panel_upload.jobs,
+                        dataset_id=mw.panel_upload.jobs[0].dataset_id)
     mw.close()
     # make sure the dataset is private
     api = common.get_api()

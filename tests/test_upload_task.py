@@ -2,7 +2,6 @@ import json
 import pathlib
 import shutil
 import tempfile
-import time
 import uuid
 
 import pytest
@@ -111,15 +110,8 @@ def test_load_with_existing_dataset():
     # skipping the upload should work, since it's already uploaded
     uj.set_state("online")
     uj.task_verify_resources()
-    for ii in range(600):
-        uj.task_verify_resources()
-        if uj.state != "done":
-            time.sleep(.1)
-            continue
-        else:
-            break
-    else:
-        raise AssertionError("State not 'done' - No verification within 60s!")
+
+    common.wait_for_job_no_queue(uj)
 
 
 def test_load_with_existing_dataset_map_from_task():

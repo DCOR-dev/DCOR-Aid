@@ -1,6 +1,5 @@
 import pathlib
 import tempfile
-import time
 import uuid
 
 import pytest
@@ -47,12 +46,7 @@ def test_queue_create_dataset_with_resource():
     joblist = UploadQueue(api=api)
     joblist.new_job(dataset_id=data["id"],
                     paths=[dpath])
-    for _ in range(600):  # 60 seconds to upload
-        if joblist[0].state == "done":
-            break
-        time.sleep(.1)
-    else:
-        assert False, "Job not finished: {}".format(joblist[0].get_status())
+    common.wait_for_job(joblist, data["id"])
 
 
 def test_queue_find_zombie_caches():
@@ -174,17 +168,7 @@ def test_persistent_upload_joblist_job_added_and_finished_in_queue():
     assert pujl.num_queued == 0
     uq.add_job(uj)
 
-    # wait for the upload to finish
-    for _ in range(600):  # 60 seconds to upload
-        if uq[0].state == "done":
-            # We do this manually here. Actually, a better solution would
-            # be to implement a signal-slot type of workflow where the
-            # job tells the queue when it is done.
-            pujl.set_job_done(uj.dataset_id)
-            break
-        time.sleep(.1)
-    else:
-        assert False, "Job not finished: {}".format(uq[0].get_status())
+    common.wait_for_job(uq, uj.dataset_id)
 
     assert pujl.num_queued == 0
     assert pujl.num_completed == 1
@@ -236,17 +220,7 @@ def test_persistent_upload_joblist_skip_finished_resources():
     assert len(uq) == 1
     assert uq.jobs_eternal.num_queued == 1
 
-    # wait for the upload to finish
-    for _ in range(600):  # 60 seconds to upload
-        if uq[0].state == "done":
-            # We do this manually here. Actually, a better solution would
-            # be to implement a signal-slot type of workflow where the
-            # job tells the queue when it is done.
-            pujl.set_job_done(uj.dataset_id)
-            break
-        time.sleep(.1)
-    else:
-        assert False, "Job not finished: {}".format(uq[0].get_status())
+    common.wait_for_job(uq, uj.dataset_id)
 
     # sanity check
     assert pujl.is_job_done(uj.dataset_id)
