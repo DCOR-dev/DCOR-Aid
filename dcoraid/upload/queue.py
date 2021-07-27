@@ -29,6 +29,11 @@ class PersistentUploadJobList:
         return self.job_exists(dataset_id)
 
     @property
+    def num_completed(self):
+        """Return number of completed tasks"""
+        return len(list(self.path_completed.glob("*.json")))
+
+    @property
     def num_queued(self):
         """Return number of queued tasks"""
         return len(list(self.path_queued.glob("*.json")))

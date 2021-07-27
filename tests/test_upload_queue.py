@@ -140,6 +140,56 @@ def test_persistent_upload_joblist_basic():
     assert not pujl.job_exists(uj.dataset_id)
 
 
+def test_persistent_upload_joblist_job_added_in_queue():
+    """Test whether queuing works"""
+    api = common.get_api()
+    td = pathlib.Path(tempfile.mkdtemp(prefix="persistent_uj_list_"))
+    pujl_path = td / "joblistdir"
+    task_path = common.make_upload_task()
+    pujl = PersistentUploadJobList(pujl_path)
+    uj = load_task(task_path, api=api)
+
+    uq = UploadQueue(api=api, path_persistent_job_list=pujl_path)
+    uq.daemon_compress.join()
+    uq.daemon_upload.join()
+    uq.daemon_verify.join()
+
+    assert pujl.num_queued == 0
+    uq.add_job(uj)
+    assert pujl.num_queued == 1
+    assert pujl.num_completed == 0
+
+
+def test_persistent_upload_joblist_job_added_and_finished_in_queue():
+    """Test whether queuing works"""
+    api = common.get_api()
+    td = pathlib.Path(tempfile.mkdtemp(prefix="persistent_uj_list_"))
+    pujl_path = td / "joblistdir"
+    task_path = common.make_upload_task()
+    pujl = PersistentUploadJobList(pujl_path)
+    uj = load_task(task_path, api=api)
+
+    uq = UploadQueue(api=api, path_persistent_job_list=pujl_path)
+
+    assert pujl.num_queued == 0
+    uq.add_job(uj)
+
+    # wait for the upload to finish
+    for _ in range(600):  # 60 seconds to upload
+        if uq[0].state == "done":
+            # We do this manually here. Actually, a better solution would
+            # be to implement a signal-slot type of workflow where the
+            # job tells the queue when it is done.
+            pujl.set_job_done(uj.dataset_id)
+            break
+        time.sleep(.1)
+    else:
+        assert False, "Job not finished: {}".format(uq[0].get_status())
+
+    assert pujl.num_queued == 0
+    assert pujl.num_completed == 1
+
+
 def test_persistent_upload_joblist_done():
     """test things when a job is done"""
     api = common.get_api()

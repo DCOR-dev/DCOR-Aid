@@ -1,3 +1,6 @@
+0.5.10
+ - tests: add complementary tests for upload queue and persistent job
+   list
 0.5.9
  - fix: TypeError when attempting a manual upload when the user did not
    have a circle set-up (#17)
