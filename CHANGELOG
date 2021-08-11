@@ -1,6 +1,6 @@
 0.5.10
  - fix: removed confusing wait-cursor during circle selection
- - fix: manual upload dialog was shown even thoug user pressed
+ - fix: manual upload dialog was shown even though user pressed
    cancel on circle creation (#20)
  - fix: silenced very long error message about connection errors
    in the background thread that refreshes the login status
