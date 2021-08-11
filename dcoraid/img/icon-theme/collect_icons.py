@@ -125,7 +125,7 @@ def find_icons(name, theme):
         for topic in web_roots[theme]:
             filename = name + ".svg"
             url = web_roots[theme][topic]
-            response = requests.get(url + filename, timeout=3.05)
+            response = requests.get(url + filename)
             topic_dir = tmpdir / theme / topic
             topic_dir.mkdir(exist_ok=True, parents=True)
             if response.status_code == 200:

@@ -117,7 +117,7 @@ class CKANAPI:
         req = requests.get(url_call,
                            headers=self.headers,
                            verify=self.verify,
-                           timeout=3.05)
+                           timeout=27.9)
         try:
             rdata = req.json()
         except BaseException:
