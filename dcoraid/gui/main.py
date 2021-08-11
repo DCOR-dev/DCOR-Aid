@@ -59,7 +59,7 @@ class StatusWidget(QtWidgets.QWidget):
         favname = dldir / (server.split("://")[1] + "_favicon.ico")
         if not favname.exists():
             try:
-                r = requests.get(server + "/favicon.ico")
+                r = requests.get(server + "/favicon.ico", timeout=3.05)
                 if r.ok:
                     with favname.open("wb") as fd:
                         fd.write(r.content)
@@ -224,30 +224,31 @@ class DCORAid(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def refresh_login_status(self):
         api = get_ckan_api()
-        if not api.is_available():
-            text = "No connection"
-            tip = "Can you access {} via a browser?".format(api.server)
-            icon = "hourglass"
+        if not api.api_key:
+            text = "Anonymous"
+            tip = "Click here to enter your API key."
+            icon = "user"
         else:
-            if not api.api_key:
-                text = "Anonymous"
-                tip = "Click here to enter your API key."
-                icon = "user"
+            try:
+                user_data = api.get_user_dict()
+            except APIKeyError:
+                text = "Login failed"
+                tip = "Click here to update your API key."
+                icon = "user-times"
+            except (ConnectionError,
+                    requests.exceptions.ConnectionError,
+                    requests.exceptions.Timeout):
+                text = "No connection"
+                tip = "Can you access {} via a browser?".format(api.server)
+                icon = "hourglass"
             else:
-                try:
-                    user_data = api.get_user_dict()
-                except APIKeyError:
-                    text = "Login failed"
-                    tip = "Click here to update your API key."
-                    icon = "user-times"
-                else:
-                    fullname = user_data["fullname"]
-                    name = user_data["name"]
-                    if not fullname:
-                        fullname = name
-                    text = "{}".format(fullname)
-                    tip = "user '{}'".format(name)
-                    icon = "user-lock"
+                fullname = user_data["fullname"]
+                name = user_data["name"]
+                if not fullname:
+                    fullname = name
+                text = "{}".format(fullname)
+                tip = "user '{}'".format(name)
+                icon = "user-lock"
         self.status_widget.set_status(text=text,
                                       tooltip=tip,
                                       icon=icon,

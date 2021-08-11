@@ -114,7 +114,10 @@ class CKANAPI:
                 kwv.append("{}={}".format(kw, kwargs[kw]))
             api_call += "?" + "&".join(kwv)
         url_call = self.api_url + api_call
-        req = requests.get(url_call, headers=self.headers, verify=self.verify)
+        req = requests.get(url_call,
+                           headers=self.headers,
+                           verify=self.verify,
+                           timeout=3.05)
         try:
             rdata = req.json()
         except BaseException:
