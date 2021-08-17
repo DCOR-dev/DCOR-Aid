@@ -10,6 +10,9 @@
     <height>839</height>
    </rect>
   </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
+  </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
@@ -21,6 +24,9 @@
      </property>
      <item>
       <widget class="QGroupBox" name="groupBox">
+       <property name="acceptDrops">
+        <bool>false</bool>
+       </property>
        <property name="title">
         <string>Dataset metadata</string>
        </property>
@@ -29,6 +35,9 @@
          <layout class="QFormLayout" name="formLayout">
           <item row="0" column="0">
            <widget class="QLabel" name="label">
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Title</string>
             </property>
@@ -42,6 +51,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="placeholderText">
              <string>A descriptive title</string>
             </property>
@@ -49,6 +61,9 @@
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_2">
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Authors</string>
             </property>
@@ -62,6 +77,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="placeholderText">
              <string>Guybrush Threepwood, John Cleese</string>
             </property>
@@ -69,6 +87,9 @@
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_3">
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>DOI</string>
             </property>
@@ -82,6 +103,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="placeholderText">
              <string>only if published elsewhere (e.g. on figshare)</string>
             </property>
@@ -89,6 +113,9 @@
           </item>
           <item row="3" column="0">
            <widget class="QLabel" name="label_4">
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>References</string>
             </property>
@@ -102,6 +129,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="placeholderText">
              <string>publications (DOIs, arXiv, bioRxiv) or other links</string>
             </property>
@@ -109,6 +139,9 @@
           </item>
           <item row="4" column="0">
            <widget class="QLabel" name="label_5">
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Description</string>
             </property>
@@ -128,6 +161,9 @@
               <height>400</height>
              </size>
             </property>
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="placeholderText">
              <string>General description.</string>
             </property>
@@ -135,6 +171,9 @@
           </item>
           <item row="5" column="0">
            <widget class="QLabel" name="label_6">
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Tags</string>
             </property>
@@ -148,6 +187,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="placeholderText">
              <string>e.g. HL60, cell-cycle</string>
             </property>
@@ -155,33 +197,54 @@
           </item>
           <item row="6" column="0">
            <widget class="QLabel" name="label_7">
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>License</string>
             </property>
            </widget>
           </item>
           <item row="6" column="1">
-           <widget class="QComboBox" name="comboBox_license"/>
+           <widget class="QComboBox" name="comboBox_license">
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
           <item row="7" column="0">
            <widget class="QLabel" name="label_8">
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Circle</string>
             </property>
            </widget>
           </item>
           <item row="7" column="1">
-           <widget class="QComboBox" name="comboBox_circles"/>
+           <widget class="QComboBox" name="comboBox_circles">
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
           <item row="8" column="0">
            <widget class="QLabel" name="label_9">
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Visibility</string>
             </property>
            </widget>
           </item>
           <item row="8" column="1">
-           <widget class="QComboBox" name="comboBox_vis"/>
+           <widget class="QComboBox" name="comboBox_vis">
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -196,6 +259,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="acceptDrops">
+        <bool>false</bool>
+       </property>
        <property name="title">
         <string>Data files</string>
        </property>
@@ -207,8 +273,11 @@
           </property>
           <item>
            <widget class="QLabel" name="label_11">
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click &lt;span style=&quot; font-style:italic;&quot;&gt;Add data files&lt;/span&gt; below to add resources (.rtdc measurements, .so2 session files, images). Then, select one or multiple files to modify the supplementary resource metadata.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click &lt;span style=&quot; font-style:italic;&quot;&gt;Add data files&lt;/span&gt; below or drag&amp;amp;drop files to add resources (e.g. .rtdc files). Then, select one or multiple files to modify the supplementary resource metadata.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -222,6 +291,9 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="acceptDrops">
+             <bool>false</bool>
             </property>
             <property name="selectionMode">
              <enum>QAbstractItemView::ExtendedSelection</enum>
@@ -239,6 +311,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Add data files (resources)</string>
             </property>
@@ -251,6 +326,9 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="acceptDrops">
+             <bool>false</bool>
             </property>
             <property name="text">
              <string>Remove selected resources</string>
@@ -266,12 +344,18 @@
           </property>
           <item>
            <widget class="QGroupBox" name="groupBox_res_info">
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <property name="title">
              <string>Resource</string>
             </property>
             <layout class="QFormLayout" name="formLayout_2">
              <item row="0" column="0">
               <widget class="QLabel" name="label_10">
+               <property name="acceptDrops">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Filename</string>
                </property>
@@ -281,6 +365,9 @@
               <layout class="QHBoxLayout" name="horizontalLayout_5">
                <item>
                 <widget class="QLineEdit" name="lineEdit_res_filename">
+                 <property name="acceptDrops">
+                  <bool>false</bool>
+                 </property>
                  <property name="frame">
                   <bool>true</bool>
                  </property>
@@ -292,6 +379,9 @@
                <item>
                 <widget class="QToolButton" name="toolButton">
                  <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="acceptDrops">
                   <bool>false</bool>
                  </property>
                  <property name="toolTip">
@@ -310,6 +400,9 @@
              </item>
              <item row="1" column="0">
               <widget class="QLabel" name="label_12">
+               <property name="acceptDrops">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Path</string>
                </property>
@@ -317,6 +410,9 @@
              </item>
              <item row="1" column="1">
               <widget class="QLineEdit" name="lineEdit_res_path">
+               <property name="acceptDrops">
+                <bool>false</bool>
+               </property>
                <property name="readOnly">
                 <bool>true</bool>
                </property>
@@ -327,6 +423,9 @@
           </item>
           <item>
            <widget class="QWidget" name="widget_supplement" native="true">
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
             <layout class="QVBoxLayout" name="verticalLayout_5">
              <property name="leftMargin">
               <number>0</number>
@@ -342,6 +441,9 @@
              </property>
              <item>
               <widget class="QGroupBox" name="groupBox_3">
+               <property name="acceptDrops">
+                <bool>false</bool>
+               </property>
                <property name="title">
                 <string>Supplementary resource metadata</string>
                </property>
@@ -371,6 +473,9 @@
                   </property>
                   <item>
                    <widget class="QLabel" name="label_14">
+                    <property name="acceptDrops">
+                     <bool>false</bool>
+                    </property>
                     <property name="text">
                      <string>Preset</string>
                     </property>
@@ -387,6 +492,9 @@
                       <verstretch>0</verstretch>
                      </sizepolicy>
                     </property>
+                    <property name="acceptDrops">
+                     <bool>false</bool>
+                    </property>
                     <property name="editable">
                      <bool>true</bool>
                     </property>
@@ -394,6 +502,9 @@
                   </item>
                   <item>
                    <widget class="QToolButton" name="toolButton_preset_store">
+                    <property name="acceptDrops">
+                     <bool>false</bool>
+                    </property>
                     <property name="text">
                      <string>store</string>
                     </property>
@@ -401,6 +512,9 @@
                   </item>
                   <item>
                    <widget class="QToolButton" name="toolButton_preset_load">
+                    <property name="acceptDrops">
+                     <bool>false</bool>
+                    </property>
                     <property name="text">
                      <string>load</string>
                     </property>
@@ -410,6 +524,9 @@
                 </item>
                 <item>
                  <widget class="Line" name="line">
+                  <property name="acceptDrops">
+                   <bool>false</bool>
+                  </property>
                   <property name="styleSheet">
                    <string notr="true">color:#888</string>
                   </property>
@@ -429,6 +546,9 @@
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="acceptDrops">
+                   <bool>false</bool>
+                  </property>
                   <property name="frameShape">
                    <enum>QFrame::NoFrame</enum>
                   </property>
@@ -446,8 +566,8 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>500</width>
-                     <height>564</height>
+                     <width>494</width>
+                     <height>575</height>
                     </rect>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -467,6 +587,9 @@
                         <horstretch>0</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
+                      </property>
+                      <property name="acceptDrops">
+                       <bool>false</bool>
                       </property>
                      </widget>
                     </item>
@@ -489,6 +612,9 @@
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="acceptDrops">
+      <bool>false</bool>
+     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>

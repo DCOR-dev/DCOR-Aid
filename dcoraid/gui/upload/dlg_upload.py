@@ -121,6 +121,9 @@ class UploadDialog(QtWidgets.QDialog):
         self.toolButton_preset_load.clicked.connect(self.on_preset_load)
         self.toolButton_preset_store.clicked.connect(self.on_preset_store)
 
+        # Do not allow drag and drop to line edit of combobox
+        self.comboBox_preset.lineEdit().setAcceptDrops(False)
+
     def _autofill_for_testing(self, **kwargs):
         self.lineEdit_title.setText(kwargs.get("title", "Dataset Title"))
         self.lineEdit_authors.setText(kwargs.get("authors", "John Doe"))
@@ -138,6 +141,26 @@ class UploadDialog(QtWidgets.QDialog):
         path = pathlib.Path(__file__).resolve().parent / relpath
         if path.exists():
             self.on_add_resources([str(path.resolve())])
+
+    def dragEnterEvent(self, e):
+        """Whether files are accepted"""
+        if e.mimeData().hasUrls():
+            e.accept()
+        else:
+            e.ignore()
+
+    def dropEvent(self, e):
+        """Add dropped files to view"""
+        urls = e.mimeData().urls()
+        pathlist = []
+        for ff in urls:
+            pp = pathlib.Path(ff.toLocalFile())
+            if pp.is_dir():
+                pathlist += list(pp.rglob("*.rtdc"))
+            else:
+                pathlist.append(pp)
+        if pathlist:
+            self.on_add_resources(files=sorted(pathlist))
 
     def get_user_circle_dicts(self):
         with ShowWaitCursor():
@@ -193,8 +216,8 @@ class UploadDialog(QtWidgets.QDialog):
                 self, "Resources to upload", ".",
                 "Supported file types ({})".format(
                     " ".join(["*{}".format(s) for s in suffixes])))
+        files = [str(ff) for ff in files]  # make sure files are strings
         self.rvmodel.add_resources(files)
-
         if not self.listView_resources.selectedIndexes():
             # Select the first item
             ix = self.rvmodel.index(0, 0)
