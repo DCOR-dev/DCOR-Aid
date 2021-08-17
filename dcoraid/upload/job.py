@@ -195,7 +195,7 @@ class UploadJob(object):
                 rate_label = "⌀ " + rate_label
         return rate_label
 
-    def get_rate(self, resolution=1):
+    def get_rate(self, resolution=3.05):
         """Return the current resource upload rate
 
         Parameters
@@ -220,6 +220,9 @@ class UploadJob(object):
             self._last_bytes = 0
         elif self.end_time is None:
             # not finished yet
+            if self._last_time == 0:
+                # first time we are here
+                delta_time = cur_time - self.start_time
             if delta_time > resolution:
                 rate = delta_bytes / delta_time
                 self._last_time = cur_time

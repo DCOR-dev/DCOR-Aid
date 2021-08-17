@@ -1,5 +1,6 @@
 0.5.11
  - enh: drag&drop files to manual upload dialog (#23)
+ - enh: set upload rate refresh interval to >3s (#22)
 0.5.10
  - fix: removed confusing wait-cursor during circle selection
  - fix: manual upload dialog was shown even though user pressed
