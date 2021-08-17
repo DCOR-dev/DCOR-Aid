@@ -29,58 +29,6 @@ QtGui.QIcon.setThemeSearchPaths([
 QtGui.QIcon.setThemeName(".")
 
 
-class StatusWidget(QtWidgets.QWidget):
-    clicked = QtCore.pyqtSignal()
-
-    def __init__(self, *args, **kwargs):
-        super(StatusWidget, self).__init__(*args, **kwargs)
-        self.layout = QtWidgets.QHBoxLayout(self)
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setSpacing(0)
-
-        self.flabel = QtWidgets.QLabel(self)
-        self.layout.addWidget(self.flabel)
-
-        self.toolButton_user = QtWidgets.QToolButton()
-        self.toolButton_user.setText("Initialization...")
-        self.toolButton_user.setToolButtonStyle(
-            QtCore.Qt.ToolButtonTextBesideIcon)
-        self.toolButton_user.setAutoRaise(True)
-        self.layout.addWidget(self.toolButton_user)
-        self.toolButton_user.clicked.connect(self.clicked)
-
-    @staticmethod
-    def get_favicon(server):
-        dldir = pathlib.Path(
-            QtCore.QStandardPaths.writableLocation(
-                QtCore.QStandardPaths.AppDataLocation)) / "favicons"
-
-        dldir.mkdir(exist_ok=True, parents=True)
-        favname = dldir / (server.split("://")[1] + "_favicon.ico")
-        if not favname.exists():
-            try:
-                r = requests.get(server + "/favicon.ico", timeout=3.05)
-                if r.ok:
-                    with favname.open("wb") as fd:
-                        fd.write(r.content)
-                else:
-                    raise ValueError("No favicon!")
-                favicon = QtGui.QIcon(str(favname))
-            except BaseException:
-                favicon = QtGui.QIcon()
-        else:
-            favicon = QtGui.QIcon(str(favname))
-        return favicon
-
-    def set_status(self, text, tooltip, icon, server):
-        favicon = self.get_favicon(server)
-        self.flabel.setPixmap(favicon.pixmap(16, 16))
-        self.flabel.setToolTip(server)
-        self.toolButton_user.setText(text)
-        self.toolButton_user.setToolTip(tooltip)
-        self.toolButton_user.setIcon(QtGui.QIcon.fromTheme(icon))
-
-
 class DCORAid(QtWidgets.QMainWindow):
     plots_changed = QtCore.pyqtSignal()
 
@@ -270,6 +218,58 @@ class DCORAid(QtWidgets.QMainWindow):
             else:
                 self.user_filter_chain.set_db_extract(db_extract)
         self.tab_user.setCursor(QtCore.Qt.ArrowCursor)
+
+
+class StatusWidget(QtWidgets.QWidget):
+    clicked = QtCore.pyqtSignal()
+
+    def __init__(self, *args, **kwargs):
+        super(StatusWidget, self).__init__(*args, **kwargs)
+        self.layout = QtWidgets.QHBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(0)
+
+        self.flabel = QtWidgets.QLabel(self)
+        self.layout.addWidget(self.flabel)
+
+        self.toolButton_user = QtWidgets.QToolButton()
+        self.toolButton_user.setText("Initialization...")
+        self.toolButton_user.setToolButtonStyle(
+            QtCore.Qt.ToolButtonTextBesideIcon)
+        self.toolButton_user.setAutoRaise(True)
+        self.layout.addWidget(self.toolButton_user)
+        self.toolButton_user.clicked.connect(self.clicked)
+
+    @staticmethod
+    def get_favicon(server):
+        dldir = pathlib.Path(
+            QtCore.QStandardPaths.writableLocation(
+                QtCore.QStandardPaths.AppDataLocation)) / "favicons"
+
+        dldir.mkdir(exist_ok=True, parents=True)
+        favname = dldir / (server.split("://")[1] + "_favicon.ico")
+        if not favname.exists():
+            try:
+                r = requests.get(server + "/favicon.ico", timeout=3.05)
+                if r.ok:
+                    with favname.open("wb") as fd:
+                        fd.write(r.content)
+                else:
+                    raise ValueError("No favicon!")
+                favicon = QtGui.QIcon(str(favname))
+            except BaseException:
+                favicon = QtGui.QIcon()
+        else:
+            favicon = QtGui.QIcon(str(favname))
+        return favicon
+
+    def set_status(self, text, tooltip, icon, server):
+        favicon = self.get_favicon(server)
+        self.flabel.setPixmap(favicon.pixmap(16, 16))
+        self.flabel.setToolTip(server)
+        self.toolButton_user.setText(text)
+        self.toolButton_user.setToolTip(tooltip)
+        self.toolButton_user.setIcon(QtGui.QIcon.fromTheme(icon))
 
 
 def excepthook(etype, value, trace):
