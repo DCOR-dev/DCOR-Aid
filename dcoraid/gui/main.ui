@@ -25,7 +25,7 @@
       </property>
       <widget class="QWidget" name="tab_browse">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <attribute name="icon">
         <iconset theme="globe">
@@ -38,7 +38,7 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_9">
           <item>
-           <widget class="QLineEdit" name="public_search">
+           <widget class="QLineEdit" name="lineEdit_public_search">
             <property name="placeholderText">
              <string>Search public data on DCOR...</string>
             </property>
@@ -68,7 +68,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="spinBox">
+           <widget class="QSpinBox" name="spinBox_public_rows">
             <property name="minimum">
              <number>10</number>
             </property>
@@ -84,51 +84,9 @@
            </widget>
           </item>
           <item>
-           <spacer name="horizontalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_5">
+           <widget class="QPushButton" name="pushButton_public_search">
             <property name="text">
-             <string>state:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QDateEdit" name="dateEdit">
-            <property name="frame">
-             <bool>true</bool>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-            <property name="buttonSymbols">
-             <enum>QAbstractSpinBox::NoButtons</enum>
-            </property>
-            <property name="displayFormat">
-             <string>dd.MM.yy HH:mm</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QToolButton" name="toolButton_2">
-            <property name="text">
-             <string>Update</string>
+             <string>Search</string>
             </property>
            </widget>
           </item>
@@ -136,6 +94,9 @@
         </item>
         <item>
          <widget class="FilterChain" name="public_filter_chain" native="true">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
             <horstretch>0</horstretch>

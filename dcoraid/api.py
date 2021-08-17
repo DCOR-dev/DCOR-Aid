@@ -107,6 +107,8 @@ class CKANAPI:
             Result of the API call converted to a dictionary
             from the returned json string
         """
+        if "?" in api_call:
+            raise ValueError("Please onyl use original API call without '?'!")
         if kwargs:
             # Add keyword arguments
             kwv = []

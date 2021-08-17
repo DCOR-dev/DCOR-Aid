@@ -1,3 +1,4 @@
+import urllib
 import warnings
 
 from .core import DBInterrogator, DBModel
@@ -113,7 +114,7 @@ class APIInterrogator(DBInterrogator):
         solr_collections_query = " OR ".join(solr_collections)
 
         data = self.api.get("package_search",
-                            q=query,
+                            q=urllib.parse.quote(query, safe=""),
                             include_private=(mode == "user"),
                             fq="({}) AND ({})".format(solr_circle_query,
                                                       solr_collections_query),

@@ -19,7 +19,7 @@ from .._version import version as __version__
 
 from .api import get_ckan_api
 from .preferences import PreferencesDialog
-from .tools import run_async
+from .tools import ShowWaitCursor, run_async
 from .wizard import SetupWizard
 
 # set Qt icon theme search path
@@ -87,6 +87,7 @@ class DCORAid(QtWidgets.QMainWindow):
         # Help menu
         self.actionSoftware.triggered.connect(self.on_action_software)
         self.actionAbout.triggered.connect(self.on_action_about)
+
         # Display login status
         self.status_widget = StatusWidget(self)
         self.tabWidget.setCornerWidget(self.status_widget)
@@ -99,11 +100,16 @@ class DCORAid(QtWidgets.QMainWindow):
             self.timer = QtCore.QTimer()
             self.timer.timeout.connect(self.refresh_login_status)
             self.timer.start(300000)
+
         # Update private data tab
         self.refresh_private_data()
         # If a new dataset has been uploaded, refresh private data
         self.panel_upload.upload_finished.connect(self.refresh_private_data)
 
+        # Signals for public data browser
+        self.pushButton_public_search.clicked.connect(self.on_public_search)
+
+        # Run wizard if necessary
         if ((self.settings.value("user scenario", "") != "anonymous")
                 and not self.settings.value("auth/api key", "")):
             QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
@@ -162,6 +168,14 @@ class DCORAid(QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.information(self,
                                           "Software",
                                           sw_text)
+
+    @QtCore.pyqtSlot()
+    def on_public_search(self):
+        api = get_ckan_api()
+        am = APIModel(api=api, mode="public")
+        with ShowWaitCursor():
+            dbextract = am.search_dataset(self.lineEdit_public_search.text())
+        self.public_filter_chain.set_db_extract(dbextract)
 
     @QtCore.pyqtSlot()
     def on_wizard(self):

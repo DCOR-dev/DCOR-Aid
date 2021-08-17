@@ -4,7 +4,7 @@ from functools import lru_cache
 from .util import ttl_cache
 
 
-class DBExtract():
+class DBExtract:
     def __init__(self, datasets, circles=None, collections=None):
         """User-convenient access to dataset search results
 
@@ -148,7 +148,7 @@ class DBInterrogator(abc.ABC):
 
     @property
     def is_up_to_date(self):
-        "Checks whether the local database copy is up-to-date"
+        """Checks whether the local database copy is up-to-date"""
         if self.local_version_score != self.remote_version_score:
             uptodate = False
         elif self.local_timestamp != self.remote_timestamp:
@@ -193,7 +193,7 @@ class DBInterrogator(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def search_dataset(self, circles, collections, mode="public"):
+    def search_dataset(self, query, circles, collections, mode="public"):
         pass
 
     @property
