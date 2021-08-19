@@ -1,4 +1,5 @@
 0.5.11
+ - fix: KeyError when checking for existence of resource (#24)
  - enh: drag&drop files to manual upload dialog (#23)
  - enh: set upload rate refresh interval to >3s (#22)
  - enh: permit to only update resource schema supplements when

@@ -101,6 +101,53 @@ def test_dataset_creation_wrong_resource_supplement():
                              )
 
 
+def test_dataset_resource_exists():
+    """There should be an error when a resource is added twice"""
+    api = common.get_api()
+    # create some metadata
+    dataset_dict = common.make_dataset_dict(hint="create-with-same-resource")
+    # post dataset creation request
+    data = dataset.create_dataset(dataset_dict=dataset_dict,
+                                  api=api)
+    dataset.add_resource(dataset_id=data["id"],
+                         path=dpath,
+                         api=api
+                         )
+
+    assert dataset.resource_exists(dataset_id=data["id"],
+                                   resource_name=dpath.name,
+                                   api=api)
+
+    assert not dataset.resource_exists(dataset_id=data["id"],
+                                       resource_name=dpath.name,
+                                       resource_dict={
+                                           "sp:chip:channel width": 21.0
+                                       },
+                                       api=api)
+
+
+def test_dataset_resource_exists2():
+    """There should be an error when a resource is added twice"""
+    api = common.get_api()
+    # create some metadata
+    dataset_dict = common.make_dataset_dict(hint="create-with-same-resource")
+    # post dataset creation request
+    data = dataset.create_dataset(dataset_dict=dataset_dict,
+                                  api=api)
+    dataset.add_resource(dataset_id=data["id"],
+                         path=dpath,
+                         resource_dict={"sp:chip:channel width": 21.0},
+                         api=api,
+                         )
+
+    assert dataset.resource_exists(dataset_id=data["id"],
+                                   resource_name=dpath.name,
+                                   resource_dict={
+                                       "sp:chip:channel width": 21.0
+                                   },
+                                   api=api)
+
+
 if __name__ == "__main__":
     # Run all tests
     loc = locals()

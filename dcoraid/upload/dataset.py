@@ -170,14 +170,32 @@ def remove_all_drafts(api):
     return data["results"]
 
 
-def resource_exists(dataset_id, resource_name, api, resource_dict):
-    """Check whether a resource exists in a dataset"""
+def resource_exists(dataset_id, resource_name, api, resource_dict=None):
+    """Check whether a resource exists in a dataset
+
+    Parameters
+    ----------
+    dataset_id: str
+        UUID of the dataset
+    resource_name: str
+        name of the resource
+    api: dcoraid.api.CKANAPI
+        API instance
+    resource_dict: dict
+        resource dictionary to check against (optional); If this is given,
+        then this method returns False if there are discrepancies in the
+        resource schema supplements (even if the resource exists).
+    """
+    if resource_dict is None:
+        resource_dict = {}
     pkg_dict = api.get("package_show", id=dataset_id)
     for resource in pkg_dict["resources"]:
         if resource["name"] == resource_name:
             # check that the resource dict matches
             for key in resource_dict:
-                if resource[key] != resource_dict[key]:
+                if key not in resource or resource[key] != resource_dict[key]:
+                    # Either the resource schema supplement is missing
+                    # or it is wrong.
                     return False
             return True
     else:
