@@ -26,7 +26,7 @@ def activate_dataset(dataset_id, api):
 
 
 def add_resource(dataset_id, path, api, resource_name=None,
-                 resource_dict=None, monitor_callback=None):
+                 resource_dict=None, exist_ok=False, monitor_callback=None):
     """Add a resource to a dataset
 
     Parameters
@@ -42,6 +42,9 @@ def add_resource(dataset_id, path, api, resource_name=None,
     resource_dict: dict
         Dictionary of resource meta data (used for supplementary
         resource schemas "sp:section:key")
+    exist_ok: bool
+        If the uploaded resource already exists, do not re-upload
+        it, only update the resource_dict.
     monitor_callback: None or callable
         This callable is used to monitor the upload progress. It must
         accept one argument: a
@@ -57,16 +60,24 @@ def add_resource(dataset_id, path, api, resource_name=None,
     path = pathlib.Path(path)
     if resource_name is None:
         resource_name = path.name
-    e = MultipartEncoder(fields={
-        'package_id': dataset_id,
-        'name': resource_name,
-        'upload': (resource_name, path.open('rb'))})
-    m = MultipartEncoderMonitor(e, monitor_callback)
-    # perform upload
-    data = api.post("resource_create",
-                    data=m,
-                    dump_json=False,
-                    headers={"Content-Type": m.content_type})
+
+    pkg_dict = api.get("package_show", id=dataset_id)
+    res_names = [r["name"] for r in pkg_dict["resources"]]
+    if resource_name in res_names and exist_ok:
+        # Resource already uploaded and user does not wish to re-upload
+        data = pkg_dict["resources"][res_names.index(resource_name)]
+    else:
+        # Attempt upload
+        e = MultipartEncoder(fields={
+            'package_id': dataset_id,
+            'name': resource_name,
+            'upload': (resource_name, path.open('rb'))})
+        m = MultipartEncoderMonitor(e, monitor_callback)
+        # perform upload
+        data = api.post("resource_create",
+                        data=m,
+                        dump_json=False,
+                        headers={"Content-Type": m.content_type})
     if resource_dict:
         # add resource_dict
         revise_dict = {

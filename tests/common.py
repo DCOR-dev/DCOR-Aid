@@ -107,7 +107,7 @@ def wait_for_job(upload_queue, dataset_id, wait_time=60):
         assert False, f"Job '{uj}' not done in {wait_time}s, state {uj.state}!"
 
 
-def wait_for_job_no_queue(upload_job, wait_time=60):
+def wait_for_job_no_queue(upload_job, wait_time=120):
     uj = upload_job
     # wait for the upload to finish
     for _ in range(wait_time*10):

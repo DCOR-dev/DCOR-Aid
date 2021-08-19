@@ -376,6 +376,7 @@ class UploadJob(object):
                                 resource_name=resource_name,
                                 resource_dict=resource_supplement,
                                 api=self.api,
+                                exist_ok=True,
                                 monitor_callback=self.monitor_callback)
                             self.paths_uploaded.append(path)
                         except SystemExit:

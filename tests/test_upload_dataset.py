@@ -27,8 +27,37 @@ def test_dataset_create_same_resource():
         # Should not be able to upload same resource twice
         dataset.add_resource(dataset_id=data["id"],
                              path=dpath,
+                             exist_ok=False,
                              api=api
                              )
+
+
+def test_dataset_create_same_resource_exist_ok():
+    """There should be an error when a resource is added twice"""
+    api = common.get_api()
+    # create some metadata
+    dataset_dict = common.make_dataset_dict(hint="create-with-same-resource")
+    # post dataset creation request
+    data = dataset.create_dataset(dataset_dict=dataset_dict,
+                                  api=api)
+    dataset.add_resource(dataset_id=data["id"],
+                         path=dpath,
+                         api=api
+                         )
+
+    # Should not be able to upload same resource twice
+    dataset.add_resource(dataset_id=data["id"],
+                         path=dpath,
+                         exist_ok=True,
+                         api=api,
+                         resource_dict={"sp:chip:channel width": 21.0}
+                         )
+
+    pkg_dict = api.get("package_show", id=data["id"])
+    res_names = [r["name"] for r in pkg_dict["resources"]]
+    idres = res_names.index(dpath.name)
+    assert len(pkg_dict["resources"]) == 1
+    assert pkg_dict["resources"][idres]["sp:chip:channel width"] == 21.0
 
 
 def test_dataset_creation():
