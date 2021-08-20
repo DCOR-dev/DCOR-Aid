@@ -15,6 +15,9 @@ class FilterBase(QtWidgets.QWidget):
         path_ui = pkg_resources.resource_filename("dcoraid.gui.dbview",
                                                   "filter_base.ui")
         uic.loadUi(path_ui, self)
+
+        #: List of items in the current list
+        self.item_dict = OrderedDict()
         # trigger user selection change signal
         self.listWidget.itemSelectionChanged.connect(self.on_item_selected)
 
@@ -52,8 +55,7 @@ class FilterBase(QtWidgets.QWidget):
             items to be displayed.
         """
         if not isinstance(item_dict, dict):
-            raise ValueError(
-                "`item_dict` must be dict, got '{}'!".fromat(item_dict))
+            raise ValueError(f"`item_dict` must be dict, got '{item_dict}'!")
         self.item_dict = OrderedDict(item_dict)
         self.listWidget.clear()
         for key in self.item_dict:

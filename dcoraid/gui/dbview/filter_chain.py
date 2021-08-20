@@ -15,8 +15,12 @@ class FilterChain(QtWidgets.QWidget):
                                                   "filter_chain.ui")
         uic.loadUi(path_ui, self)
 
-        #: Currently visible datasets
-        self.datasets = []
+        #: Currently visible dataset names
+        self.dataset_names = []
+
+        #: Current database extract
+        #: (instance of :class:`dcoraid.dbmodel.core.DBExtract`)
+        self.db_extract = None
 
         #: Signals and slots
         self.fw_datasets.selection_changed.connect(self.show_resources)
@@ -37,7 +41,7 @@ class FilterChain(QtWidgets.QWidget):
 
         Parameters
         ----------
-        db_model: dcoraid.dbmodel.core.DBExtract
+        db_extract: dcoraid.dbmodel.core.DBExtract
             Subclass of DBModel
         """
         self.db_extract = db_extract
