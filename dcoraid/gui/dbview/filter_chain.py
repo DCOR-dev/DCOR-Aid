@@ -15,26 +15,42 @@ class FilterChain(QtWidgets.QWidget):
                                                   "filter_chain.ui")
         uic.loadUi(path_ui, self)
 
-        #: Currently visible dataset names
-        self.dataset_names = []
-
         #: Current database extract
         #: (instance of :class:`dcoraid.dbmodel.core.DBExtract`)
         self.db_extract = None
 
-        #: Signals and slots
-        self.fw_datasets.selection_changed.connect(self.show_resources)
+        # Signals and slots
+        # circle selection changed
+        self.fw_circles.selection_changed.connect(self.on_select_circles)
+        # collection selection changed
+        self.fw_collections.selection_changed.connect(self.update_datasets)
+        # dataset selection changed
+        self.fw_datasets.selection_changed.connect(self.update_resources)
+        # resource filtered by .rtdc
         self.fw_resources.checkBox.stateChanged.connect(self.update_resources)
 
     @property
     def selected_circles(self):
         """Circles currently selected"""
-        return self.fw_circles.get_item_keys(selected=True)
+        circs = self.fw_circles.get_item_keys(selected=True)
+        if not circs:
+            circs = self.fw_circles.get_item_keys(selected=False)
+        return circs
 
     @property
     def selected_collections(self):
         """Collections currently selected"""
         return self.fw_collections.get_item_keys(selected=True)
+
+    @property
+    def selected_datasets(self):
+        """Datasets currently selected"""
+        return self.fw_datasets.get_item_keys(selected=True)
+
+    @QtCore.pyqtSlot()
+    def on_select_circles(self):
+        self.update_collections()
+        self.update_datasets()
 
     def set_db_extract(self, db_extract):
         """Set the database model
@@ -53,26 +69,40 @@ class FilterChain(QtWidgets.QWidget):
             circle_items[ci] = ci
         self.fw_circles.set_items(circle_items)
         # collections
+        self.update_collections()
+        # datasets
+        self.update_datasets()
+
+    def update_collections(self):
         collection_items = OrderedDict()
         for co in self.db_extract.collections:
             warnings.warn("Have to implement global collection cache")
             collection_items[co] = co
         self.fw_collections.set_items(collection_items)
-        # datasets
+
+    @QtCore.pyqtSlot()
+    def update_datasets(self):
+        circles = self.selected_circles
+        collections = self.selected_collections
         dataset_items = OrderedDict()
         for ds in self.db_extract.datasets:
+            if ds["organization"]["name"] not in circles:
+                # dataset is not part of the circle
+                continue
+            if collections:
+                ds_collections = [g.get("name") for g in ds.get("groups", {})]
+                if not set(collections) & set(ds_collections):
+                    # collections have been selected and the dataset is not
+                    # part of any
+                    continue
             dataset_items[ds["name"]] = ds["title"]
         self.fw_datasets.set_items(dataset_items)
-
-    @QtCore.pyqtSlot(list)
-    def show_resources(self, dataset_names):
-        self.dataset_names = dataset_names
         self.update_resources()
 
     @QtCore.pyqtSlot()
     def update_resources(self):
         rs_items = OrderedDict()
-        for dn in self.dataset_names:
+        for dn in self.selected_datasets:
             ddict = self.db_extract.get_dataset_dict(dn)
             for rs in ddict["resources"]:
                 if (self.fw_resources.checkBox.isChecked()

@@ -56,7 +56,8 @@ class FilterBase(QtWidgets.QWidget):
         """
         if not isinstance(item_dict, dict):
             raise ValueError(f"`item_dict` must be dict, got '{item_dict}'!")
-        self.item_dict = OrderedDict(item_dict)
         self.listWidget.clear()
+        self.item_dict.clear()
+        self.item_dict = OrderedDict(item_dict)
         for key in self.item_dict:
             self.listWidget.addItem(self.item_dict[key])

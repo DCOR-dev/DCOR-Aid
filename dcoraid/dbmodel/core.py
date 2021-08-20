@@ -13,6 +13,10 @@ class DBExtract:
         datasets: list
             List of CKAN package dictionaries
         """
+        if circles is None:
+            circles = []
+        if collections is None:
+            collections = []
         self._circles = circles
         self._collections = collections
         self._dataset_name_index = None
@@ -21,7 +25,9 @@ class DBExtract:
     @property
     @lru_cache(maxsize=1)
     def circles(self):
-        if self._circles is None:
+        if not self._circles:
+            # This is slow, so it is recommended to always pass the
+            # circles in init.
             cl = []
             for dd in self.datasets:
                 name = dd["organization"]["name"]
@@ -33,7 +39,9 @@ class DBExtract:
     @property
     @lru_cache(maxsize=1)
     def collections(self):
-        if self._collections is None:
+        if not self._collections:
+            # This is slow, so it is recommended to always pass the
+            # collections in init.
             ct = []
             for dd in self.datasets:
                 for gg in dd["groups"]:
@@ -114,29 +122,27 @@ class DBModel:
                             )
         return extract
 
-    def set_filter(self, circles=[], collections=[]):
+    def set_filter(self, circles=None, collections=None):
         """Set a search query filter"""
-        db_circles = self.db.get_circles(mode=self.mode)
-        db_collections = self.db.get_collections(mode=self.mode)
+        if circles is None:
+            circles = []
+        if collections is None:
+            collections = []
 
-        # If no circles or collections are specified, then
-        # there would be no search results. For user
-        # convenience, we set the complete lists instead.
-        if not circles:
-            circles = db_circles
-        if not collections:
-            collections = db_collections
-
-        # Sanity checks
-        for ci in circles:
-            if ci not in db_circles:
-                raise KeyError(
-                    "Circle '{}' does not exist in '{}'!".format(ci, self.db))
-        for co in collections:
-            if co not in db_collections:
-                raise KeyError(
-                    "Collection '{}' does not exist in '{}'!".format(co,
-                                                                     self.db))
+        if circles:
+            db_circles = self.db.get_circles(mode=self.mode)
+            # Sanity check
+            for ci in circles:
+                if ci not in db_circles:
+                    raise KeyError(
+                        f"Circle '{ci}' does not exist in '{self.db}'!")
+        if collections:
+            db_collections = self.db.get_collections(mode=self.mode)
+            # Sanity check
+            for co in collections:
+                if co not in db_collections:
+                    raise KeyError(
+                        f"Collection '{co}' does not exist in '{self.db}'!")
 
         self.search_query["circles"] = circles
         self.search_query["collections"] = collections

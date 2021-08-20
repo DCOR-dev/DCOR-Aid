@@ -1,4 +1,4 @@
-import urllib
+import urllib.parse
 import warnings
 
 from .core import DBInterrogator, DBModel
@@ -107,17 +107,31 @@ class APIInterrogator(DBInterrogator):
 
     def search_dataset(self, query, circles, collections, mode="public"):
         # https://docs.ckan.org/en/latest/user-guide.html#search-in-detail
-        solr_circles = ["organization:{}".format(ci) for ci in circles]
-        solr_circle_query = " OR ".join(solr_circles)
+        if circles:
+            solr_circles = ["organization:{}".format(ci) for ci in circles]
+            solr_circle_query = " OR ".join(solr_circles)
+        else:
+            solr_circle_query = None
 
-        solr_collections = ["groups:{}".format(co) for co in collections]
-        solr_collections_query = " OR ".join(solr_collections)
+        if collections:
+            solr_collections = ["groups:{}".format(co) for co in collections]
+            solr_collections_query = " OR ".join(solr_collections)
+        else:
+            solr_collections_query = None
+
+        if solr_circle_query and solr_collections_query:
+            fq = f"({solr_circle_query}) AND ({solr_collections_query})"
+        elif solr_circle_query:
+            fq = f"{solr_circle_query}"
+        elif solr_collections_query:
+            fq = f"{solr_collections_query}"
+        else:
+            fq = ""
 
         data = self.api.get("package_search",
                             q=urllib.parse.quote(query, safe=""),
                             include_private=(mode == "user"),
-                            fq="({}) AND ({})".format(solr_circle_query,
-                                                      solr_collections_query),
+                            fq=fq,
                             rows=100,
                             )
         return data["results"]
