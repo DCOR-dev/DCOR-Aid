@@ -1,3 +1,5 @@
+import copy
+
 import pkg_resources
 import warnings
 
@@ -61,32 +63,17 @@ class FilterChain(QtWidgets.QWidget):
         """
         self.db_extract = db_extract
         # reset all lists
-        # circles
-        circle_entries = []
-        for ci in self.db_extract.circles:
-            warnings.warn("Have to implement global circle cache")
-            entry = {
-                "identifier": ci["name"],
-                "text": ci.get("title") or ci["name"],
-            }
-            circle_entries.append(entry)
-        self.fw_circles.set_entries(circle_entries)
+        self.fw_circles.set_entries(
+            copy.deepcopy(self.db_extract.circles))
         # collections
         self.update_collections()
         # datasets
         self.update_datasets()
 
     def update_collections(self):
-        collection_entries = []
-        for co in self.db_extract.collections:
-            warnings.warn("Have to implement global collection cache")
-            entry = {
-                "identifier": co["name"],
-                "text": co.get("title") or co["name"],
-            }
-            collection_entries.append(entry)
         self.fw_collections.blockSignals(True)
-        self.fw_collections.set_entries(collection_entries)
+        self.fw_collections.set_entries(
+            copy.deepcopy(self.db_extract.collections))
         self.fw_collections.blockSignals(False)
 
     @QtCore.pyqtSlot()
@@ -104,11 +91,7 @@ class FilterChain(QtWidgets.QWidget):
                     # collections have been selected and the dataset is not
                     # part of any
                     continue
-            entry = {
-                "identifier": ds["name"],
-                "text": ds.get("title") or ds["name"],
-            }
-            dataset_items.append(entry)
+            dataset_items.append(ds)
         self.fw_datasets.blockSignals(True)
         self.fw_datasets.set_entries(dataset_items)
         self.fw_datasets.blockSignals(False)
@@ -126,9 +109,5 @@ class FilterChain(QtWidgets.QWidget):
                     # Ignore non-RT-DC mimetypes
                     continue
                 else:
-                    entry = {
-                        "identifier": rs["id"],
-                        "text": rs.get("title", rs["name"]),
-                    }
-                    rs_entries.append(entry)
+                    rs_entries.append(rs)
         self.fw_resources.set_entries(rs_entries)

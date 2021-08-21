@@ -26,15 +26,19 @@ class FilterBase(QtWidgets.QWidget):
         # trigger user selection change signal
         self.tableWidget.itemSelectionChanged.connect(self.on_entry_selected)
 
+    def get_entry_actions(self, row, entry):
+        """This is defined in the subclasses (Circle, Collection, etc)"""
+        return []
+
     def get_entry_identifiers(self, selected=False):
         """Return the identifiers of the current tableWidget entries"""
         if selected:
             identifiers = []
             for ii, entry in enumerate(self.entries):
                 if self.tableWidget.item(ii, 0).isSelected():
-                    identifiers.append(entry["identifier"])
+                    identifiers.append(entry["name"])
         else:
-            identifiers = [ee["identifier"] for ee in self.entries]
+            identifiers = [ee["name"] for ee in self.entries]
         return identifiers
 
     @QtCore.pyqtSlot()
@@ -45,19 +49,6 @@ class FilterBase(QtWidgets.QWidget):
     def set_entries(self, entries):
         """Set the current tableWidget entries
 
-        Parameters
-        ----------
-        entries: list of dict
-            List of entries. Each entry is a dictionary with the keys:
-
-            - "identifier": identifier of the entry
-            - "text": text of the entry
-            - "tools": list of dictionaries for the tool buttons displayed
-               on the right of each row. Each of the dictionaries contains
-               the keys:
-               - action: callable function that is executed
-               - icon: icon to be displayed
-               - tooltip: tooltip to be displayed
         """
         if not isinstance(entries, list):
             raise ValueError(f"`entries` must be list, got '{entries}'!")
@@ -65,8 +56,29 @@ class FilterBase(QtWidgets.QWidget):
         self.entries = copy.deepcopy(entries)
         self.tableWidget.blockSignals(True)
         self.tableWidget.setRowCount(len(self.entries))
-        for ii, entry in enumerate(self.entries):
-            item = QtWidgets.QTableWidgetItem()
-            item.setText(self.entries[ii]["text"])
-            self.tableWidget.setItem(ii, 0, item)
+        for row, entry in enumerate(self.entries):
+            self.set_entry(row, entry)
         self.tableWidget.blockSignals(False)
+
+    def set_entry(self, row, entry):
+        """Set table Widget entry at index `row`
+
+        This function should call `set_entry_text`
+        """
+        self.set_entry_text(row, entry.get("title") or entry["name"])
+        for action in self.get_entry_actions(row, entry):
+            pass
+
+    def set_entry_text(self, row, text):
+        """Set table Widget entry text at index `row`
+
+        Parameters
+        ----------
+        row: int
+            The row where to put the entry
+        text: str
+            the text to display on the left
+        """
+        item = QtWidgets.QTableWidgetItem()
+        item.setText(text)
+        self.tableWidget.setItem(row, 0, item)
