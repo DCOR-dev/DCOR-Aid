@@ -1,7 +1,6 @@
 import copy
 
 import pkg_resources
-import warnings
 
 from PyQt5 import QtCore, QtWidgets, uic
 
