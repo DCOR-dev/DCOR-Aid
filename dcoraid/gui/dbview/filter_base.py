@@ -1,4 +1,4 @@
-from collections import OrderedDict
+import copy
 import pkg_resources
 
 from PyQt5 import QtCore, QtWidgets, uic
@@ -16,48 +16,57 @@ class FilterBase(QtWidgets.QWidget):
                                                   "filter_base.ui")
         uic.loadUi(path_ui, self)
 
-        #: List of items in the current list
-        self.item_dict = OrderedDict()
-        # trigger user selection change signal
-        self.listWidget.itemSelectionChanged.connect(self.on_item_selected)
+        #: List of entries in the current list
+        self.entries = []
 
-    def get_item_keys(self, selected=False):
-        """Return the keys of the dictionary items"""
+        # resize first column
+        header = self.tableWidget.horizontalHeader()
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+
+        # trigger user selection change signal
+        self.tableWidget.itemSelectionChanged.connect(self.on_entry_selected)
+
+    def get_entry_identifiers(self, selected=False):
+        """Return the identifiers of the current tableWidget entries"""
         if selected:
-            keys = []
-            for ii, key in enumerate(self.item_dict):
-                if self.listWidget.item(ii).isSelected():
-                    keys.append(key)
+            identifiers = []
+            for ii, entry in enumerate(self.entries):
+                if self.tableWidget.item(ii, 0).isSelected():
+                    identifiers.append(entry["identifier"])
         else:
-            keys = list(self.item_dict.keys())
-        return keys
+            identifiers = [ee["identifier"] for ee in self.entries]
+        return identifiers
 
     @QtCore.pyqtSlot()
-    def on_item_selected(self):
-        keys = self.get_item_keys(selected=True)
-        self.selection_changed.emit(keys)
+    def on_entry_selected(self):
+        ids = self.get_entry_identifiers(selected=True)
+        self.selection_changed.emit(ids)
 
-    def select_item_keys(self, keys):
-        """Select entries in `keys`, all other entries are deselected"""
-        for ii, key in enumerate(self.item_dict):
-            if key in keys:
-                self.listWidget.item(ii).setSelected(True)
-            else:
-                self.listWidget.item(ii).setSelected(False)
-
-    def set_items(self, item_dict):
-        """Set the current list items
+    def set_entries(self, entries):
+        """Set the current tableWidget entries
 
         Parameters
         ----------
-        item_dict: dict
-            A dictionary {"key": "displayed text", ...} of the
-            items to be displayed.
+        entries: list of dict
+            List of entries. Each entry is a dictionary with the keys:
+
+            - "identifier": identifier of the entry
+            - "text": text of the entry
+            - "tools": list of dictionaries for the tool buttons displayed
+               on the right of each row. Each of the dictionaries contains
+               the keys:
+               - action: callable function that is executed
+               - icon: icon to be displayed
+               - tooltip: tooltip to be displayed
         """
-        if not isinstance(item_dict, dict):
-            raise ValueError(f"`item_dict` must be dict, got '{item_dict}'!")
-        self.listWidget.clear()
-        self.item_dict.clear()
-        self.item_dict = OrderedDict(item_dict)
-        for key in self.item_dict:
-            self.listWidget.addItem(self.item_dict[key])
+        if not isinstance(entries, list):
+            raise ValueError(f"`entries` must be list, got '{entries}'!")
+        self.tableWidget.clear()
+        self.entries = copy.deepcopy(entries)
+        self.tableWidget.blockSignals(True)
+        self.tableWidget.setRowCount(len(self.entries))
+        for ii, entry in enumerate(self.entries):
+            item = QtWidgets.QTableWidgetItem()
+            item.setText(self.entries[ii]["text"])
+            self.tableWidget.setItem(ii, 0, item)
+        self.tableWidget.blockSignals(False)

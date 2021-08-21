@@ -39,6 +39,7 @@ class DCORAid(QtWidgets.QMainWindow):
         application will print the version after initialization
         and exit.
         """
+        super(DCORAid, self).__init__(*args, **kwargs)
         # Settings are stored in the .ini file format. Even though
         # `self.settings` may return integer/bool in the same session,
         # in the next session, it will reliably return strings. Lists
@@ -64,7 +65,6 @@ class DCORAid(QtWidgets.QMainWindow):
 
         #: DCOR-Aid settings
         self.settings = QtCore.QSettings()
-        super(DCORAid, self).__init__(*args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "dcoraid.gui", "main.ui")
         uic.loadUi(path_ui, self)
@@ -219,6 +219,7 @@ class DCORAid(QtWidgets.QMainWindow):
     @run_async
     @QtCore.pyqtSlot()
     def refresh_private_data(self):
+        return
         self.tab_user.setCursor(QtCore.Qt.WaitCursor)
         # TODO:
         # - what happens if the user changes the server? Ask to restart?

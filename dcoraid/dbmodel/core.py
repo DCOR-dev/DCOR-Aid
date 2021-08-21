@@ -5,7 +5,7 @@ from .util import ttl_cache
 
 
 class DBExtract:
-    def __init__(self, datasets, circles=None, collections=None):
+    def __init__(self, datasets):
         """User-convenient access to dataset search results
 
         Parameters
@@ -13,12 +13,8 @@ class DBExtract:
         datasets: list
             List of CKAN package dictionaries
         """
-        if circles is None:
-            circles = []
-        if collections is None:
-            collections = []
-        self._circles = circles
-        self._collections = collections
+        self._circles = None
+        self._collections = None
         self._dataset_name_index = None
         self.datasets = datasets
 
@@ -26,29 +22,31 @@ class DBExtract:
     @lru_cache(maxsize=1)
     def circles(self):
         if not self._circles:
-            # This is slow, so it is recommended to always pass the
-            # circles in init.
-            cl = []
+            circ_list = []
+            circ_names = []
             for dd in self.datasets:
                 name = dd["organization"]["name"]
-                if name not in cl:
-                    cl.append(name)
-            self._circles = sorted(cl)
+                if name not in circ_names:
+                    circ_list.append(dd["organization"])
+                    circ_names.append(name)
+            self._circles = sorted(
+                circ_list, key=lambda x: x.get("title") or x["name"])
         return self._circles
 
     @property
     @lru_cache(maxsize=1)
     def collections(self):
         if not self._collections:
-            # This is slow, so it is recommended to always pass the
-            # collections in init.
-            ct = []
+            coll_list = []
+            coll_names = []
             for dd in self.datasets:
                 for gg in dd["groups"]:
                     name = gg["name"]
-                    if gg not in ct:
-                        ct.append(name)
-            self._collections = sorted(ct)
+                    if name not in coll_names:
+                        coll_list.append(gg)
+                        coll_names.append(name)
+            self._collections = sorted(
+                coll_list, key=lambda x: x.get("title") or x["name"])
         return self._collections
 
     def _generate_index(self):
@@ -116,10 +114,7 @@ class DBModel:
             circles=self.search_query["circles"],
             collections=self.search_query["collections"],
         )
-        extract = DBExtract(data,
-                            circles=self.search_query["circles"],
-                            collections=self.search_query["collections"],
-                            )
+        extract = DBExtract(data)
         return extract
 
     def set_filter(self, circles=None, collections=None):

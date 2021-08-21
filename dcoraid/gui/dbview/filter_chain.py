@@ -1,4 +1,3 @@
-from collections import OrderedDict
 import pkg_resources
 import warnings
 
@@ -32,20 +31,20 @@ class FilterChain(QtWidgets.QWidget):
     @property
     def selected_circles(self):
         """Circles currently selected"""
-        circs = self.fw_circles.get_item_keys(selected=True)
+        circs = self.fw_circles.get_entry_identifiers(selected=True)
         if not circs:
-            circs = self.fw_circles.get_item_keys(selected=False)
+            circs = self.fw_circles.get_entry_identifiers(selected=False)
         return circs
 
     @property
     def selected_collections(self):
         """Collections currently selected"""
-        return self.fw_collections.get_item_keys(selected=True)
+        return self.fw_collections.get_entry_identifiers(selected=True)
 
     @property
     def selected_datasets(self):
         """Datasets currently selected"""
-        return self.fw_datasets.get_item_keys(selected=True)
+        return self.fw_datasets.get_entry_identifiers(selected=True)
 
     @QtCore.pyqtSlot()
     def on_select_circles(self):
@@ -63,28 +62,38 @@ class FilterChain(QtWidgets.QWidget):
         self.db_extract = db_extract
         # reset all lists
         # circles
-        circle_items = OrderedDict()
+        circle_entries = []
         for ci in self.db_extract.circles:
             warnings.warn("Have to implement global circle cache")
-            circle_items[ci] = ci
-        self.fw_circles.set_items(circle_items)
+            entry = {
+                "identifier": ci["name"],
+                "text": ci.get("title") or ci["name"],
+            }
+            circle_entries.append(entry)
+        self.fw_circles.set_entries(circle_entries)
         # collections
         self.update_collections()
         # datasets
         self.update_datasets()
 
     def update_collections(self):
-        collection_items = OrderedDict()
+        collection_entries = []
         for co in self.db_extract.collections:
             warnings.warn("Have to implement global collection cache")
-            collection_items[co] = co
-        self.fw_collections.set_items(collection_items)
+            entry = {
+                "identifier": co["name"],
+                "text": co.get("title") or co["name"],
+            }
+            collection_entries.append(entry)
+        self.fw_collections.blockSignals(True)
+        self.fw_collections.set_entries(collection_entries)
+        self.fw_collections.blockSignals(False)
 
     @QtCore.pyqtSlot()
     def update_datasets(self):
         circles = self.selected_circles
         collections = self.selected_collections
-        dataset_items = OrderedDict()
+        dataset_items = []
         for ds in self.db_extract.datasets:
             if ds["organization"]["name"] not in circles:
                 # dataset is not part of the circle
@@ -95,13 +104,19 @@ class FilterChain(QtWidgets.QWidget):
                     # collections have been selected and the dataset is not
                     # part of any
                     continue
-            dataset_items[ds["name"]] = ds["title"]
-        self.fw_datasets.set_items(dataset_items)
+            entry = {
+                "identifier": ds["name"],
+                "text": ds.get("title") or ds["name"],
+            }
+            dataset_items.append(entry)
+        self.fw_datasets.blockSignals(True)
+        self.fw_datasets.set_entries(dataset_items)
+        self.fw_datasets.blockSignals(False)
         self.update_resources()
 
     @QtCore.pyqtSlot()
     def update_resources(self):
-        rs_items = OrderedDict()
+        rs_entries = []
         for dn in self.selected_datasets:
             ddict = self.db_extract.get_dataset_dict(dn)
             for rs in ddict["resources"]:
@@ -111,10 +126,9 @@ class FilterChain(QtWidgets.QWidget):
                     # Ignore non-RT-DC mimetypes
                     continue
                 else:
-                    key = rs["id"]
-                    name = rs["name"]
-                    if "dc:experiment:event count" in rs:
-                        name += " ({} events)".format(
-                            rs["dc:experiment:event count"])
-                    rs_items[key] = name
-        self.fw_resources.set_items(rs_items)
+                    entry = {
+                        "identifier": rs["id"],
+                        "text": rs.get("title", rs["name"]),
+                    }
+                    rs_entries.append(entry)
+        self.fw_resources.set_entries(rs_entries)
