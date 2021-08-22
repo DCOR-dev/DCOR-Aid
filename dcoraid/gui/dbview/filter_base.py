@@ -1,7 +1,7 @@
 import copy
 import pkg_resources
 
-from PyQt5 import QtCore, QtWidgets, uic
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 
 class FilterBase(QtWidgets.QWidget):
@@ -65,9 +65,27 @@ class FilterBase(QtWidgets.QWidget):
 
         This function should call `set_entry_text`
         """
+        # text (1st column)
         self.set_entry_text(row, entry.get("title") or entry["name"])
+
+        # tool buttons (2nd column)
+        widact = QtWidgets.QWidget(self)
+        horz_layout = QtWidgets.QHBoxLayout(widact)
+        horz_layout.setContentsMargins(2, 0, 2, 0)
+
+        spacer = QtWidgets.QSpacerItem(0, 0,
+                                       QtWidgets.QSizePolicy.Expanding,
+                                       QtWidgets.QSizePolicy.Minimum)
+        horz_layout.addItem(spacer)
+
         for action in self.get_entry_actions(row, entry):
-            pass
+            tbact = QtWidgets.QToolButton(widact)
+            icon = QtGui.QIcon.fromTheme(action["icon"])
+            tbact.setIcon(icon)
+            tbact.setToolTip(action["tooltip"])
+            tbact.clicked.connect(action["function"])
+            horz_layout.addWidget(tbact)
+        self.tableWidget.setCellWidget(row, 1, widact)
 
     def set_entry_text(self, row, text):
         """Set table Widget entry text at index `row`
