@@ -1,5 +1,6 @@
 0.6.0
  - feat: implement public dataset search
+ - setup: bump dclab from 0.34.4 to 0.34.6
 0.5.11
  - fix: KeyError when checking for existence of resource (#24)
  - enh: drag&drop files to manual upload dialog (#23)
