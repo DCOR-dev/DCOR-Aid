@@ -14,6 +14,7 @@ class FilterCircles(filter_base.FilterBase):
         self.label.setText("Circles")
         self.lineEdit.setPlaceholderText("filter names...")
         self.checkBox.setVisible(False)
+        self.label_info.setVisible(False)
 
     def get_entry_actions(self, row, entry):
         api = get_ckan_api()
@@ -32,6 +33,7 @@ class FilterCollections(filter_base.FilterBase):
         self.label.setText("Collections")
         self.lineEdit.setPlaceholderText("filter names...")
         self.checkBox.setVisible(False)
+        self.label_info.setVisible(False)
 
     def get_entry_actions(self, row, entry):
         api = get_ckan_api()
@@ -50,6 +52,7 @@ class FilterDatasets(filter_base.FilterBase):
         self.label.setText("Datasets")
         self.lineEdit.setPlaceholderText("filter titles...")
         self.checkBox.setVisible(False)
+        self.label_info.setVisible(False)
 
     def get_entry_actions(self, row, entry):
         api = get_ckan_api()
@@ -71,6 +74,8 @@ class FilterResources(filter_base.FilterBase):
         self.checkBox.setText(".rtdc only")
         self.checkBox.setChecked(True)
         self.tableWidget.setDragEnabled(True)
+        self.label_info.setText("<i>Tip: You can drag and drop your selection "
+                                "from the resources list to Shape-Out!</i>")
 
     def get_entry_actions(self, row, entry):
         api = get_ckan_api()

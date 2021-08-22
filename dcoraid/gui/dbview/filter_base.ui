@@ -106,6 +106,13 @@
      <column/>
     </widget>
    </item>
+   <item>
+    <widget class="QLabel" name="label_info">
+     <property name="text">
+      <string>Additional information</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>
