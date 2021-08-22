@@ -26,6 +26,9 @@ class FilterBase(QtWidgets.QWidget):
         # trigger user selection change signal
         self.tableWidget.itemSelectionChanged.connect(self.on_entry_selected)
 
+        # TODO: enable quick-filters via lineEdit
+        self.lineEdit.setVisible(False)
+
     def get_entry_actions(self, row, entry):
         """This is defined in the subclasses (Circle, Collection, etc)"""
         return []
@@ -66,7 +69,7 @@ class FilterBase(QtWidgets.QWidget):
         This function should call `set_entry_text`
         """
         # text (1st column)
-        self.set_entry_text(row, entry.get("title") or entry["name"])
+        self.set_entry_label(row, entry)
 
         # tool buttons (2nd column)
         widact = QtWidgets.QWidget(self)
@@ -87,16 +90,16 @@ class FilterBase(QtWidgets.QWidget):
             horz_layout.addWidget(tbact)
         self.tableWidget.setCellWidget(row, 1, widact)
 
-    def set_entry_text(self, row, text):
+    def set_entry_label(self, row, entry):
         """Set table Widget entry text at index `row`
 
         Parameters
         ----------
         row: int
-            The row where to put the entry
-        text: str
-            the text to display on the left
+            row where to put the entry
+        entry: dict
+            CKAN entry dictionary
         """
         item = QtWidgets.QTableWidgetItem()
-        item.setText(text)
+        item.setText(entry.get("title") or entry["name"])
         self.tableWidget.setItem(row, 0, item)

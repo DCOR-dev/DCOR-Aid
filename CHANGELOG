@@ -1,5 +1,6 @@
 0.6.0
- - feat: implement public dataset search
+ - feat: search and browse public data on a DCOR instance
+ - feat: drag resources in data browser to Shape-Out 2.7.0
  - setup: bump dclab from 0.34.4 to 0.34.6
 0.5.11
  - fix: KeyError when checking for existence of resource (#24)

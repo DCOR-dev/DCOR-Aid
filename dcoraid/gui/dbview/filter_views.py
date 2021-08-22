@@ -1,6 +1,8 @@
 from functools import partial
 import webbrowser
 
+from PyQt5.QtCore import Qt
+
 from ..api import get_ckan_api
 
 from . import filter_base
@@ -68,6 +70,7 @@ class FilterResources(filter_base.FilterBase):
         self.checkBox.setVisible(True)
         self.checkBox.setText(".rtdc only")
         self.checkBox.setChecked(True)
+        self.tableWidget.setDragEnabled(True)
 
     def get_entry_actions(self, row, entry):
         api = get_ckan_api()
@@ -79,3 +82,11 @@ class FilterResources(filter_base.FilterBase):
              "function": partial(webbrowser.open, url)}
         ]
         return actions
+
+    def set_entry_label(self, row, entry):
+        super(FilterResources, self).set_entry_label(row, entry)
+        # set additional data link
+        item = self.tableWidget.item(row, 0)
+        api = get_ckan_api()
+        dcor_url = f"{api.server}/api/3/action/dcserv?id={entry['id']}"
+        item.setData(Qt.UserRole + 1, dcor_url)
