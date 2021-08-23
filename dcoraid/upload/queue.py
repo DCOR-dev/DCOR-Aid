@@ -304,7 +304,17 @@ class Daemon(KThread):
                     continue
                 # Perform daemon task
                 task = getattr(job, self.job_function_name)
-                task()
+                try:
+                    task()
+                except BaseException as e:
+                    # We do not care if this step fails.
+                    # TODO: If we get an exception here, we should
+                    #       probably log it. For now, issue a warning:
+                    warnings.warn(
+                        f"Experienced an exception in {self.__class__} "
+                        + f"with job {job}: {e}"
+                        )
+                    pass
 
 
 class CompressDaemon(Daemon):
