@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>164</width>
-    <height>24</height>
+    <height>30</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -38,7 +38,8 @@
       <string>d</string>
      </property>
      <property name="icon">
-      <iconset theme="trash"/>
+      <iconset theme="trash">
+       <normaloff>.</normaloff>.</iconset>
      </property>
     </widget>
    </item>
@@ -51,7 +52,8 @@
       <string>a</string>
      </property>
      <property name="icon">
-      <iconset theme="ban"/>
+      <iconset theme="ban">
+       <normaloff>.</normaloff>.</iconset>
      </property>
     </widget>
    </item>
@@ -64,7 +66,8 @@
       <string>e</string>
      </property>
      <property name="icon">
-      <iconset theme="exclamation-triangle"/>
+      <iconset theme="exclamation-triangle">
+       <normaloff>.</normaloff>.</iconset>
      </property>
     </widget>
    </item>
@@ -77,7 +80,8 @@
       <string>r</string>
      </property>
      <property name="icon">
-      <iconset theme="redo"/>
+      <iconset theme="redo">
+       <normaloff>.</normaloff>.</iconset>
      </property>
     </widget>
    </item>
@@ -90,7 +94,8 @@
       <string>v</string>
      </property>
      <property name="icon">
-      <iconset theme="eye"/>
+      <iconset theme="eye">
+       <normaloff>.</normaloff>.</iconset>
      </property>
     </widget>
    </item>
