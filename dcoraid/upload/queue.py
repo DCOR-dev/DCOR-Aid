@@ -308,12 +308,8 @@ class Daemon(KThread):
                     task()
                 except BaseException as e:
                     # We do not care if this step fails.
-                    # TODO: If we get an exception here, we should
-                    #       probably log it. For now, issue a warning:
-                    warnings.warn(
-                        f"Experienced an exception in {self.__class__} "
-                        + f"with job {job}: {e}"
-                        )
+                    job.set_state("error")
+                    job.traceback = f"{e.__class__.__name__}: {e}"
                     pass
 
 
