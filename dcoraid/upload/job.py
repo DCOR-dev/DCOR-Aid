@@ -407,17 +407,23 @@ class UploadJob(object):
                 pass
             else:
                 self.set_state("verify")
+                bad_sha256 = []
                 for ii, path in enumerate(self.paths):
                     resource_name = self.resource_names[ii]
                     # compute SHA256 sum
                     sha = sha256sum(path)
                     if sha != sha256dict[resource_name]:
-                        self.set_state("error")
-                        self.traceback = "SHA256 sum failed for resource " \
-                            + "'{}' ({} vs. {})!".format(
-                                resource_name, sha, sha256dict[resource_name])
-                        break
+                        bad_sha256.append(
+                            [resource_name, sha, sha256dict[resource_name]])
+                if bad_sha256:
+                    # we have bad resources, tell the user
+                    self.set_state("error")
+                    msg_parts = ["SHA256 sum failed for resources:"]
+                    for item in bad_sha256:
+                        msg_parts.append("'{}' ({} vs. {})!".format(*item))
+                    self.traceback = "\n".join(msg_parts)
                 else:
+                    # green means go: remove temporary files and activate
                     self.cleanup()
                     # finalize dataset
                     self.set_state("finalize")
@@ -426,7 +432,7 @@ class UploadJob(object):
                         dataset_id=self.dataset_id,
                         api=self.api)
                     self.set_state("done")
-        elif self.state != "done":
+        elif self.state != "done":  # ignore state "done" [sic!]
             # Only issue this warning if the upload is not already done.
             warnings.warn("Resource verification is only possible when state "
                           + "is 'online', but current state is "

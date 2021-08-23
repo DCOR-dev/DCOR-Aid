@@ -1,4 +1,6 @@
 0.6.1
+ - fix: display all resources of a dataset for which the SHA256
+   check failed (opposed to just the first)
  - setup: bump dclab from 0.34.6 to 0.35.0
 0.6.0
  - feat: search and browse public data on a DCOR instance
