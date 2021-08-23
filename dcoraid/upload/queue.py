@@ -310,7 +310,6 @@ class Daemon(KThread):
                     # We do not care if this step fails.
                     job.set_state("error")
                     job.traceback = f"{e.__class__.__name__}: {e}"
-                    pass
 
 
 class CompressDaemon(Daemon):
