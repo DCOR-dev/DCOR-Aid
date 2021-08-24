@@ -75,6 +75,7 @@ class UploadJob(object):
         self.resource_names = resource_names
         self.task_id = task_id
         self.paths_uploaded = []
+        self.paths_uploaded_before = []
         self.state = None
         self.set_state("init")
         self.traceback = None
@@ -209,7 +210,12 @@ class UploadJob(object):
             Mean upload rate in bytes per second
         """
         cur_time = time.perf_counter()
-        cur_bytes = sum(self.file_bytes_uploaded)
+        # get bytes of files that have been uploaded
+        cur_bytes = 0
+        for ii, path in enumerate(self.paths):
+            if path not in self.paths_uploaded_before:
+                # only count files from the current session
+                cur_bytes += self.file_bytes_uploaded[ii]
 
         delta_time = cur_time - self._last_time
         delta_bytes = cur_bytes - self._last_bytes
@@ -232,7 +238,7 @@ class UploadJob(object):
         else:
             # finished
             tdelt = (self.end_time - self.start_time)
-            rate = sum(self.file_bytes_uploaded) / tdelt
+            rate = cur_bytes / tdelt
         self._last_rate = rate
         return rate
 
@@ -367,8 +373,11 @@ class UploadJob(object):
                         # We are currently retrying an upload. If the
                         # resource exists, we have already uploaded it.
                         self.file_bytes_uploaded[ii] = self.file_sizes[ii]
+                        self.paths_uploaded.append(path)
+                        self.paths_uploaded_before.append(path)
                         continue
-                    if not exists:
+                    else:
+                        # Normal upload.
                         try:
                             dataset.add_resource(
                                 dataset_id=self.dataset_id,
