@@ -1,3 +1,5 @@
+0.6.3
+ - setup: bump dclab from 0.35.0 to 0.35.3
 0.6.2
  - enh: show correct upload speed if some resources were uploaded in
    a previous session
