@@ -1,6 +1,6 @@
 0.6.2
  - enh: show correct upload speed if some resources were uploaded in
-   a previeous session
+   a previous session
  - fix: set job.state to "error" if the daemon encountered one
  - fix: catch ConnectionError in update_job_status
 0.6.1
