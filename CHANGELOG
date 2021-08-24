@@ -1,5 +1,6 @@
 0.6.2
  - fix: set job.state to "error" if the daemon encountered one
+ - fix: catch ConnectionError in update_job_status
 0.6.1
  - fix: handle exceptions in Daemon threads
  - fix: display all resources of a dataset for which the SHA256

@@ -212,7 +212,12 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         for row, job in enumerate(self.jobs):
             status = job.get_status()
             self.set_label_item(row, 0, job.dataset_id[:5])
-            self.set_label_item(row, 1, get_dataset_title(job.dataset_id))
+            try:
+                title = get_dataset_title(job.dataset_id)
+            except BaseException:
+                # Probably a connection error
+                title = "-- error getting dataset title --"
+            self.set_label_item(row, 1, title)
             self.set_label_item(row, 2, status["state"])
             self.set_label_item(row, 3, job.get_progress_string())
             self.set_label_item(row, 4, job.get_rate_string())
