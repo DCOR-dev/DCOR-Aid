@@ -1,5 +1,6 @@
 0.6.4
  - enh: automatically respwan job tasks on connection errors (#26)
+ - enh: allow to abort the "compress" step of a job
  - enh: when loading upload tasks that have already been loaded
    before, tell the user how many there were
 0.6.3

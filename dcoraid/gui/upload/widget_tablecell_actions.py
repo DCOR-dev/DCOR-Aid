@@ -74,7 +74,7 @@ class TableCellActions(QtWidgets.QWidget):
         else:
             self.tb_error.hide()
 
-        if state == "transfer":
+        if state in ["compress", "transfer"]:
             self.tb_abort.show()
         else:
             self.tb_abort.hide()

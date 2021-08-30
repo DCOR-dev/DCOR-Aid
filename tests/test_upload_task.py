@@ -7,6 +7,7 @@ import uuid
 import pytest
 
 import dcoraid
+import dcoraid.api
 from dcoraid.upload.dataset import create_dataset
 from dcoraid.upload import job, task
 
@@ -67,9 +68,9 @@ def test_dataset_id_already_exists_active_fails():
     # attempt to upload the task
     uj.task_compress_resources()
     assert uj.state == "parcel"
-    uj.task_upload_resources()
-    assert uj.state == "error"
-    assert "Access denied" in str(uj.traceback)
+    with pytest.raises(dcoraid.api.APIAuthorizationError,
+                       match=""):
+        uj.task_upload_resources()
 
 
 def test_dataset_id_does_not_exist():

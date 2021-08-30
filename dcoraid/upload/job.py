@@ -272,7 +272,7 @@ class UploadJob(object):
     def retry_upload(self):
         """Retry uploading resources when an error occured"""
         if self.state in ["abort", "error"]:
-            self.set_state("parcel")
+            self.set_state("init")
         else:
             raise ValueError("Can only retry upload in error state!")
 
@@ -387,22 +387,15 @@ class UploadJob(object):
                     continue
                 else:
                     # Normal upload.
-                    try:
-                        dataset.add_resource(
-                            dataset_id=self.dataset_id,
-                            path=path,
-                            resource_name=resource_name,
-                            resource_dict=resource_supplement,
-                            api=self.api,
-                            exist_ok=True,
-                            monitor_callback=self.monitor_callback)
-                        self.paths_uploaded.append(path)
-                    except SystemExit:
-                        # This thread has just been killed
-                        self.start_time = None
-                        self.file_bytes_uploaded[ii] = 0
-                        self.set_state("abort")
-                        return
+                    dataset.add_resource(
+                        dataset_id=self.dataset_id,
+                        path=path,
+                        resource_name=resource_name,
+                        resource_dict=resource_supplement,
+                        api=self.api,
+                        exist_ok=True,
+                        monitor_callback=self.monitor_callback)
+                    self.paths_uploaded.append(path)
             self.end_time = time.perf_counter()
             self.set_state("online")
         else:

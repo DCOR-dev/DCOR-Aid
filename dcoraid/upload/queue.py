@@ -176,6 +176,10 @@ class UploadQueue:
             # https://github.com/requests/toolbelt/issues/297
             self.daemon_upload.terminate()
             self.daemon_upload = UploadDaemon(self.jobs)
+        elif job.state == "compress":
+            job.set_state("abort")
+            self.daemon_compress.terminate()
+            self.daemon_compress = CompressDaemon(self.jobs)
 
     def add_job(self, upload_job):
         """Add an UploadJob to the queue
@@ -328,6 +332,8 @@ class Daemon(KThread):
                         + "\nDCOR-Aid will retry in 10s!"
                     time.sleep(10)
                     job.set_state(self.job_trigger_state)
+                except SystemExit:
+                    job.set_state("abort")
                 except BaseException:
                     # Set job to error state and let the user figure
                     # out what to do next.
