@@ -1,6 +1,9 @@
 import pathlib
 import time
+import traceback
 import warnings
+
+import requests
 
 from ..api import APINotFoundError
 from .job import UploadJob
@@ -314,10 +317,22 @@ class Daemon(KThread):
                 task = getattr(job, self.job_function_name)
                 try:
                     task()
-                except BaseException as e:
-                    # We do not care if this step fails.
+                except (ConnectionError,
+                        requests.exceptions.ConnectionError,
+                        requests.exceptions.Timeout):
+                    # Set the job to the error state for 10s (so the user
+                    # sees it in the UI) and then go back to the initial
+                    # job trigger state.
                     job.set_state("error")
-                    job.traceback = f"{e.__class__.__name__}: {e}"
+                    job.traceback = traceback.format_exc(limit=1) \
+                        + "\nDCOR-Aid will retry in 10s!"
+                    time.sleep(10)
+                    job.set_state(self.job_trigger_state)
+                except BaseException:
+                    # Set job to error state and let the user figure
+                    # out what to do next.
+                    job.set_state("error")
+                    job.traceback = traceback.format_exc()
 
 
 class CompressDaemon(Daemon):

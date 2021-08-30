@@ -4,7 +4,6 @@ import hashlib
 import pathlib
 import shutil
 import time
-import traceback as tb
 import warnings
 
 from dclab.rtdc_dataset.check import IntegrityChecker
@@ -356,49 +355,56 @@ class UploadJob(object):
         via :func:`UploadJob.get_status`.
         """
         if self.state == "parcel":
-            try:
-                self.set_state("transfer")
-                self.start_time = time.perf_counter()
-                # Do the things to do and watch self.state while doing so
-                for ii, path in enumerate(self.paths):
-                    self.index = ii
-                    resource_name = self.resource_names[ii]
-                    resource_supplement = self.get_composite_supplements(ii)
-                    exists = dataset.resource_exists(
-                        dataset_id=self.dataset_id,
-                        resource_name=resource_name,
-                        resource_dict=resource_supplement,
-                        api=self.api)
-                    if exists:
-                        # We are currently retrying an upload. If the
-                        # resource exists, we have already uploaded it.
-                        self.file_bytes_uploaded[ii] = self.file_sizes[ii]
+            # reset everything
+            self.paths_uploaded.clear()
+            self.paths_uploaded_before.clear()
+            self.file_bytes_uploaded = [0] * len(self.paths)
+            self.index = 0
+            self.start_time = None
+            self.end_time = None
+            self._last_time = 0
+            self._last_bytes = 0
+            self._last_rate = 0
+            # begin transfer
+            self.set_state("transfer")
+            self.start_time = time.perf_counter()
+            # Do the things to do and watch self.state while doing so
+            for ii, path in enumerate(self.paths):
+                self.index = ii
+                resource_name = self.resource_names[ii]
+                resource_supplement = self.get_composite_supplements(ii)
+                exists = dataset.resource_exists(
+                    dataset_id=self.dataset_id,
+                    resource_name=resource_name,
+                    resource_dict=resource_supplement,
+                    api=self.api)
+                if exists:
+                    # We are currently retrying an upload. If the
+                    # resource exists, we have already uploaded it.
+                    self.file_bytes_uploaded[ii] = self.file_sizes[ii]
+                    self.paths_uploaded.append(path)
+                    self.paths_uploaded_before.append(path)
+                    continue
+                else:
+                    # Normal upload.
+                    try:
+                        dataset.add_resource(
+                            dataset_id=self.dataset_id,
+                            path=path,
+                            resource_name=resource_name,
+                            resource_dict=resource_supplement,
+                            api=self.api,
+                            exist_ok=True,
+                            monitor_callback=self.monitor_callback)
                         self.paths_uploaded.append(path)
-                        self.paths_uploaded_before.append(path)
-                        continue
-                    else:
-                        # Normal upload.
-                        try:
-                            dataset.add_resource(
-                                dataset_id=self.dataset_id,
-                                path=path,
-                                resource_name=resource_name,
-                                resource_dict=resource_supplement,
-                                api=self.api,
-                                exist_ok=True,
-                                monitor_callback=self.monitor_callback)
-                            self.paths_uploaded.append(path)
-                        except SystemExit:
-                            # This thread has just been killed
-                            self.start_time = None
-                            self.file_bytes_uploaded[ii] = 0
-                            self.set_state("abort")
-                            return
-                self.end_time = time.perf_counter()
-                self.set_state("online")
-            except BaseException:
-                self.set_state("error")
-                self.traceback = tb.format_exc()
+                    except SystemExit:
+                        # This thread has just been killed
+                        self.start_time = None
+                        self.file_bytes_uploaded[ii] = 0
+                        self.set_state("abort")
+                        return
+            self.end_time = time.perf_counter()
+            self.set_state("online")
         else:
             warnings.warn("Starting an upload only possible when state is "
                           + "'parcel', but current state is "
