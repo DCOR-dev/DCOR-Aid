@@ -175,7 +175,14 @@ class UploadQueue:
             self.daemon_upload = UploadDaemon(self.jobs)
 
     def add_job(self, upload_job):
-        """Add an UploadJob to the queue"""
+        """Add an UploadJob to the queue
+
+        Returns
+        -------
+        job_message: str
+            Either "known" (eternal job, not done), "finished"
+            (eternal job, done), or "new" (completely new job)
+        """
         if self.jobs_eternal is not None:
             if upload_job in self.jobs_eternal:
                 # Previously, this function would break hard here, because a
@@ -198,14 +205,15 @@ class UploadQueue:
                         # Job is immortalized and already in the queue.
                         # Everything is fine and we need not worry. Must not
                         # append job!
-                        return
+                        return "known"
                 else:
                     # Job is immortalized and already done! Under no
                     # circumstance should we add this job.
-                    return
+                    return "finished"
             # Add to eternal jobs for persistence
             self.jobs_eternal.immortalize_job(upload_job)
         self.jobs.append(upload_job)
+        return "new"
 
     def get_job(self, dataset_id):
         """Return the queued UploadJob belonging to the dataset ID"""

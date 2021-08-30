@@ -138,7 +138,11 @@ class UploadWidget(QtWidgets.QWidget):
         update_dataset_id = bool(int(settings.value(
             "uploads/update task with dataset id", "1")))
         dataset_kwargs = {}
+        jobs_known_count = 0
+        jobs_imported_count = 0
+        jobs_total_count = 0
         for pp in files:
+            jobs_total_count += 1
             if (not task.task_has_circle(pp)
                     and "owner_org" not in dataset_kwargs):
                 # Let the user choose a circle.
@@ -159,7 +163,22 @@ class UploadWidget(QtWidgets.QWidget):
                     update_dataset_id=update_dataset_id,
                     cache_dir=self.cache_dir,
                 )
-                self.jobs.add_job(upload_job)
+                job_msg = self.jobs.add_job(upload_job)
+                if job_msg == "new":
+                    jobs_imported_count += 1
+                else:
+                    jobs_known_count += 1
+
+        # sanity check
+        assert jobs_known_count + jobs_imported_count == jobs_total_count
+        if jobs_known_count:
+            # Display a message box telling the user that this job is known
+            QtWidgets.QMessageBox.information(
+                self,
+                "Task import complete",
+                f"{jobs_known_count} out of {jobs_total_count} tasks were "
+                + "already imported in a previous DCOR-Aid session."
+            )
 
 
 class UploadTableWidget(QtWidgets.QTableWidget):

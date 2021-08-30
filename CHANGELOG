@@ -1,3 +1,6 @@
+0.6.4
+ - enh: when loading upload tasks that have already been loaded
+   before, tell the user how many there were
 0.6.3
  - setup: bump dclab from 0.35.0 to 0.35.3
 0.6.2
