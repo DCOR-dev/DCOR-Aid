@@ -190,7 +190,7 @@ class CKANAPI:
                 "Could not determine user data. Please check API key.")
         return userdata
 
-    def post(self, api_call, data, dump_json=True, headers={}):
+    def post(self, api_call, data, dump_json=True, headers=None):
         """POST request
 
         Parameters
@@ -214,6 +214,8 @@ class CKANAPI:
             Result of the API call converted to a dictionary
             from the returned json string
         """
+        if headers is None:
+            headers = {}
         new_headers = copy.deepcopy(self.headers)
         new_headers.update(headers)
         if dump_json:
