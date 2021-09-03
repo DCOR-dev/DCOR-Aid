@@ -159,7 +159,7 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
                      f"{job.api.server}/dataset/{ds_dict['id']}")
                  },
                 {"icon": "folder",
-                 "tooltip": f"open local download directory",
+                 "tooltip": "open local download directory",
                  "function": partial(open_file, str(dl_path))
                  },
                 {"icon": "trash",
