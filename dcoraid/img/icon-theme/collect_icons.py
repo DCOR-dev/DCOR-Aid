@@ -51,6 +51,7 @@ icons = {
         "clinic-medical",
         "code-branch",
         "cogs",
+        "download",
         "eye",
         "exclamation-triangle",
         "filter",
