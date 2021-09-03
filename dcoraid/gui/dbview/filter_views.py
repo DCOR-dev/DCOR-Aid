@@ -1,9 +1,11 @@
 from functools import partial
 import webbrowser
 
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import Qt
 
 from ..api import get_ckan_api
+from ..tools import ShowWaitCursor
 
 from . import filter_base
 
@@ -39,11 +41,35 @@ class FilterCollections(filter_base.FilterBase):
         api = get_ckan_api()
         url = f"{api.server}/group/{entry['name']}"
         actions = [
+            {"icon": "download",
+             "tooltip": f"download collection {entry['name']}",
+             "function": partial(self.download_collection, entry["name"])},
             {"icon": "eye",
              "tooltip": f"view collection {entry['name']} online",
              "function": partial(webbrowser.open, url)}
         ]
         return actions
+
+    def download_collection(self, collection_name):
+        with ShowWaitCursor():
+            api = get_ckan_api()
+            search_dict = api.get("package_search",
+                                  fq=f"+groups:{collection_name}",
+                                  include_private=True,
+                                  rows=1000)
+            num_datasets = search_dict["count"]
+            if num_datasets >= 1000:
+                raise NotImplementedError(
+                    # We have to increase ckan.search.rows_max = 1000
+                    # or (better) use the `start` parameter until we
+                    # hit a number < 1000.
+                    f"There are too many datasets in '{collection_name}'!")
+            for ii, ds_dict in enumerate(search_dict["results"]):
+                for res_dict in ds_dict["resources"]:
+                    self.download_resource.emit(res_dict["id"])
+                    QtWidgets.QApplication.processEvents(
+                        QtCore.QEventLoop.AllEvents,
+                        300)
 
 
 class FilterDatasets(filter_base.FilterBase):
@@ -58,11 +84,24 @@ class FilterDatasets(filter_base.FilterBase):
         api = get_ckan_api()
         url = f"{api.server}/dataset/{entry['name']}"
         actions = [
+            {"icon": "download",
+             "tooltip": f"download dataset {entry['name']}",
+             "function": partial(self.download_dataset, entry["id"])},
             {"icon": "eye",
              "tooltip": f"view dataset {entry['name']} online",
-             "function": partial(webbrowser.open, url)}
+             "function": partial(webbrowser.open, url)},
         ]
         return actions
+
+    @QtCore.pyqtSlot(str)
+    def download_dataset(self, dataset_id):
+        api = get_ckan_api()
+        ds_dict = api.get("package_show", id=dataset_id)
+        for res_dict in ds_dict["resources"]:
+            self.download_resource.emit(res_dict["id"])
+            QtWidgets.QApplication.processEvents(
+                QtCore.QEventLoop.AllEvents,
+                300)
 
 
 class FilterResources(filter_base.FilterBase):

@@ -1,12 +1,10 @@
 import pathlib
 import tempfile
-import uuid
 
 import pytest
 
 from dcoraid.download import DownloadJob, DownloadQueue
 from dcoraid.download.queue import PersistentDownloadJobList
-from dcoraid.download.task import load_task
 
 import common
 
