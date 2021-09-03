@@ -109,6 +109,10 @@ class DCORAid(QtWidgets.QMainWindow):
         # Signals for public data browser
         self.pushButton_public_search.clicked.connect(self.on_public_search)
 
+        # Signal for requesting resource download
+        self.public_filter_chain.download_resource.connect(
+            self.panel_download.download_resource)
+
         # Run wizard if necessary
         if ((self.settings.value("user scenario", "") != "anonymous")
                 and not self.settings.value("auth/api key", "")):

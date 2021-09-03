@@ -261,7 +261,7 @@ class UploadQueue:
             resource_names=resource_names,
             resource_supplements=supplements,
             cache_dir=self.cache_dir,
-            )
+        )
         self.add_job(upload_job)
         return upload_job
 

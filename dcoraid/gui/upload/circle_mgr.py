@@ -81,7 +81,7 @@ def request_circle(parent_widget):
             circle_texts,
             0,  # default index
             False,  # not editable
-            )
+        )
         if ok_pressed:
             cid = circle_texts.index(text)
             return circs[cid]

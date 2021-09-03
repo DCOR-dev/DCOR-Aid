@@ -1,3 +1,4 @@
+import functools
 import json
 import os
 import pathlib
@@ -6,6 +7,7 @@ import tempfile
 import time
 
 from dcoraid.api import CKANAPI
+from dcoraid.upload import dataset, UploadQueue
 
 
 CIRCLE = "dcoraid-circle"
@@ -45,6 +47,21 @@ def make_dataset_dict(hint=""):
         "authors": USER_NAME,
     }
     return dataset_dict
+
+
+@functools.lru_cache()
+def make_dataset_for_download(seed=0):
+    """Set `seed` to get a new dataset (in case you need fresh resource ids)"""
+    api = get_api()
+    # create some metadata
+    dataset_dict = make_dataset_dict(hint="test-download-dataset")
+    # post dataset creation request
+    data = dataset.create_dataset(dataset_dict=dataset_dict, api=api)
+    joblist = UploadQueue(api=api)
+    joblist.new_job(dataset_id=data["id"],
+                    paths=[dpath])
+    wait_for_job(joblist, data["id"])
+    return api.get("package_show", id=data["id"])
 
 
 def make_upload_task(task_id="123456789",

@@ -6,6 +6,8 @@ from PyQt5 import QtCore, QtWidgets, uic
 
 
 class FilterChain(QtWidgets.QWidget):
+    download_resource = QtCore.pyqtSignal(str)
+
     def __init__(self, *args, **kwargs):
         """Filter chain widget with multiple filter views
         """
@@ -28,6 +30,11 @@ class FilterChain(QtWidgets.QWidget):
         self.fw_datasets.selection_changed.connect(self.update_resources)
         # resource filtered by .rtdc
         self.fw_resources.checkBox.stateChanged.connect(self.update_resources)
+        # request resource downloads
+        self.fw_circles.download_resource.connect(self.download_resource)
+        self.fw_collections.download_resource.connect(self.download_resource)
+        self.fw_datasets.download_resource.connect(self.download_resource)
+        self.fw_resources.download_resource.connect(self.download_resource)
 
     @property
     def selected_circles(self):

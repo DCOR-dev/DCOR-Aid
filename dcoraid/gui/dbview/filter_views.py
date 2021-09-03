@@ -82,9 +82,12 @@ class FilterResources(filter_base.FilterBase):
         url = f"{api.server}/dataset/{entry['package_id']}/" \
               + f"resource/{entry['id']}"
         actions = [
+            {"icon": "download",
+             "tooltip": f"download resource {entry['name']}",
+             "function": partial(self.download_resource.emit, entry["id"])},
             {"icon": "eye",
              "tooltip": f"view resource {entry['name']} online",
-             "function": partial(webbrowser.open, url)}
+             "function": partial(webbrowser.open, url)},
         ]
         return actions
 
