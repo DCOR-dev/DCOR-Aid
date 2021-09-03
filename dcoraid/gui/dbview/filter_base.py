@@ -65,10 +65,7 @@ class FilterBase(QtWidgets.QWidget):
         self.tableWidget.blockSignals(False)
 
     def set_entry(self, row, entry):
-        """Set table Widget entry at index `row`
-
-        This function should call `set_entry_text`
-        """
+        """Set table Widget entry at index `row`"""
         # text (1st column)
         self.set_entry_label(row, entry)
 

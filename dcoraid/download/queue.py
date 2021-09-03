@@ -159,15 +159,21 @@ class DownloadQueue:
         return download_job
 
     def remove_job(self, resource_id):
-        """Remove an downloadJob from the queue and perform cleanup
+        """Remove a DownloadJob from the queue and perform cleanup
 
-        It has not been tested what happens when a running job
-        is aborted. It will probably keep running and then complain
-        about resources that are expected to be there. Don't do it.
+        Running jobs are aborted before they are removed.
         """
+        self.abort_job(resource_id)
         for ii, job in enumerate(list(self.jobs)):
             if job.resource_id == resource_id:
                 self.jobs.pop(ii)
+                # cleanup temp files
+                try:
+                    job.path_temp.unlink()
+                except BaseException:
+                    pass
+            elif job.state == "abort":
+                job.set_state("init")
         # also remove from eternal jobs
         if (self.jobs_eternal is not None
                 and self.jobs_eternal.is_job_queued(resource_id)):

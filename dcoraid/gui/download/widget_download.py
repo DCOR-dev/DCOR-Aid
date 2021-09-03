@@ -1,7 +1,12 @@
+from functools import partial
+import os
 import os.path as os_path
 import pkg_resources
+import platform
+import subprocess
+import webbrowser
 
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt5 import uic, QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QStandardPaths
 
 from ...download import DownloadQueue
@@ -67,6 +72,8 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
 
     def on_job_delete(self, resource_id):
         self.jobs.remove_job(resource_id)
+        self.clearContents()
+        self.update_job_status()
 
     def on_download_finished(self, resource_id):
         """Triggers download_finished whenever a download is finished"""
@@ -128,15 +135,46 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
 
         Refreshes the widget and also connects signals.
         """
-        wid = self.cellWidget(row, col)
-        if wid is None:
-            pass
-            # add actions for open directory, view resource online, delete
-            # wid = TableCellActions(job)
-            # wid.delete_job.connect(self.on_job_delete)
-            # wid.abort_job.connect(self.on_job_abort)
-            # self.setCellWidget(row, col, wid)
-        # wid.refresh_visibility(job)
+        widact = self.cellWidget(row, col)
+        if widact is None:
+            widact = QtWidgets.QWidget(self)
+            horz_layout = QtWidgets.QHBoxLayout(widact)
+            horz_layout.setContentsMargins(2, 0, 2, 0)
+
+            spacer = QtWidgets.QSpacerItem(0, 0,
+                                           QtWidgets.QSizePolicy.Expanding,
+                                           QtWidgets.QSizePolicy.Minimum)
+            horz_layout.addItem(spacer)
+
+            res_dict = job.get_resource_dict()
+            ds_dict = job.get_dataset_dict()
+            dl_path = job.path
+            if not dl_path.is_dir():
+                dl_path = dl_path.parent
+            actions = [
+                {"icon": "eye",
+                 "tooltip": f"view dataset {ds_dict['name']} online",
+                 "function": partial(
+                     webbrowser.open,
+                     f"{job.api.server}/dataset/{ds_dict['id']}")
+                 },
+                {"icon": "folder",
+                 "tooltip": f"open local download directory",
+                 "function": partial(open_file, str(dl_path))
+                 },
+                {"icon": "trash",
+                 "tooltip": f"abort download {res_dict['name']}",
+                 "function": partial(self.on_job_delete, job.resource_id)
+                 },
+            ]
+            for action in actions:
+                tbact = QtWidgets.QToolButton(widact)
+                icon = QtGui.QIcon.fromTheme(action["icon"])
+                tbact.setIcon(icon)
+                tbact.setToolTip(action["tooltip"])
+                tbact.clicked.connect(action["function"])
+                horz_layout.addWidget(tbact)
+            self.setCellWidget(row, col, widact)
 
 
 def get_download_title(job):
@@ -146,3 +184,12 @@ def get_download_title(job):
     if not title:
         title = ds_dict.get("name")
     return f"{res_dict['name']} [{title}]"
+
+
+def open_file(path):
+    if platform.system() == "Windows":
+        os.startfile(path)
+    elif platform.system() == "Darwin":
+        subprocess.Popen(["open", path])
+    else:
+        subprocess.Popen(["xdg-open", path])
