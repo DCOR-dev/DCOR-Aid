@@ -14,7 +14,8 @@ method. The new task now automatically has a dataset ID
 import json
 import pathlib
 
-from .dataset import create_dataset
+from ..api_common import create_dataset
+
 from .job import UploadJob
 
 

@@ -4,7 +4,8 @@ import uuid
 
 import pytest
 
-from dcoraid.upload import UploadQueue, create_dataset
+from dcoraid.api_common import create_dataset
+from dcoraid.upload import UploadQueue
 from dcoraid.upload.queue import DCORAidQueueWarning, PersistentUploadJobList
 from dcoraid.upload.task import load_task
 

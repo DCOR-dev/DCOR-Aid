@@ -4,9 +4,10 @@ import traceback as tb
 
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
-from ..tools import ShowWaitCursor
-from ...upload import create_dataset
 
+from ...api_common import create_dataset
+
+from ..tools import ShowWaitCursor
 from ..api import get_ckan_api
 
 from . import circle_mgr

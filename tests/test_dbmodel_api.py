@@ -1,7 +1,7 @@
 import pathlib
 import random
 
-from dcoraid.upload import create_dataset
+from dcoraid.api_common import create_dataset
 from dcoraid.dbmodel import model_api
 
 import common

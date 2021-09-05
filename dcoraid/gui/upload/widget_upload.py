@@ -6,8 +6,7 @@ import pkg_resources
 from PyQt5 import uic, QtCore, QtWidgets
 from PyQt5.QtCore import QStandardPaths
 
-from ...upload import UploadQueue
-from ...upload import task
+from ...upload import UploadQueue, task
 
 from ..api import get_ckan_api
 from ..tools import ShowWaitCursor

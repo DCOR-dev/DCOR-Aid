@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 import dclab.cli
-from dcoraid.upload.dataset import create_dataset
+from dcoraid.api_common import create_dataset
 from dcoraid.upload import job
 
 import common

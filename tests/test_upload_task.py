@@ -8,7 +8,7 @@ import pytest
 
 import dcoraid
 import dcoraid.api
-from dcoraid.upload.dataset import create_dataset
+from dcoraid.api_common import create_dataset
 from dcoraid.upload import job, task
 
 import common

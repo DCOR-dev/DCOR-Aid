@@ -9,7 +9,7 @@ import warnings
 from dclab.rtdc_dataset.check import IntegrityChecker
 from dclab.cli import compress
 
-from . import dataset
+from .. import api_common
 
 
 #: Valid job states (in more or less chronological order)
@@ -373,7 +373,7 @@ class UploadJob(object):
                 self.index = ii
                 resource_name = self.resource_names[ii]
                 resource_supplement = self.get_composite_supplements(ii)
-                exists = dataset.resource_exists(
+                exists = api_common.resource_exists(
                     dataset_id=self.dataset_id,
                     resource_name=resource_name,
                     resource_dict=resource_supplement,
@@ -387,7 +387,7 @@ class UploadJob(object):
                     continue
                 else:
                     # Normal upload.
-                    dataset.add_resource(
+                    api_common.add_resource(
                         dataset_id=self.dataset_id,
                         path=path,
                         resource_name=resource_name,
@@ -407,7 +407,7 @@ class UploadJob(object):
         """Perform SHA256 verification"""
         if self.state == "online":
             # First check whether all SHA256 sums are already available online
-            sha256dict = dataset.resource_sha256_sums(
+            sha256dict = api_common.resource_sha256_sums(
                 dataset_id=self.dataset_id,
                 api=self.api)
             if sum([sha256dict[name] is None for name in sha256dict]) != 0:
@@ -436,7 +436,7 @@ class UploadJob(object):
                     # finalize dataset
                     self.set_state("finalize")
                     # draft -> active
-                    dataset.activate_dataset(
+                    api_common.activate_dataset(
                         dataset_id=self.dataset_id,
                         api=self.api)
                     self.set_state("done")

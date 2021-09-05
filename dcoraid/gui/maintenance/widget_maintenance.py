@@ -4,7 +4,7 @@ import pkg_resources
 
 from PyQt5 import uic, QtCore, QtWidgets
 
-from ...upload.dataset import remove_all_drafts
+from ...api_common import remove_all_drafts
 
 from ..api import get_ckan_api
 from ..main import DCORAid

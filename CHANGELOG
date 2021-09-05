@@ -1,6 +1,8 @@
 0.7.0
  - feat: implement download manager
  - enh: allow to download all resources of a collection (#13)
+ - ref: introduce dedicated `api_common` submodule (moved from
+   `upload.dataset`)
 0.6.4
  - enh: automatically respwan job tasks on connection errors (#26)
  - enh: allow to abort the "compress" step of a job
