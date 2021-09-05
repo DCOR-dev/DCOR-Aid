@@ -4,7 +4,7 @@ import uuid
 
 import pytest
 
-from dcoraid.api_common import create_dataset
+from dcoraid.api import dataset_create
 from dcoraid.upload import UploadQueue
 from dcoraid.upload.queue import DCORAidQueueWarning, PersistentUploadJobList
 from dcoraid.upload.task import load_task
@@ -21,7 +21,7 @@ def test_queue_basic_functionalities():
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="create-with-resource")
     # post dataset creation request
-    data = create_dataset(dataset_dict=dataset_dict, api=api)
+    data = dataset_create(dataset_dict=dataset_dict, api=api)
     joblist = UploadQueue(api=api)
     uj = joblist.new_job(dataset_id=data["id"],
                          paths=[dpath])
@@ -43,7 +43,7 @@ def test_queue_create_dataset_with_resource():
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="create-with-resource")
     # post dataset creation request
-    data = create_dataset(dataset_dict=dataset_dict, api=api)
+    data = dataset_create(dataset_dict=dataset_dict, api=api)
     joblist = UploadQueue(api=api)
     joblist.new_job(dataset_id=data["id"],
                     paths=[dpath])
@@ -55,7 +55,7 @@ def test_queue_find_zombie_caches():
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="create-with-resource")
     # post dataset creation request
-    data = create_dataset(dataset_dict=dataset_dict, api=api)
+    data = dataset_create(dataset_dict=dataset_dict, api=api)
     # post dataset creation request
     cache_dir = tempfile.mkdtemp("dcoraid_test_upload_cache_")
     fakecache = pathlib.Path(cache_dir) / f"compress-{uuid.uuid4()}"
@@ -84,7 +84,7 @@ def test_queue_remove_job():
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="create-with-resource")
     # post dataset creation request
-    data = create_dataset(dataset_dict=dataset_dict, api=api)
+    data = dataset_create(dataset_dict=dataset_dict, api=api)
     joblist = UploadQueue(api=api,
                           path_persistent_job_list=pujl_path)
     # disable all daemons, so no uploading happens

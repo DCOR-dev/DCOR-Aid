@@ -31,7 +31,7 @@ def load_task(path, api):
     ----------
     path: str or pathlib.Path
         Path to the JSON-encoded task file
-    api: dclab.api.CKANAPI
+    api: dcoraid.api.CKANAPI
         The CKAN/DCOR API instance used for the download
     """
     path = pathlib.Path(path)

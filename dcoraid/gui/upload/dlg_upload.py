@@ -5,7 +5,7 @@ import traceback as tb
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
 
-from ...api_common import create_dataset
+from ...api import dataset_create
 
 from ..tools import ShowWaitCursor
 from ..api import get_ckan_api
@@ -326,7 +326,7 @@ class UploadDialog(QtWidgets.QDialog):
 
         # Try to create the dataset and display any issues with the metadata
         try:
-            data = create_dataset(dataset_dict=self.assemble_metadata(),
+            data = dataset_create(dataset_dict=self.assemble_metadata(),
                                   api=self.api.copy())
         except BaseException:
             msg = QtWidgets.QMessageBox()

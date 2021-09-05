@@ -33,7 +33,7 @@ class DownloadJob(object):
 
         Parameters
         ----------
-        api: dclab.api.CKANAPI
+        api: dcoraid.api.CKANAPI
             The CKAN/DCOR API instance used for the download
         resource_id: str
             ID of the CKAN/DCOR resource

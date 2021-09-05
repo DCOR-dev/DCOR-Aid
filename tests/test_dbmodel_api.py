@@ -1,7 +1,7 @@
 import pathlib
 import random
 
-from dcoraid.api_common import create_dataset
+from dcoraid.api import dataset_create
 from dcoraid.dbmodel import model_api
 
 import common
@@ -30,7 +30,7 @@ def test_dcor_dev_search():
     api = common.get_api()
     ranstr = ''.join(random.choice("0123456789") for _i in range(10))
     # Create a test dataset
-    create_dataset({"title": "{} {}".format(common.TITLE, ranstr),
+    dataset_create({"title": "{} {}".format(common.TITLE, ranstr),
                     "owner_org": common.CIRCLE,
                     "authors": common.USER_NAME,
                     "license_id": "CC0-1.0",

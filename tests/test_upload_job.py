@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 import dclab.cli
-from dcoraid.api_common import create_dataset
+from dcoraid.api import dataset_create
 from dcoraid.upload import job
 
 import common
@@ -22,7 +22,7 @@ def test_initialize():
     # create some metadata
     bare_dict = common.make_dataset_dict(hint="create-with-resource")
     # create dataset (to get the "id")
-    dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
+    dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
     uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
                        resource_paths=rtdc_paths)
     assert uj.state == "init"
@@ -33,7 +33,7 @@ def test_full_upload():
     # create some metadata
     bare_dict = common.make_dataset_dict(hint="create-with-resource")
     # create dataset (to get the "id")
-    dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
+    dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
     uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
                        resource_paths=rtdc_paths)
     assert uj.state == "init"
@@ -50,7 +50,7 @@ def test_saveload():
     # create some metadata
     bare_dict = common.make_dataset_dict(hint="create-with-resource")
     # create dataset (to get the "id")
-    dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
+    dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
     uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
                        resource_paths=rtdc_paths, task_id="hanspeter")
     state = uj.__getstate__()
@@ -74,7 +74,7 @@ def test_state_compress_disk_wait(disk_usage_mock):
     # create some metadata
     bare_dict = common.make_dataset_dict(hint="create-with-resource")
     # create dataset (to get the "id")
-    dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
+    dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
     uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
                        resource_paths=[rtdc_paths[1]])
     assert uj.state == "init"
@@ -106,7 +106,7 @@ def test_state_compress_remove_other_upload_jobs(disk_usage_mock):
     test_list = []
     for _ in range(3):
         bare_dict = common.make_dataset_dict(hint="create-with-resource")
-        dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
+        dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
         uj = job.UploadJob(api=api,
                            dataset_id=dataset_dict["id"],
                            resource_paths=[rtdc_paths[1]],
@@ -151,7 +151,7 @@ def test_state_compress_reuse():
     # create some metadata
     bare_dict = common.make_dataset_dict(hint="create-with-resource")
     # create dataset (to get the "id")
-    dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
+    dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
     uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
                        resource_paths=[rtdc_paths[1]])
     assert uj.state == "init"

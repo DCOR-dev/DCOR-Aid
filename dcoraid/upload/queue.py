@@ -91,7 +91,7 @@ class UploadQueue:
 
         Parameters
         ----------
-        api: dclab.api.CKANAPI
+        api: dcoraid.api.CKANAPI
             The CKAN/DCOR API instance used for the uploads
         path_persistent_job_list: str or pathlib.Path
             Path to a directory for storing UploadJobs in a

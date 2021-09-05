@@ -85,7 +85,7 @@ class DBModel:
 
     @property
     def is_up_to_date(self):
-        return self.db.is_up_to_date()
+        return self.db.is_up_to_date
 
     def get_circles(self):
         """Return the list of DCOR Circles"""

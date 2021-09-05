@@ -56,7 +56,7 @@ class APIInterrogator(DBInterrogator):
                 + "Please ask someone to implement this with `start`.")
         data2 = self.api.get("package_search",
                              q="*:*",
-                             fq="creator_user_id:{}".format(user_data["id"]),
+                             fq=f"creator_user_id:{user_data['id']}",
                              rows=numd+1)
         # Hello, I removed this check, because there were race conditions
         # during (parallel on multiple workers) testing on GH Actions.

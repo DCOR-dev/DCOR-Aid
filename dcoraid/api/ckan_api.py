@@ -3,7 +3,11 @@ import json
 
 import requests
 
-from ._version import version
+from .._version import version
+
+from .errors import (APIConflictError, APINotFoundError, APIKeyError,
+                     APIBadGatewayError, APIGatewayTimeoutError,
+                     APIAuthorizationError)
 
 
 #: List of license lists for each DCOR server
@@ -14,34 +18,6 @@ SERVER_RSS = {}
 
 #: List of supported resource suffixes
 SERVER_RSUFFIX = {}
-
-
-class APIError(BaseException):
-    pass
-
-
-class APIAuthorizationError(APIError):
-    pass
-
-
-class APIBadGatewayError(APIError):
-    pass
-
-
-class APIConflictError(APIError):
-    pass
-
-
-class APIGatewayTimeoutError(APIError):
-    pass
-
-
-class APIKeyError(APIError):
-    pass
-
-
-class APINotFoundError(APIError):
-    pass
 
 
 class CKANAPI:

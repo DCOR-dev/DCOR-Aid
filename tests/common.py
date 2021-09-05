@@ -6,8 +6,7 @@ import shutil
 import tempfile
 import time
 
-from dcoraid.api import CKANAPI
-from dcoraid.api_common import create_dataset
+from dcoraid.api import CKANAPI, dataset_create
 from dcoraid.upload import UploadQueue
 
 
@@ -57,7 +56,7 @@ def make_dataset_for_download(seed=0):
     # create some metadata
     dataset_dict = make_dataset_dict(hint="test-download-dataset")
     # post dataset creation request
-    data = create_dataset(dataset_dict=dataset_dict, api=api)
+    data = dataset_create(dataset_dict=dataset_dict, api=api)
     joblist = UploadQueue(api=api)
     joblist.new_job(dataset_id=data["id"],
                     paths=[dpath])

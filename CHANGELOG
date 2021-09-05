@@ -1,10 +1,10 @@
 0.7.0
  - feat: implement download manager
  - enh: allow to download all resources of a collection (#13)
- - ref: introduce dedicated `api_common` submodule (moved from
+ - ref: expand dedicated `api` submodule (moved dunctions from
    `upload.dataset`)
  - ref: introduce dedicated `common` submodule
- - ref: introduce dedicated `worker` submodule for `KThread` and `Daemon`
+ - ref: introduce dedicated `worker` submodule for `KThread` and`Daemon`
 0.6.4
  - enh: automatically respwan job tasks on connection errors (#26)
  - enh: allow to abort the "compress" step of a job

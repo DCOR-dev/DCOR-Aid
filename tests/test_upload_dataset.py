@@ -2,9 +2,8 @@ import pathlib
 
 import pytest
 
-from dcoraid import api_common
-
-from dcoraid.api import APIConflictError, APINotFoundError
+from dcoraid.api import (APIConflictError, APINotFoundError, dataset_create,
+                         dataset_draft_remove, resource_add, resource_exists)
 
 import common
 
@@ -18,19 +17,19 @@ def test_dataset_create_same_resource():
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="create-with-same-resource")
     # post dataset creation request
-    data = api_common.create_dataset(dataset_dict=dataset_dict,
-                                     api=api)
-    api_common.add_resource(dataset_id=data["id"],
-                            path=dpath,
-                            api=api
-                            )
+    data = dataset_create(dataset_dict=dataset_dict,
+                          api=api)
+    resource_add(dataset_id=data["id"],
+                 path=dpath,
+                 api=api
+                 )
     with pytest.raises(APIConflictError):
         # Should not be able to upload same resource twice
-        api_common.add_resource(dataset_id=data["id"],
-                                path=dpath,
-                                exist_ok=False,
-                                api=api
-                                )
+        resource_add(dataset_id=data["id"],
+                     path=dpath,
+                     exist_ok=False,
+                     api=api
+                     )
 
 
 def test_dataset_create_same_resource_exist_ok():
@@ -39,20 +38,20 @@ def test_dataset_create_same_resource_exist_ok():
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="create-with-same-resource")
     # post dataset creation request
-    data = api_common.create_dataset(dataset_dict=dataset_dict,
-                                     api=api)
-    api_common.add_resource(dataset_id=data["id"],
-                            path=dpath,
-                            api=api
-                            )
+    data = dataset_create(dataset_dict=dataset_dict,
+                          api=api)
+    resource_add(dataset_id=data["id"],
+                 path=dpath,
+                 api=api
+                 )
 
     # Should not be able to upload same resource twice
-    api_common.add_resource(dataset_id=data["id"],
-                            path=dpath,
-                            exist_ok=True,
-                            api=api,
-                            resource_dict={"sp:chip:channel width": 21.0}
-                            )
+    resource_add(dataset_id=data["id"],
+                 path=dpath,
+                 exist_ok=True,
+                 api=api,
+                 resource_dict={"sp:chip:channel width": 21.0}
+                 )
 
     pkg_dict = api.get("package_show", id=data["id"])
     res_names = [r["name"] for r in pkg_dict["resources"]]
@@ -67,17 +66,17 @@ def test_dataset_creation():
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="basic_test")
     # post dataset creation request
-    data = api_common.create_dataset(dataset_dict=dataset_dict,
-                                     api=api,
-                                     )
+    data = dataset_create(dataset_dict=dataset_dict,
+                          api=api,
+                          )
     # simple test
     assert "authors" in data
     assert data["authors"] == common.USER_NAME
     assert data["state"] == "draft"
     # remove draft dataset
-    api_common.remove_draft(dataset_id=data["id"],
-                            api=api,
-                            )
+    dataset_draft_remove(dataset_id=data["id"],
+                         api=api,
+                         )
     with pytest.raises(APINotFoundError):
         # make sure it is gone
         api.get("package_show", id=data["id"])
@@ -89,17 +88,17 @@ def test_dataset_creation_wrong_resource_supplement():
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="basic_test")
     # post dataset creation request
-    data = api_common.create_dataset(dataset_dict=dataset_dict,
-                                     api=api,
-                                     )
+    data = dataset_create(dataset_dict=dataset_dict,
+                          api=api,
+                          )
     # simple test
     with pytest.raises(APIConflictError):
-        api_common.add_resource(dataset_id=data["id"],
-                                resource_dict={
-                                 "sp:chip:production date": "2020-15-31"},
-                                path=dpath,
-                                api=api
-                                )
+        resource_add(dataset_id=data["id"],
+                     resource_dict={
+                             "sp:chip:production date": "2020-15-31"},
+                     path=dpath,
+                     api=api
+                     )
 
 
 def test_dataset_resource_exists():
@@ -108,23 +107,23 @@ def test_dataset_resource_exists():
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="create-with-same-resource")
     # post dataset creation request
-    data = api_common.create_dataset(dataset_dict=dataset_dict,
-                                     api=api)
-    api_common.add_resource(dataset_id=data["id"],
-                            path=dpath,
-                            api=api
-                            )
+    data = dataset_create(dataset_dict=dataset_dict,
+                              api=api)
+    resource_add(dataset_id=data["id"],
+                 path=dpath,
+                 api=api
+                 )
 
-    assert api_common.resource_exists(dataset_id=data["id"],
-                                      resource_name=dpath.name,
-                                      api=api)
+    assert resource_exists(dataset_id=data["id"],
+                           resource_name=dpath.name,
+                           api=api)
 
-    assert not api_common.resource_exists(dataset_id=data["id"],
-                                          resource_name=dpath.name,
-                                          resource_dict={
-                                           "sp:chip:channel width": 21.0
-                                       },
-                                          api=api)
+    assert not resource_exists(dataset_id=data["id"],
+                               resource_name=dpath.name,
+                               resource_dict={
+                                       "sp:chip:channel width": 21.0
+                                   },
+                               api=api)
 
 
 def test_dataset_resource_exists2():
@@ -133,20 +132,20 @@ def test_dataset_resource_exists2():
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="create-with-same-resource")
     # post dataset creation request
-    data = api_common.create_dataset(dataset_dict=dataset_dict,
-                                     api=api)
-    api_common.add_resource(dataset_id=data["id"],
-                            path=dpath,
-                            resource_dict={"sp:chip:channel width": 21.0},
-                            api=api,
-                            )
+    data = dataset_create(dataset_dict=dataset_dict,
+                              api=api)
+    resource_add(dataset_id=data["id"],
+                 path=dpath,
+                 resource_dict={"sp:chip:channel width": 21.0},
+                 api=api,
+                 )
 
-    assert api_common.resource_exists(dataset_id=data["id"],
-                                      resource_name=dpath.name,
-                                      resource_dict={
-                                       "sp:chip:channel width": 21.0
-                                   },
-                                      api=api)
+    assert resource_exists(dataset_id=data["id"],
+                           resource_name=dpath.name,
+                           resource_dict={
+                                   "sp:chip:channel width": 21.0
+                               },
+                           api=api)
 
 
 if __name__ == "__main__":

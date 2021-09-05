@@ -4,7 +4,7 @@ import pkg_resources
 
 from PyQt5 import uic, QtCore, QtWidgets
 
-from ...api_common import remove_all_drafts
+from ...api import dataset_draft_remove_all
 
 from ..api import get_ckan_api
 from ..main import DCORAid
@@ -53,7 +53,7 @@ class MaintenanceWidget(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def on_remove_drafts(self):
         with ShowWaitCursor():
-            data = remove_all_drafts(api=get_ckan_api())
+            data = dataset_draft_remove_all(api=get_ckan_api())
         msg = QtWidgets.QMessageBox()
         msg.setIcon(QtWidgets.QMessageBox.Information)
         if len(data):

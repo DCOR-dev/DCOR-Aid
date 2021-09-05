@@ -14,7 +14,7 @@ method. The new task now automatically has a dataset ID
 import json
 import pathlib
 
-from ..api_common import create_dataset
+from ..api import dataset_create
 
 from .job import UploadJob
 
@@ -115,7 +115,7 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
     ----------
     path: str or pathlib.Path
         Path to the JSON-encoded task file
-    api: dclab.api.CKANAPI
+    api: dcoraid.api.CKANAPI
         The CKAN/DCOR API instance used for the upload
     dataset_kwargs: dict
         Any additional dataset kwargs with which the "dataset_dict"
@@ -222,7 +222,7 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
     ids = [dd for dd in [id_u, id_d, id_m] if dd is not None]
     if len(set(ids)) == 0:
         # We have no dataset_id, so we create a dataset first
-        ddict = create_dataset(
+        ddict = dataset_create(
             dataset_dict=dataset_dict,
             api=api,
             activate=False)

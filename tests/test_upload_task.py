@@ -8,7 +8,7 @@ import pytest
 
 import dcoraid
 import dcoraid.api
-from dcoraid.api_common import create_dataset
+from dcoraid.api import dataset_create
 from dcoraid.upload import job, task
 
 import common
@@ -52,7 +52,7 @@ def test_dataset_id_already_exists_active_fails():
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="task_test")
     # post dataset creation request
-    dataset_dict_with_id = create_dataset(dataset_dict=dataset_dict,
+    dataset_dict_with_id = dataset_create(dataset_dict=dataset_dict,
                                           resources=[dpath],
                                           api=api,
                                           activate=True)
@@ -100,7 +100,7 @@ def test_load_with_existing_dataset():
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="task_test")
     # post dataset creation request
-    dataset_dict_with_id = create_dataset(dataset_dict=dataset_dict,
+    dataset_dict_with_id = dataset_create(dataset_dict=dataset_dict,
                                           resources=[dpath],
                                           api=api)
     task_path = common.make_upload_task(dataset_dict=dataset_dict_with_id,
@@ -120,7 +120,7 @@ def test_load_with_existing_dataset_map_from_task():
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="task_test")
     # post dataset creation request
-    dataset_dict_with_id = create_dataset(dataset_dict=dataset_dict,
+    dataset_dict_with_id = dataset_create(dataset_dict=dataset_dict,
                                           resources=[dpath],
                                           api=api)
     task_path = common.make_upload_task(dataset_dict=dataset_dict,
@@ -157,7 +157,7 @@ def test_load_with_existing_dataset_map_from_task_control():
     # create some metadata
     dataset_dict = common.make_dataset_dict(hint="task_test")
     # post dataset creation request
-    dataset_dict_with_id = create_dataset(dataset_dict=dataset_dict,
+    dataset_dict_with_id = dataset_create(dataset_dict=dataset_dict,
                                           resources=[dpath],
                                           api=api)
     task_path = common.make_upload_task(dataset_dict=dataset_dict,
@@ -330,7 +330,7 @@ def test_save_load():
     # create some metadata
     bare_dict = common.make_dataset_dict(hint="create-with-resource")
     # create dataset (to get the "id")
-    dataset_dict = create_dataset(dataset_dict=bare_dict, api=api)
+    dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
     uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
                        resource_paths=[dpath], task_id="hanspeter")
     td = pathlib.Path(tempfile.mkdtemp(prefix="task_"))

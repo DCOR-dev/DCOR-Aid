@@ -7,7 +7,8 @@ import warnings
 from dclab.rtdc_dataset.check import IntegrityChecker
 from dclab.cli import compress
 
-from .. import api_common
+from ..api import (dataset_activate, resource_add, resource_exists,
+                   resource_sha256_sums)
 from ..common import sha256sum
 
 
@@ -42,7 +43,7 @@ class UploadJob(object):
 
         Parameters
         ----------
-        api: dclab.api.CKANAPI
+        api: dcoraid.api.CKANAPI
             The CKAN/DCOR API instance used for the upload
         dataset_id: str
             ID of the CKAN/DCOR dataset
@@ -372,7 +373,7 @@ class UploadJob(object):
                 self.index = ii
                 resource_name = self.resource_names[ii]
                 resource_supplement = self.get_composite_supplements(ii)
-                exists = api_common.resource_exists(
+                exists = resource_exists(
                     dataset_id=self.dataset_id,
                     resource_name=resource_name,
                     resource_dict=resource_supplement,
@@ -386,7 +387,7 @@ class UploadJob(object):
                     continue
                 else:
                     # Normal upload.
-                    api_common.add_resource(
+                    resource_add(
                         dataset_id=self.dataset_id,
                         path=path,
                         resource_name=resource_name,
@@ -406,7 +407,7 @@ class UploadJob(object):
         """Perform SHA256 verification"""
         if self.state == "online":
             # First check whether all SHA256 sums are already available online
-            sha256dict = api_common.resource_sha256_sums(
+            sha256dict = resource_sha256_sums(
                 dataset_id=self.dataset_id,
                 api=self.api)
             if sum([sha256dict[name] is None for name in sha256dict]) != 0:
@@ -435,7 +436,7 @@ class UploadJob(object):
                     # finalize dataset
                     self.set_state("finalize")
                     # draft -> active
-                    api_common.activate_dataset(
+                    dataset_activate(
                         dataset_id=self.dataset_id,
                         api=self.api)
                     self.set_state("done")

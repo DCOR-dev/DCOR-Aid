@@ -72,7 +72,7 @@ class DownloadQueue:
 
         Parameters
         ----------
-        api: dclab.api.CKANAPI
+        api: dcoraid.api.CKANAPI
             The CKAN/DCOR API instance used for the downloads
         path_persistent_job_list: str or pathlib.Path
             Path to a directory for storing downloadJobs in a
