@@ -4,6 +4,7 @@
  - ref: introduce dedicated `api_common` submodule (moved from
    `upload.dataset`)
  - ref: introduce dedicated `common` submodule
+ - ref: introduce dedicated `worker` submodule for `KThread` and `Daemon`
 0.6.4
  - enh: automatically respwan job tasks on connection errors (#26)
  - enh: allow to abort the "compress" step of a job

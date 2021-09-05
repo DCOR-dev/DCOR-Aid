@@ -1,7 +1,8 @@
 import pathlib
 import warnings
 
-from ..upload.queue import Daemon
+from ..worker import Daemon
+
 from .job import DownloadJob
 from .task import load_task, save_task
 
