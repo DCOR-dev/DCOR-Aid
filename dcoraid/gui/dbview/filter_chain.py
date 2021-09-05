@@ -64,7 +64,7 @@ class FilterChain(QtWidgets.QWidget):
 
         Parameters
         ----------
-        db_extract: dcoraid.dbmodel.core.DBExtract
+        db_extract: dcoraid.dbmodel.db_core.DBExtract
             Subclass of DBModel
         """
         self.db_extract = db_extract

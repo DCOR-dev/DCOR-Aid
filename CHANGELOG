@@ -1,6 +1,7 @@
 0.7.0
  - feat: implement download manager
  - enh: allow to download all resources of a collection (#13)
+ - ref: simplify `dbmodel` submodule (just use Interrogator)
  - ref: expand dedicated `api` submodule (moved dunctions from
    `upload.dataset`)
  - ref: introduce dedicated `common` submodule

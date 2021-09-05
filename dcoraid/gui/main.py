@@ -14,7 +14,7 @@ import requests_toolbelt
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
 from ..api import APIKeyError
-from ..dbmodel import APIModel
+from ..dbmodel import APIInterrogator
 from .._version import version as __version__
 
 from .api import get_ckan_api
@@ -176,9 +176,9 @@ class DCORAid(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def on_public_search(self):
         api = get_ckan_api()
-        am = APIModel(api=api, mode="public")
+        ai = APIInterrogator(api=api, mode="public")
         with ShowWaitCursor():
-            dbextract = am.search_dataset(self.lineEdit_public_search.text())
+            dbextract = ai.search_dataset(self.lineEdit_public_search.text())
         self.public_filter_chain.set_db_extract(dbextract)
 
     @QtCore.pyqtSlot()
@@ -229,9 +229,9 @@ class DCORAid(QtWidgets.QMainWindow):
         # - what happens if the user changes the server? Ask to restart?
         api = get_ckan_api()
         if api.is_available() and api.api_key:
-            am = APIModel(api=api)
+            ai = APIInterrogator(api=api, mode="user")
             try:
-                db_extract = am.get_user_datasets()
+                db_extract = ai.get_datasets_user()
             except APIKeyError:
                 pass
             else:

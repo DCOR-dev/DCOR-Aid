@@ -2,7 +2,7 @@ import pathlib
 import random
 
 from dcoraid.api import dataset_create
-from dcoraid.dbmodel import model_api
+from dcoraid.dbmodel import db_api
 
 import common
 
@@ -12,7 +12,7 @@ dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
 def test_dcor_dev_public_api_interrogator():
     """This test uses the figshare datasets on SERVER"""
     api = common.get_api()
-    db = model_api.APIInterrogator(api=api)
+    db = db_api.APIInterrogator(api=api)
     assert common.CIRCLE in db.get_circles()
     assert common.COLLECTION in db.get_collections()
     assert common.USER in db.get_users()
@@ -21,8 +21,8 @@ def test_dcor_dev_public_api_interrogator():
 def test_dcor_dev_user_data():
     """Test the user information"""
     api = common.get_api()
-    db = model_api.APIInterrogator(api=api)
-    data = db.get_user_data()
+    db = db_api.APIInterrogator(api=api, mode="user")
+    data = db.user_data
     assert data["fullname"] == common.USER_NAME, "fullname not correct"
 
 
@@ -39,7 +39,7 @@ def test_dcor_dev_search():
                    api=api,
                    resources=[dpath],
                    activate=True)
-    db = model_api.APIInterrogator(api=api)
+    db = db_api.APIInterrogator(api=api)
     # Positive test
     data = db.search_dataset(query="dcoraid",
                              circles=[common.CIRCLE],

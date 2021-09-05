@@ -108,7 +108,7 @@ def test_dataset_resource_exists():
     dataset_dict = common.make_dataset_dict(hint="create-with-same-resource")
     # post dataset creation request
     data = dataset_create(dataset_dict=dataset_dict,
-                              api=api)
+                          api=api)
     resource_add(dataset_id=data["id"],
                  path=dpath,
                  api=api
@@ -133,7 +133,7 @@ def test_dataset_resource_exists2():
     dataset_dict = common.make_dataset_dict(hint="create-with-same-resource")
     # post dataset creation request
     data = dataset_create(dataset_dict=dataset_dict,
-                              api=api)
+                          api=api)
     resource_add(dataset_id=data["id"],
                  path=dpath,
                  resource_dict={"sp:chip:channel width": 21.0},

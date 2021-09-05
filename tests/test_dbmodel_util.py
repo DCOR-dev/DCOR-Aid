@@ -1,11 +1,12 @@
 import time
-from dcoraid.dbmodel import util
+
+import dcoraid.common
 
 
 def test_cache():
     count = 0
 
-    @util.ttl_cache(seconds=.1)
+    @dcoraid.common.ttl_cache(seconds=.1)
     def test(arg1):
         nonlocal count
         count += 1
