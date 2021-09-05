@@ -6,7 +6,7 @@ import warnings
 
 import requests
 
-from ..upload.job import sha256sum
+from ..common import sha256sum
 
 
 #: Valid job states (in more or less chronological order)

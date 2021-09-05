@@ -1,6 +1,4 @@
 import tempfile
-from functools import lru_cache
-import hashlib
 import pathlib
 import shutil
 import time
@@ -10,6 +8,7 @@ from dclab.rtdc_dataset.check import IntegrityChecker
 from dclab.cli import compress
 
 from .. import api_common
+from ..common import sha256sum
 
 
 #: Valid job states (in more or less chronological order)
@@ -445,18 +444,3 @@ class UploadJob(object):
             warnings.warn("Resource verification is only possible when state "
                           + "is 'online', but current state is "
                           + "'{}'!".format(self.state))
-
-
-@lru_cache(maxsize=2000)
-def sha256sum(path):
-    """Compute the SHA256 sum of a file on disk"""
-    block_size = 2**20
-    path = pathlib.Path(path)
-    file_hash = hashlib.sha256()
-    with path.open("rb") as fd:
-        while True:
-            data = fd.read(block_size)
-            if not data:
-                break
-            file_hash.update(data)
-    return file_hash.hexdigest()
