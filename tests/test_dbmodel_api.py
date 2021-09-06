@@ -156,7 +156,7 @@ def test_get_datasets_user_shared_figshare():
         if dd["id"] == "89bf2177-ffeb-9893-83cc-b619fc2f6663":
             break
     else:
-       assert False, "Search did not return figshare-7771184-v2!"
+        assert False, "Search did not return figshare-7771184-v2!"
     assert len(datasets) == 1
 
 
