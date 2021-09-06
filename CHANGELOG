@@ -2,6 +2,8 @@
  - feat: implement download manager
  - enh: allow to download all resources of a collection (#13)
  - enh: implement search for packages the user has access to
+ - enh: implement DBInterrogator functions for generating a private
+   user db (partly #5)
  - ref: simplify `dbmodel` submodule (just use Interrogator)
  - ref: expand dedicated `api` submodule (moved dunctions from
    `upload.dataset`)

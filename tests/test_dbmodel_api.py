@@ -16,6 +16,7 @@ def test_get_circles():
     db = db_api.APIInterrogator(api=api)
     circles = db.get_circles()
     assert common.CIRCLE in circles
+    # requires that the "dcoraid" user is in the figshare-import circle
     assert "figshare-import" in circles
 
 
@@ -24,6 +25,7 @@ def test_get_collections():
     db = db_api.APIInterrogator(api=api)
     collections = db.get_collections()
     assert common.COLLECTION in collections
+    # requires that the "dcoraid" user is in the figshare-collection collection
     assert "figshare-collection" in collections
 
 

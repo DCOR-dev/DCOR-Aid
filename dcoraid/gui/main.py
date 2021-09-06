@@ -1,5 +1,7 @@
 import os
 import pathlib
+import traceback
+
 import pkg_resources
 import shutil
 import signal
@@ -14,7 +16,7 @@ import requests_toolbelt
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
 from ..api import APIKeyError
-from ..dbmodel import APIInterrogator
+from ..dbmodel import APIInterrogator, DBExtract
 from .._version import version as __version__
 
 from .api import get_ckan_api
@@ -101,11 +103,8 @@ class DCORAid(QtWidgets.QMainWindow):
             self.timer.timeout.connect(self.refresh_login_status)
             self.timer.start(300000)
 
-        # Update private data tab
-        self.refresh_private_data()
-        # If a new dataset has been uploaded, refresh private data
-        # TODO: only add one dataset instead of downloading everything again.
-        self.panel_upload.upload_finished.connect(self.refresh_private_data)
+        # Signals for user datasets (my data)
+        self.pushButton_user_refresh.clicked.connect(self.refresh_private_data)
 
         # Signals for public data browser
         self.pushButton_public_search.clicked.connect(self.on_public_search)
@@ -114,11 +113,12 @@ class DCORAid(QtWidgets.QMainWindow):
         self.public_filter_chain.download_resource.connect(
             self.panel_download.download_resource)
 
+        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
+                                             300)
+
         # Run wizard if necessary
         if ((self.settings.value("user scenario", "") != "anonymous")
                 and not self.settings.value("auth/api key", "")):
-            QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                                 300)
             # User has not done anything yet
             self.on_wizard()
 
@@ -223,22 +223,20 @@ class DCORAid(QtWidgets.QMainWindow):
                                       icon=icon,
                                       server=api.server)
 
-    @run_async
     @QtCore.pyqtSlot()
     def refresh_private_data(self):
         self.tab_user.setCursor(QtCore.Qt.WaitCursor)
-        return
-        # TODO:
-        # - what happens if the user changes the server? Ask to restart?
         api = get_ckan_api()
+        data = DBExtract()
         if api.is_available() and api.api_key:
-            ai = APIInterrogator(api=api, mode="user")
-            try:
-                db_extract = ai.get_datasets_user()
-            except APIKeyError:
-                pass
-            else:
-                self.user_filter_chain.set_db_extract(db_extract)
+            ai = APIInterrogator(api=api)
+            if self.checkBox_user_following.isChecked():
+                data += ai.get_datasets_user_following()
+            if self.checkBox_user_owned.isChecked():
+                data += ai.get_datasets_user_owned()
+            if self.checkBox_user_shared.isChecked():
+                data += ai.get_datasets_user_shared()
+            self.user_filter_chain.set_db_extract(data)
         self.tab_user.setCursor(QtCore.Qt.ArrowCursor)
 
 
