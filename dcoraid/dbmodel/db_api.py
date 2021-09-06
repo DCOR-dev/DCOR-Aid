@@ -59,6 +59,18 @@ class APIInterrogator(DBInterrogator):
         return search["results"]
 
     def get_datasets_user_shared(self):
+        # TODO:
+        # - package_collaborator_list_for_user
+        #   - https://github.com/DCOR-dev/DCOR-Aid/issues/32
+        #   - https://github.com/DCOR-dev/ckanext-dcor_schemas/issues/10
+
+        # For now:
+        # - package_search with include_private (and somehow restrict to
+        #   private)
+        # - organization_list_for_user and all groups the user is a member of
+        #   -> search iteratively or in one big search
+        # - write wrapper function for batched search (above 1000)
+
         warnings.warn("`APIInterrogator.get_datasets_user_shared` "
                       + "not yet implemented!")
         return []

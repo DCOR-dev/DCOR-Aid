@@ -13,7 +13,30 @@ class DBExtract:
         self._circles = None
         self._collections = None
         self._dataset_name_index = None
-        self.datasets = datasets
+
+        self.registry = {}
+        self.datasets = []
+        self._add_datasets(datasets)
+
+    def __add__(self, other):
+        return DBExtract(self.datasets + other.datasets)
+
+    def __iadd__(self, other):
+        self._add_datasets(other.datasets)
+        return self
+
+    def __len__(self):
+        return len(self.datasets)
+
+    def __iter__(self):
+        return iter(self.datasets)
+
+    def _add_datasets(self, datasets):
+        for dd in datasets:
+            name = dd["name"]
+            if name not in self.registry:  # datasets must only be added once
+                self.registry[name] = dd
+                self.datasets.append(dd)
 
     @property
     @lru_cache(maxsize=1)
@@ -46,13 +69,5 @@ class DBExtract:
                 coll_list, key=lambda x: x.get("title") or x["name"])
         return self._collections
 
-    def _generate_index(self):
-        if self._dataset_name_index is None:
-            index = {}
-            for ii, dd in enumerate(self.datasets):
-                index[dd["name"]] = ii
-            self._dataset_name_index = index
-
     def get_dataset_dict(self, dataset_name):
-        self._generate_index()
-        return self.datasets[self._dataset_name_index[dataset_name]]
+        return self.registry[dataset_name]
