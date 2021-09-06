@@ -2,7 +2,7 @@ from functools import lru_cache
 
 
 class DBExtract:
-    def __init__(self, datasets):
+    def __init__(self, datasets=None):
         """User-convenient access to dataset search results
 
         Parameters
@@ -16,13 +16,14 @@ class DBExtract:
 
         self.registry = {}
         self.datasets = []
-        self._add_datasets(datasets)
+        if datasets:
+            self.add_datasets(datasets)
 
     def __add__(self, other):
         return DBExtract(self.datasets + other.datasets)
 
     def __iadd__(self, other):
-        self._add_datasets(other.datasets)
+        self.add_datasets(other.datasets)
         return self
 
     def __len__(self):
@@ -31,7 +32,7 @@ class DBExtract:
     def __iter__(self):
         return iter(self.datasets)
 
-    def _add_datasets(self, datasets):
+    def add_datasets(self, datasets):
         for dd in datasets:
             name = dd["name"]
             if name not in self.registry:  # datasets must only be added once

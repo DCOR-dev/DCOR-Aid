@@ -31,6 +31,29 @@ class CKANAPI:
                         }
         self.verify = ssl_verify
 
+        self._user_dict = None
+
+    @property
+    def user_name(self):
+        return self._get_user_data().get("name")
+
+    @property
+    def user_id(self):
+        return self._get_user_data().get("id")
+
+    def _get_user_data(self):
+        if self._user_dict is None:
+            # initial call to populate self._user_dict
+            try:
+                ud = self.get_user_dict()
+            except APIKeyError:
+                # anonymous access
+                self._user_dict = {}
+            else:
+                self._user_dict = {"id": ud["id"],
+                                   "name": ud["name"]}
+        return self._user_dict
+
     def _make_api_url(self, url):
         """Generate a complete CKAN API URL
 
@@ -113,6 +136,8 @@ class CKANAPI:
             msg = "{}: {} (for '{}')".format(etype, etext, api_call)
             if req.reason == "NOT FOUND":
                 raise APINotFoundError(msg)
+            elif req.reason == "CONFLICT":
+                raise APIConflictError(msg)
             else:
                 raise ConnectionError(msg)
         elif not rdata["success"]:

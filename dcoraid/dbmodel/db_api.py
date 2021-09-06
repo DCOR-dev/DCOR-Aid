@@ -1,5 +1,6 @@
 import urllib.parse
-import warnings
+
+import numpy as np
 
 from ..common import ttl_cache
 
@@ -41,13 +42,13 @@ class APIInterrogator(DBInterrogator):
     def get_datasets_user_following(self):
         data = self.api.get("dataset_followee_list",
                             id=self.user_data["name"])
-        return data
+        return DBExtract(data)
 
     @ttl_cache(seconds=3600)
     def get_datasets_user_owned(self):
         """Get all the user's datasets"""
         numd = self.user_data["number_created_packages"]
-        if numd > 1000:
+        if numd >= 1000:
             raise NotImplementedError(
                 "Reached hard limit of 1000 results! "
                 + "Please ask someone to implement this with `start`.")
@@ -56,7 +57,7 @@ class APIInterrogator(DBInterrogator):
                               fq=f"creator_user_id:{self.user_data['id']}",
                               rows=numd+1)
 
-        return search["results"]
+        return DBExtract(search["results"])
 
     def get_datasets_user_shared(self):
         # TODO:
@@ -64,16 +65,43 @@ class APIInterrogator(DBInterrogator):
         #   - https://github.com/DCOR-dev/DCOR-Aid/issues/32
         #   - https://github.com/DCOR-dev/ckanext-dcor_schemas/issues/10
 
-        # For now:
-        # - package_search with include_private (and somehow restrict to
-        #   private)
-        # - organization_list_for_user and all groups the user is a member of
-        #   -> search iteratively or in one big search
-        # - write wrapper function for batched search (above 1000)
+        # get circles the user is a member of
+        circles = self.api.get("organization_list",
+                               limit=1000,
+                               all_fields=True,
+                               include_users=True)
+        if len(circles) >= 1000:
+            raise NotImplementedError(
+                "Reached hard limit of 1000 results! "
+                + "Please ask someone to implement this with `offset`.")
+        user_circles = []
+        for circ in circles:
+            for user in circ["users"]:
+                if user["id"] == self.api.user_id:
+                    user_circles.append(circ["name"])
+        # get collections the user is a member of
+        collections = self.api.get("group_list",
+                                   limit=1000,
+                                   all_fields=True,
+                                   include_users=True)
+        if len(collections) >= 1000:
+            raise NotImplementedError(
+                "Reached hard limit of 1000 results! "
+                + "Please ask someone to implement this with `offset`.")
+        user_collections = []
+        for coll in collections:
+            for user in coll["users"]:
+                if user["id"] == self.api.user_id:
+                    user_collections.append(coll["name"])
 
-        warnings.warn("`APIInterrogator.get_datasets_user_shared` "
-                      + "not yet implemented!")
-        return []
+        # perform a dataset search with those circles and collections
+        datasets = self.search_dataset(
+            circles=user_circles,
+            collections=user_collections,
+            circle_collection_union=True,
+            limit=0,
+        )
+        return datasets
 
     @ttl_cache(seconds=3600)
     def get_users(self, ret_fullnames=False):
@@ -92,7 +120,26 @@ class APIInterrogator(DBInterrogator):
         else:
             return user_list
 
-    def search_dataset(self, query, circles=None, collections=None):
+    def search_dataset(self, query="*:*", circles=None, collections=None,
+                       circle_collection_union=False, limit=100):
+        """Search datasets via the CKAN API
+
+        Parameters
+        ----------
+        query: str
+            search query
+        circles: list of str
+            list of circles (organizations) to search in
+        collections: list of str
+            list of collections (groups) to search in
+        circle_collection_union: bool
+            If set to True, make a union of the circle and collection
+            sets. Otherwise (default), search only for datasets that
+            are are at least member of one of the circles and one of the
+            collections.
+        limit: int
+            limit number of search results; Set to 0 to get all results
+        """
         # https://docs.ckan.org/en/latest/user-guide.html#search-in-detail
         if circles:
             solr_circles = ["organization:{}".format(ci) for ci in circles]
@@ -107,7 +154,10 @@ class APIInterrogator(DBInterrogator):
             solr_collections_query = None
 
         if solr_circle_query and solr_collections_query:
-            fq = f"({solr_circle_query}) AND ({solr_collections_query})"
+            if circle_collection_union:
+                fq = f"({solr_circle_query}) OR ({solr_collections_query})"
+            else:
+                fq = f"({solr_circle_query}) AND ({solr_collections_query})"
         elif solr_circle_query:
             fq = f"{solr_circle_query}"
         elif solr_collections_query:
@@ -115,13 +165,36 @@ class APIInterrogator(DBInterrogator):
         else:
             fq = ""
 
-        data = self.api.get("package_search",
-                            q=urllib.parse.quote(query, safe=""),
-                            include_private=(self.mode == "user"),
-                            fq=fq,
-                            rows=100,
-                            )
-        return DBExtract(data["results"])
+        if limit < 0:
+            raise ValueError(f"`limit` must be 0 or >0!, got {limit}!")
+        elif limit == 0:
+            rows = 1000  # default batch size
+            limit = np.inf
+        else:
+            rows = min(1000, limit)
+
+        num_total = np.inf  # just the initial value
+        num_retrieved = 0
+        dbextract = DBExtract()
+        while num_retrieved < min(limit, num_total) and rows:
+            data = self.api.get("package_search",
+                                q=urllib.parse.quote(query, safe=""),
+                                fq=fq,
+                                include_private=(self.mode == "user"),
+                                rows=rows,
+                                start=num_retrieved,
+                                )
+            if np.isinf(num_total):
+                # first iteration
+                num_total = data["count"]
+            num_retrieved += len(data["results"])
+            if num_retrieved + rows > min(limit, num_total):
+                # in the next iteration, only get the final
+                # few results.
+                rows = num_total - num_retrieved
+            dbextract.add_datasets(data["results"])
+
+        return dbextract
 
     @property
     def local_timestamp(self):

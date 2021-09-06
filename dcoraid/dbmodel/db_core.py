@@ -2,8 +2,6 @@ import abc
 
 from ..common import ttl_cache
 
-from .extract import DBExtract
-
 
 class DBInterrogator(abc.ABC):
     def __init__(self, mode, user_data):
@@ -45,7 +43,8 @@ class DBInterrogator(abc.ABC):
         owned = self.get_datasets_user_owned()
         shared = self.get_datasets_user_shared()
         following = self.get_datasets_user_following()
-        return DBExtract(owned+shared+following)
+        # these are all instances of DBExtract
+        return owned + shared + following
 
     @abc.abstractmethod
     def get_datasets_user_following(self):

@@ -104,6 +104,7 @@ class DCORAid(QtWidgets.QMainWindow):
         # Update private data tab
         self.refresh_private_data()
         # If a new dataset has been uploaded, refresh private data
+        # TODO: only add one dataset instead of downloading everything again.
         self.panel_upload.upload_finished.connect(self.refresh_private_data)
 
         # Signals for public data browser
@@ -223,7 +224,6 @@ class DCORAid(QtWidgets.QMainWindow):
     @run_async
     @QtCore.pyqtSlot()
     def refresh_private_data(self):
-        return
         self.tab_user.setCursor(QtCore.Qt.WaitCursor)
         # TODO:
         # - what happens if the user changes the server? Ask to restart?
