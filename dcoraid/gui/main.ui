@@ -21,7 +21,7 @@
        <bool>true</bool>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_browse">
        <attribute name="icon">
@@ -73,10 +73,10 @@
           <item>
            <widget class="QSpinBox" name="spinBox_public_rows">
             <property name="minimum">
-             <number>10</number>
+             <number>1</number>
             </property>
             <property name="maximum">
-             <number>9999999</number>
+             <number>999999</number>
             </property>
             <property name="singleStep">
              <number>100</number>
@@ -378,7 +378,8 @@
       </widget>
       <widget class="QWidget" name="tab_download">
        <attribute name="icon">
-        <iconset theme="download"/>
+        <iconset theme="download">
+         <normaloff>.</normaloff>.</iconset>
        </attribute>
        <attribute name="title">
         <string>Downloads</string>

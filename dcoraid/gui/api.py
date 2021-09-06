@@ -11,10 +11,13 @@ from ..api import CKANAPI
 _SSL_VERIFY = None
 
 
-def get_ckan_api():
+def get_ckan_api(public=False):
     """Convenience function for obtaining CKANAPI instance from settings"""
     settings = QtCore.QSettings()
-    api_key = settings.value("auth/api key", "")
+    if public:
+        api_key = None
+    else:
+        api_key = settings.value("auth/api key", "")
     server = settings.value("auth/server", "dcor.mpl.mpg.de")
     ssl_verify = setup_certificate_file()
     api = CKANAPI(server=server, api_key=api_key, ssl_verify=ssl_verify)

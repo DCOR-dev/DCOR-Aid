@@ -176,11 +176,13 @@ class DCORAid(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def on_public_search(self):
-        api = get_ckan_api()
-        ai = APIInterrogator(api=api, mode="public")
+        api = get_ckan_api(public=True)
+        ai = APIInterrogator(api=api)
         with ShowWaitCursor():
-            dbextract = ai.search_dataset(self.lineEdit_public_search.text())
-        self.public_filter_chain.set_db_extract(dbextract)
+            dbextract = ai.search_dataset(
+                self.lineEdit_public_search.text(),
+                limit=self.spinBox_public_rows.value())
+            self.public_filter_chain.set_db_extract(dbextract)
 
     @QtCore.pyqtSlot()
     def on_wizard(self):
@@ -225,6 +227,7 @@ class DCORAid(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def refresh_private_data(self):
         self.tab_user.setCursor(QtCore.Qt.WaitCursor)
+        return
         # TODO:
         # - what happens if the user changes the server? Ask to restart?
         api = get_ckan_api()

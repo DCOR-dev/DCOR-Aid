@@ -9,96 +9,75 @@ from .extract import DBExtract
 
 
 class APIInterrogator(DBInterrogator):
-    def __init__(self, api, mode="public"):
+    def __init__(self, api):
         self.api = api.copy()
-        if mode == "user":
+        if api.user_id:
+            mode = "user"
             user_data = api.get_user_dict()
         else:
+            mode = "public"
             user_data = None
         super(APIInterrogator, self).__init__(mode=mode, user_data=user_data)
 
     @ttl_cache(seconds=5)
     def get_circles(self):
-        """Return the list of DCOR Circles
+        """Return the list of DCOR Circle names
         """
         if self.mode == "user":
             # Organizations the user is a member of
-            data = self.api.get("organization_list_for_user",
-                                permission="read")
+            circle_dict = self.api.get("organization_list_for_user",
+                                       id=self.api.user_id,
+                                       permission="read")
+            data = [dd["name"] for dd in circle_dict]
         else:
             data = self.api.get("organization_list")
         return data
 
     @ttl_cache(seconds=5)
     def get_collections(self):
-        """Return the list of DCOR Collections"""
+        """Return the list of DCOR Collection names"""
         if self.mode == "user":
-            data = self.api.get("group_list_authz", am_member=True)
+            collection_dict = self.api.get("group_list_authz", am_member=True)
+            data = [dd["name"] for dd in collection_dict]
         else:
             data = self.api.get("group_list")
+        if len(data) == 1000:
+            raise NotImplementedError(
+                "Reached hard limit of 1000 results! "
+                + "Please ask someone to implement this with `offset`.")
         return data
 
     @ttl_cache(seconds=3600)
     def get_datasets_user_following(self):
-        data = self.api.get("dataset_followee_list",
-                            id=self.user_data["name"])
+        """Return datasets the user is following"""
+        assert self.mode == "user"
+        data = self.api.get("dataset_followee_list", id=self.api.user_name)
         return DBExtract(data)
 
     @ttl_cache(seconds=3600)
     def get_datasets_user_owned(self):
-        """Get all the user's datasets"""
-        numd = self.user_data["number_created_packages"]
-        if numd >= 1000:
-            raise NotImplementedError(
-                "Reached hard limit of 1000 results! "
-                + "Please ask someone to implement this with `start`.")
-        search = self.api.get("package_search",
-                              q="*:*",
-                              fq=f"creator_user_id:{self.user_data['id']}",
-                              rows=numd+1)
-
-        return DBExtract(search["results"])
+        """Return datasets the user created"""
+        assert self.mode == "user"
+        datasets = self.search_dataset(
+            filter_queries=[f"+creator_user_id:{self.api.user_id}"],
+            limit=0,
+        )
+        return datasets
 
     def get_datasets_user_shared(self):
+        """Return datasets shared with the user"""
+        assert self.mode == "user"
         # TODO:
         # - package_collaborator_list_for_user
         #   - https://github.com/DCOR-dev/DCOR-Aid/issues/32
         #   - https://github.com/DCOR-dev/ckanext-dcor_schemas/issues/10
 
-        # get circles the user is a member of
-        circles = self.api.get("organization_list",
-                               limit=1000,
-                               all_fields=True,
-                               include_users=True)
-        if len(circles) >= 1000:
-            raise NotImplementedError(
-                "Reached hard limit of 1000 results! "
-                + "Please ask someone to implement this with `offset`.")
-        user_circles = []
-        for circ in circles:
-            for user in circ["users"]:
-                if user["id"] == self.api.user_id:
-                    user_circles.append(circ["name"])
-        # get collections the user is a member of
-        collections = self.api.get("group_list",
-                                   limit=1000,
-                                   all_fields=True,
-                                   include_users=True)
-        if len(collections) >= 1000:
-            raise NotImplementedError(
-                "Reached hard limit of 1000 results! "
-                + "Please ask someone to implement this with `offset`.")
-        user_collections = []
-        for coll in collections:
-            for user in coll["users"]:
-                if user["id"] == self.api.user_id:
-                    user_collections.append(coll["name"])
-
         # perform a dataset search with those circles and collections
         datasets = self.search_dataset(
-            circles=user_circles,
-            collections=user_collections,
+            circles=self.get_circles(),
+            collections=self.get_collections(),
             circle_collection_union=True,
+            filter_queries=[f"-creator_user_id:{self.api.user_id}"],
             limit=0,
         )
         return datasets
@@ -120,14 +99,17 @@ class APIInterrogator(DBInterrogator):
         else:
             return user_list
 
-    def search_dataset(self, query="*:*", circles=None, collections=None,
-                       circle_collection_union=False, limit=100):
+    def search_dataset(self, query="*:*", filter_queries=None, circles=None,
+                       collections=None, circle_collection_union=False,
+                       limit=100):
         """Search datasets via the CKAN API
 
         Parameters
         ----------
         query: str
             search query
+        filter_queries: list of str
+            SOLR `fq` filter queries (are joined with 'AND')
         circles: list of str
             list of circles (organizations) to search in
         collections: list of str
@@ -140,30 +122,46 @@ class APIInterrogator(DBInterrogator):
         limit: int
             limit number of search results; Set to 0 to get all results
         """
+        if filter_queries is None:
+            filter_queries = []
         # https://docs.ckan.org/en/latest/user-guide.html#search-in-detail
         if circles:
             solr_circles = ["organization:{}".format(ci) for ci in circles]
-            solr_circle_query = " OR ".join(solr_circles)
+            if len(circles) == 1:
+                solr_circle_query = solr_circles[0]
+            else:
+                solr_circle_query = f"({' OR '.join(solr_circles)})"
         else:
             solr_circle_query = None
 
         if collections:
             solr_collections = ["groups:{}".format(co) for co in collections]
-            solr_collections_query = " OR ".join(solr_collections)
+            if len(collections) == 1:
+                solr_collections_query = solr_collections[0]
+            else:
+                solr_collections_query = f"({' OR '.join(solr_collections)})"
         else:
             solr_collections_query = None
 
         if solr_circle_query and solr_collections_query:
             if circle_collection_union:
-                fq = f"({solr_circle_query}) OR ({solr_collections_query})"
+                fq = f"({solr_circle_query} OR {solr_collections_query})"
             else:
-                fq = f"({solr_circle_query}) AND ({solr_collections_query})"
+                fq = f"({solr_circle_query} AND {solr_collections_query})"
         elif solr_circle_query:
             fq = f"{solr_circle_query}"
         elif solr_collections_query:
             fq = f"{solr_collections_query}"
         else:
             fq = ""
+        if fq:
+            filter_queries.append(fq)
+        if len(filter_queries) == 0:
+            final_fq = ""
+        elif len(filter_queries) == 1:
+            final_fq = filter_queries[0]
+        else:
+            final_fq = f"({' AND '.join(filter_queries)})"
 
         if limit < 0:
             raise ValueError(f"`limit` must be 0 or >0!, got {limit}!")
@@ -179,7 +177,7 @@ class APIInterrogator(DBInterrogator):
         while num_retrieved < min(limit, num_total) and rows:
             data = self.api.get("package_search",
                                 q=urllib.parse.quote(query, safe=""),
-                                fq=fq,
+                                fq=final_fq,
                                 include_private=(self.mode == "user"),
                                 rows=rows,
                                 start=num_retrieved,
