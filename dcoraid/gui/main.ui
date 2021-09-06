@@ -21,15 +21,14 @@
        <bool>true</bool>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_browse">
        <attribute name="icon">
-        <iconset theme="globe">
-         <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+        <iconset theme="dcor"/>
        </attribute>
        <attribute name="title">
-        <string>Public Data</string>
+        <string>Find Data</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_9">
         <item>
@@ -66,7 +65,7 @@
           <item>
            <widget class="QLabel" name="label_6">
             <property name="text">
-             <string>limit datasets:</string>
+             <string>limit results:</string>
             </property>
            </widget>
           </item>
@@ -83,6 +82,16 @@
             </property>
             <property name="value">
              <number>100</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBox_public_include_private">
+            <property name="text">
+             <string>include private</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -109,8 +118,7 @@
       </widget>
       <widget class="QWidget" name="tab_user">
        <attribute name="icon">
-        <iconset theme="street-view">
-         <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+        <iconset theme="street-view"/>
        </attribute>
        <attribute name="title">
         <string>My Data</string>
@@ -128,16 +136,6 @@
             </property>
             <property name="checked">
              <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="checkBox_user_shared">
-            <property name="text">
-             <string>shared with me</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -197,8 +195,7 @@
         <bool>false</bool>
        </property>
        <attribute name="icon">
-        <iconset theme="people-arrows">
-         <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+        <iconset theme="people-arrows"/>
        </attribute>
        <attribute name="title">
         <string>Sharing</string>
@@ -334,8 +331,7 @@
       </widget>
       <widget class="QWidget" name="tab_upload">
        <attribute name="icon">
-        <iconset theme="upload">
-         <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+        <iconset theme="upload"/>
        </attribute>
        <attribute name="title">
         <string>Uploads</string>
@@ -360,8 +356,7 @@
       </widget>
       <widget class="QWidget" name="tab_download">
        <attribute name="icon">
-        <iconset theme="download">
-         <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+        <iconset theme="download"/>
        </attribute>
        <attribute name="title">
         <string>Downloads</string>
@@ -386,8 +381,7 @@
       </widget>
       <widget class="QWidget" name="tab_maintain">
        <attribute name="icon">
-        <iconset theme="broom">
-         <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+        <iconset theme="broom"/>
        </attribute>
        <attribute name="title">
         <string>Maintenance</string>

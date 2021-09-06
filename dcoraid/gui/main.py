@@ -176,7 +176,8 @@ class DCORAid(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def on_public_search(self):
-        api = get_ckan_api(public=True)
+        api = get_ckan_api(
+            public=not self.checkBox_public_include_private.isChecked())
         ai = APIInterrogator(api=api)
         with ShowWaitCursor():
             dbextract = ai.search_dataset(
@@ -234,8 +235,6 @@ class DCORAid(QtWidgets.QMainWindow):
                 data += ai.get_datasets_user_following()
             if self.checkBox_user_owned.isChecked():
                 data += ai.get_datasets_user_owned()
-            if self.checkBox_user_shared.isChecked():
-                data += ai.get_datasets_user_shared()
             self.user_filter_chain.set_db_extract(data)
         self.tab_user.setCursor(QtCore.Qt.ArrowCursor)
 

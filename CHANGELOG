@@ -1,5 +1,7 @@
 0.7.0
  - feat: implement download manager
+ - feat: rename first tab to "Find Data" and allow searching for
+   private datasets
  - enh: allow to download all resources of a collection (#13)
  - enh: implement search for packages the user has access to
  - enh: implement DBInterrogator functions for generating a private
