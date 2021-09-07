@@ -294,9 +294,17 @@ class UploadJob(object):
         self.set_state("compress")
         for ii, path in enumerate(list(self.paths)):
             if path.suffix in [".rtdc", ".dc"]:  # do we have an .rtdc file?
-                # check for compression
                 with IntegrityChecker(path) as ic:
+                    # check for compression
                     cdata = ic.check_compression()[0].data
+                    # perform a sanity check
+                    insane = [c.msg for c in ic.sanity_check()]
+                    if insane:
+                        # The user is responsible of cleaning up the mess.
+                        # We just make sure no dirty data gets uploaded to
+                        # DCOR.
+                        raise IOError(f"Sanity check failed for {path}!\n"
+                                      + "\n".join(insane))
                 if cdata["uncompressed"]:  # (partially) not compressed?
                     res_dir = self.cache_dir / "{}".format(ii)
                     res_dir.mkdir(exist_ok=True, parents=True)
