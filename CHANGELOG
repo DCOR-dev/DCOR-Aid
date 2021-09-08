@@ -9,7 +9,7 @@
    user db (partly #5)
  - setup: bump dclab from 0.35.3 to 0.35.6
  - ref: simplify `dbmodel` submodule (just use Interrogator)
- - ref: expand dedicated `api` submodule (moved dunctions from
+ - ref: expand dedicated `api` submodule (moved functions from
    `upload.dataset`)
  - ref: introduce dedicated `common` submodule
  - ref: introduce dedicated `worker` submodule for `KThread` and`Daemon`
