@@ -7,7 +7,7 @@
  - enh: implement search for packages the user has access to
  - enh: implement DBInterrogator functions for generating a private
    user db (partly #5)
- - setup: bump dclab from 0.35.3 to 0.35.5
+ - setup: bump dclab from 0.35.3 to 0.35.6
  - ref: simplify `dbmodel` submodule (just use Interrogator)
  - ref: expand dedicated `api` submodule (moved dunctions from
    `upload.dataset`)
