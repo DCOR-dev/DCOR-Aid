@@ -177,12 +177,18 @@ class DCORAid(QtWidgets.QMainWindow):
     def on_public_search(self):
         api = get_ckan_api(
             public=not self.checkBox_public_include_private.isChecked())
-        ai = APIInterrogator(api=api)
-        with ShowWaitCursor():
-            dbextract = ai.search_dataset(
-                self.lineEdit_public_search.text(),
-                limit=self.spinBox_public_rows.value())
-            self.public_filter_chain.set_db_extract(dbextract)
+        try:
+            ai = APIInterrogator(api=api)
+            with ShowWaitCursor():
+                dbextract = ai.search_dataset(
+                    self.lineEdit_public_search.text(),
+                    limit=self.spinBox_public_rows.value())
+                self.public_filter_chain.set_db_extract(dbextract)
+        except ConnectionTimeoutErrors:
+            QtWidgets.QMessageBox.critical(
+                self,
+                f"Failed to connect to {api.server}",
+                tb.format_exc(limit=1))
 
     @QtCore.pyqtSlot()
     def on_wizard(self):
