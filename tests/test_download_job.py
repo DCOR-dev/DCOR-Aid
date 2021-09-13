@@ -34,6 +34,32 @@ def test_full_download():
     assert dj.path.exists()
 
 
+def test_full_download_file_exists():
+    api = common.get_api()
+    td = tempfile.mkdtemp(prefix="test-download")
+    ds_dict = common.make_dataset_for_download()
+    dj = job.DownloadJob(api=api,
+                         resource_id=ds_dict["resources"][0]["id"],
+                         download_path=td)
+    assert dj.path.is_dir()
+    dj.task_download_resource()
+    assert dj.start_time is not None
+    assert dj.end_time is not None
+    assert dj.path.exists()
+    assert not dj.path.is_dir()
+
+    # now attempt to download the file a second time and make
+    # sure that it is not actually downloaded
+    dj2 = job.DownloadJob(api=api,
+                          resource_id=ds_dict["resources"][0]["id"],
+                          download_path=td)
+    dj2.task_download_resource()
+    assert dj2.start_time is None
+    assert dj2.end_time is None
+    assert dj2.path.exists()
+    assert dj2.path.samefile(dj.path)
+
+
 def test_get_status():
     api = common.get_api()
     td = tempfile.mkdtemp(prefix="test-download")

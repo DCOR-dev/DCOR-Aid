@@ -226,45 +226,51 @@ class DownloadJob(object):
                 ds_dir = self.path / ds_name
                 ds_dir.mkdir(exist_ok=True, parents=True)
                 self.path = ds_dir / res_name
-            self.path_temp = self.path.with_name(self.path.name + "~")
-            # check for disk space
-            size = self.get_resource_dict()["size"]
-            if shutil.disk_usage(self.path_temp.parent).free < size:
-                # there is not enough space on disk for the download
-                self.set_state("wait-disk")
-                time.sleep(.2)
-            else:
-                # proceed with download
-
-                # TODO:
-                # - continue download at self.path_temp?
-
-                # reset everything
-                self.file_bytes_downloaded = 0
+            if self.path.exists():
                 self.start_time = None
                 self.end_time = None
-                self._last_time = 0
-                self._last_bytes = 0
-                self._last_rate = 0
-                # begin transfer
-                self.set_state("transfer")
-                self.start_time = time.perf_counter()
-                # Do the things to do and watch self.state while doing so
-                url = self.get_resource_url()
-                with requests.get(url,
-                                  stream=True,
-                                  headers=self.api.headers) as r:
-                    r.raise_for_status()
-                    with open(self.path_temp, 'wb') as f:
-                        chunk_size = 1024*1024
-                        for chunk in r.iter_content(chunk_size=chunk_size):
-                            # If you have chunk encoded response uncomment if
-                            # and set chunk_size parameter to None.
-                            # if chunk:
-                            f.write(chunk)
-                            self.file_bytes_downloaded += len(chunk)
-                self.end_time = time.perf_counter()
+                self.file_bytes_downloaded = self.get_resource_dict()["size"]
                 self.set_state("downloaded")
+            else:
+                self.path_temp = self.path.with_name(self.path.name + "~")
+                # check for disk space
+                size = self.get_resource_dict()["size"]
+                if shutil.disk_usage(self.path_temp.parent).free < size:
+                    # there is not enough space on disk for the download
+                    self.set_state("wait-disk")
+                    time.sleep(.2)
+                else:
+                    # proceed with download
+
+                    # TODO:
+                    # - continue download at self.path_temp?
+
+                    # reset everything
+                    self.file_bytes_downloaded = 0
+                    self.start_time = None
+                    self.end_time = None
+                    self._last_time = 0
+                    self._last_bytes = 0
+                    self._last_rate = 0
+                    # begin transfer
+                    self.set_state("transfer")
+                    self.start_time = time.perf_counter()
+                    # Do the things to do and watch self.state while doing so
+                    url = self.get_resource_url()
+                    with requests.get(url,
+                                      stream=True,
+                                      headers=self.api.headers) as r:
+                        r.raise_for_status()
+                        with open(self.path_temp, 'wb') as f:
+                            chunk_size = 1024*1024
+                            for chunk in r.iter_content(chunk_size=chunk_size):
+                                # If you have chunk encoded response uncomment
+                                # if and set chunk_size parameter to None.
+                                # if chunk:
+                                f.write(chunk)
+                                self.file_bytes_downloaded += len(chunk)
+                    self.end_time = time.perf_counter()
+                    self.set_state("downloaded")
         else:
             warnings.warn("Starting a download only possible when state is "
                           + "'init' or 'wait-disk', but current state is "
