@@ -1,7 +1,7 @@
 0.7.1
  - fix: handle connection errors on startup when no internet connection
    is available (#34)
- - fix: simplify error messages on connection errors during search
+ - fix: simplify error messages on connection errors in UI
 0.7.0
  - feat: implement download manager
  - feat: rename first tab to "Find Data" and allow searching for

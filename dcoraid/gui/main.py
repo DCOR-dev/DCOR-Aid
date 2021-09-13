@@ -20,7 +20,7 @@ from .._version import version as __version__
 
 from .api import get_ckan_api
 from .preferences import PreferencesDialog
-from .tools import ShowWaitCursor, run_async
+from .tools import run_async
 from .wizard import SetupWizard
 
 # set Qt icon theme search path
@@ -103,7 +103,8 @@ class DCORAid(QtWidgets.QMainWindow):
             self.timer.start(300000)
 
         # Signals for user datasets (my data)
-        self.pushButton_user_refresh.clicked.connect(self.refresh_private_data)
+        self.pushButton_user_refresh.clicked.connect(
+            self.on_refresh_private_data)
 
         # Signals for public data browser
         self.pushButton_public_search.clicked.connect(self.on_public_search)
@@ -175,20 +176,41 @@ class DCORAid(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def on_public_search(self):
+        self.tab_browse.setCursor(QtCore.Qt.WaitCursor)
         api = get_ckan_api(
             public=not self.checkBox_public_include_private.isChecked())
         try:
             ai = APIInterrogator(api=api)
-            with ShowWaitCursor():
-                dbextract = ai.search_dataset(
-                    self.lineEdit_public_search.text(),
-                    limit=self.spinBox_public_rows.value())
-                self.public_filter_chain.set_db_extract(dbextract)
+            dbextract = ai.search_dataset(
+                self.lineEdit_public_search.text(),
+                limit=self.spinBox_public_rows.value())
+            self.public_filter_chain.set_db_extract(dbextract)
         except ConnectionTimeoutErrors:
             QtWidgets.QMessageBox.critical(
                 self,
                 f"Failed to connect to {api.server}",
                 tb.format_exc(limit=1))
+        self.tab_browse.setCursor(QtCore.Qt.ArrowCursor)
+
+    @QtCore.pyqtSlot()
+    def on_refresh_private_data(self):
+        self.tab_user.setCursor(QtCore.Qt.WaitCursor)
+        api = get_ckan_api()
+        data = DBExtract()
+        if api.is_available() and api.api_key:
+            try:
+                ai = APIInterrogator(api=api)
+                if self.checkBox_user_following.isChecked():
+                    data += ai.get_datasets_user_following()
+                if self.checkBox_user_owned.isChecked():
+                    data += ai.get_datasets_user_owned()
+                self.user_filter_chain.set_db_extract(data)
+            except ConnectionTimeoutErrors:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    f"Failed to connect to {api.server}",
+                    tb.format_exc(limit=1))
+        self.tab_user.setCursor(QtCore.Qt.ArrowCursor)
 
     @QtCore.pyqtSlot()
     def on_wizard(self):
@@ -226,20 +248,6 @@ class DCORAid(QtWidgets.QMainWindow):
                                       tooltip=tip,
                                       icon=icon,
                                       server=api.server)
-
-    @QtCore.pyqtSlot()
-    def refresh_private_data(self):
-        self.tab_user.setCursor(QtCore.Qt.WaitCursor)
-        api = get_ckan_api()
-        data = DBExtract()
-        if api.is_available() and api.api_key:
-            ai = APIInterrogator(api=api)
-            if self.checkBox_user_following.isChecked():
-                data += ai.get_datasets_user_following()
-            if self.checkBox_user_owned.isChecked():
-                data += ai.get_datasets_user_owned()
-            self.user_filter_chain.set_db_extract(data)
-        self.tab_user.setCursor(QtCore.Qt.ArrowCursor)
 
 
 class StatusWidget(QtWidgets.QWidget):
