@@ -212,12 +212,15 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         # This is the actual initialization
         self.jobs = jobs
 
+    @QtCore.pyqtSlot(str)
     def on_job_abort(self, dataset_id):
         self.jobs.abort_job(dataset_id)
 
+    @QtCore.pyqtSlot(str)
     def on_job_delete(self, dataset_id):
         self.jobs.remove_job(dataset_id)
 
+    @QtCore.pyqtSlot(str)
     def on_upload_finished(self, dataset_id):
         """Triggers upload_finished whenever an upload is finished"""
         if dataset_id not in self._finished_uploads:
