@@ -27,12 +27,11 @@ def test_download_resume():
 
     # now attempt a resume-download
     # create a truncated temporary file
-    orig = dj.path.with_name("test.rtdc")
-    tmp_path = dj.path.with_suffix(".rtdc~")
-    dj.path.rename(orig)
+    orig = dj.path_temp.with_name("orig.rtdc~")
+    dj.path_temp.rename(orig)
     with orig.open("rb") as fd_o:
         start_bytes = fd_o.read(100)
-    with tmp_path.open("wb") as fd_t:
+    with dj.path_temp.open("wb") as fd_t:
         fd_t.write(start_bytes)
 
     # try to resume from that temporary file
@@ -40,10 +39,11 @@ def test_download_resume():
                           resource_id=ds_dict["resources"][0]["id"],
                           download_path=td)
     dj2.task_download_resource()
+    dj2.task_verify_resource()
     assert dj2.start_time is not None
     assert dj2.end_time is not None
     assert dj2.path.exists()
-    assert dj2.file_bytes_downloaded == dj.file_bytes_downloaded - 100
+    assert dj2.file_bytes_downloaded == dj.file_size - 100
     assert dj2.file_size == dj2.path.stat().st_size
 
 
@@ -74,6 +74,7 @@ def test_full_download_file_exists():
                          download_path=td)
     assert dj.path.is_dir()
     dj.task_download_resource()
+    dj.task_verify_resource()
     assert dj.start_time is not None
     assert dj.end_time is not None
     assert dj.path.exists()
@@ -85,6 +86,7 @@ def test_full_download_file_exists():
                           resource_id=ds_dict["resources"][0]["id"],
                           download_path=td)
     dj2.task_download_resource()
+    dj2.task_verify_resource()
     assert dj2.start_time is None
     assert dj2.end_time is None
     assert dj2.path.exists()

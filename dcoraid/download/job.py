@@ -194,9 +194,9 @@ class DownloadJob(object):
             "bytes downloaded": self.file_bytes_downloaded,
             "rate": self.get_rate(),
         }
-        if self.path.is_file():
+        if self.path is not None and self.path.is_file():
             data["bytes local"] = self.path.stat().st_size
-        elif self.path_temp.is_file():
+        elif self.path_temp is not None and self.path_temp.is_file():
             data["bytes local"] = self.path_temp.stat().st_size
         else:
             data["bytes local"] = 0
@@ -250,10 +250,6 @@ class DownloadJob(object):
                     time.sleep(.2)
                 else:
                     # proceed with download
-
-                    # TODO:
-                    # - continue download at self.path_temp?
-
                     # reset everything
                     self.file_bytes_downloaded = 0
                     self.start_time = None
@@ -291,14 +287,21 @@ class DownloadJob(object):
     def task_verify_resource(self):
         """Perform SHA256 verification"""
         if self.state == "downloaded":
-            self.set_state("verify")
-            # First check whether all SHA256 sums are already available online
-            if self.get_resource_dict()["sha256"] != sha256sum(self.path_temp):
-                self.set_state("error")
-                self.traceback = "SHA256 sum check failed!"
-            else:
-                self.path_temp.rename(self.path)
+            if self.path is not None and self.path.is_file():
+                if self.path_temp is not None and self.path_temp.exists():
+                    self.path_temp.unlink()
                 self.set_state("done")
+            else:  # only verify if we have self.temp_path
+                self.set_state("verify")
+                # First check whether all SHA256 sums are already available
+                # online
+                if (self.get_resource_dict()["sha256"]
+                        != sha256sum(self.path_temp)):
+                    self.set_state("error")
+                    self.traceback = "SHA256 sum check failed!"
+                else:
+                    self.path_temp.rename(self.path)
+                    self.set_state("done")
         elif self.state != "done":  # ignore state "done" [sic!]
             # Only issue this warning if the download is not already done.
             warnings.warn("Resource verification is only possible when state "
