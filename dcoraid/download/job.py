@@ -1,3 +1,4 @@
+import copy
 import functools
 import pathlib
 import shutil
@@ -50,6 +51,9 @@ class DownloadJob(object):
         self.state = None
         self.set_state("init")
         self.traceback = None
+        #: The bytes of the file that has been downloaded in the current
+        #: session. It does not include bytes from a previous session
+        #: (after resuming a download).
         self.file_bytes_downloaded = 0
         self.start_time = None
         self.end_time = None
@@ -106,11 +110,9 @@ class DownloadJob(object):
         status = self.get_status()
         state = status["state"]
 
-        if state in ["init", "wait-disk"]:
-            progress = "0%"
-        elif state == "transfer":
+        if state in ["init", "transfer", "wait-disk"]:
             progress = "{:.0f}%".format(
-                status["bytes downloaded"]/status["bytes total"]*100)
+                status["bytes local"]/status["bytes total"]*100)
         elif state in ["downloaded", "verify", "done"]:
             progress = "100%"
         elif state in ["abort", "error"]:
@@ -192,6 +194,13 @@ class DownloadJob(object):
             "bytes downloaded": self.file_bytes_downloaded,
             "rate": self.get_rate(),
         }
+        if self.path.is_file():
+            data["bytes local"] = self.path.stat().st_size
+        elif self.path_temp.is_file():
+            data["bytes local"] = self.path_temp.stat().st_size
+        else:
+            data["bytes local"] = 0
+
         return data
 
     def retry_download(self):
@@ -229,7 +238,7 @@ class DownloadJob(object):
             if self.path.exists():
                 self.start_time = None
                 self.end_time = None
-                self.file_bytes_downloaded = self.get_resource_dict()["size"]
+                self.file_bytes_downloaded = 0
                 self.set_state("downloaded")
             else:
                 self.path_temp = self.path.with_name(self.path.name + "~")
@@ -257,11 +266,14 @@ class DownloadJob(object):
                     self.start_time = time.perf_counter()
                     # Do the things to do and watch self.state while doing so
                     url = self.get_resource_url()
-                    with requests.get(url,
-                                      stream=True,
-                                      headers=self.api.headers) as r:
+                    headers = copy.deepcopy(self.api.headers)
+                    if self.path_temp.exists():
+                        # resume previous download
+                        bytes_present = self.path_temp.stat().st_size
+                        headers["Range"] = f"bytes={bytes_present}-"
+                    with requests.get(url, stream=True, headers=headers) as r:
                         r.raise_for_status()
-                        with open(self.path_temp, 'wb') as f:
+                        with self.path_temp.open('ab') as f:
                             chunk_size = 1024*1024
                             for chunk in r.iter_content(chunk_size=chunk_size):
                                 # If you have chunk encoded response uncomment

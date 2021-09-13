@@ -16,6 +16,37 @@ def test_initialize():
     assert dj.state == "init"
 
 
+def test_download_resume():
+    api = common.get_api()
+    td = tempfile.mkdtemp(prefix="test-download")
+    ds_dict = common.make_dataset_for_download()
+    dj = job.DownloadJob(api=api,
+                         resource_id=ds_dict["resources"][0]["id"],
+                         download_path=td)
+    dj.task_download_resource()
+
+    # now attempt a resume-download
+    # create a truncated temporary file
+    orig = dj.path.with_name("test.rtdc")
+    tmp_path = dj.path.with_suffix(".rtdc~")
+    dj.path.rename(orig)
+    with orig.open("rb") as fd_o:
+        start_bytes = fd_o.read(100)
+    with tmp_path.open("wb") as fd_t:
+        fd_t.write(start_bytes)
+
+    # try to resume from that temporary file
+    dj2 = job.DownloadJob(api=api,
+                          resource_id=ds_dict["resources"][0]["id"],
+                          download_path=td)
+    dj2.task_download_resource()
+    assert dj2.start_time is not None
+    assert dj2.end_time is not None
+    assert dj2.path.exists()
+    assert dj2.file_bytes_downloaded == dj.file_bytes_downloaded - 100
+    assert dj2.file_size == dj2.path.stat().st_size
+
+
 def test_full_download():
     api = common.get_api()
     td = tempfile.mkdtemp(prefix="test-download")
