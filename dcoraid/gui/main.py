@@ -1,7 +1,5 @@
 import os
 import pathlib
-import traceback
-
 import pkg_resources
 import shutil
 import signal
@@ -16,6 +14,7 @@ import requests_toolbelt
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
 from ..api import APIKeyError
+from ..common import ConnectionTimeoutErrors
 from ..dbmodel import APIInterrogator, DBExtract
 from .._version import version as __version__
 
@@ -205,9 +204,7 @@ class DCORAid(QtWidgets.QMainWindow):
                 text = "Login failed"
                 tip = "Click here to update your API key."
                 icon = "user-times"
-            except (ConnectionError,
-                    requests.exceptions.ConnectionError,
-                    requests.exceptions.Timeout):
+            except ConnectionTimeoutErrors:
                 text = "No connection"
                 tip = "Can you access {} via a browser?".format(api.server)
                 icon = "hourglass"

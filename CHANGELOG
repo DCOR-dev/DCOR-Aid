@@ -1,3 +1,6 @@
+0.7.1
+ - fix: handle connection errors on startup when no internet connection
+   is available (#34)
 0.7.0
  - feat: implement download manager
  - feat: rename first tab to "Find Data" and allow searching for

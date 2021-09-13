@@ -1,7 +1,8 @@
 import traceback
 
-import requests
 import time
+
+from ..common import ConnectionTimeoutErrors
 
 from .kthread import KThread
 
@@ -45,9 +46,7 @@ class Daemon(KThread):
                 task = getattr(job, self.job_function_name)
                 try:
                     task()
-                except (ConnectionError,
-                        requests.exceptions.ConnectionError,
-                        requests.exceptions.Timeout):
+                except ConnectionTimeoutErrors:
                     # Set the job to the error state for 10s (so the user
                     # sees it in the UI) and then go back to the initial
                     # job trigger state.

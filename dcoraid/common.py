@@ -4,6 +4,13 @@ import pathlib
 import time
 from functools import lru_cache
 
+import requests
+
+
+ConnectionTimeoutErrors = (ConnectionError,
+                           requests.exceptions.ConnectionError,
+                           requests.exceptions.Timeout)
+
 
 @lru_cache(maxsize=2000)
 def sha256sum(path):

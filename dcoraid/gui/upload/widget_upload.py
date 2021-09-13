@@ -6,6 +6,7 @@ import pkg_resources
 from PyQt5 import uic, QtCore, QtWidgets
 from PyQt5.QtCore import QStandardPaths
 
+from ...common import ConnectionTimeoutErrors
 from ...upload import UploadQueue, task
 
 from ..api import get_ckan_api
@@ -52,13 +53,19 @@ class UploadWidget(QtWidgets.QWidget):
             "persistent_upload_jobs")
         self.cache_dir = QtCore.QStandardPaths.writableLocation(
             QtCore.QStandardPaths.CacheLocation)
-        self.jobs = UploadQueue(api=get_ckan_api(),
-                                path_persistent_job_list=shelf_path,
-                                cache_dir=self.cache_dir)
-        self.widget_jobs.set_job_list(self.jobs)
 
-        # upload finished signal
-        self.widget_jobs.upload_finished.connect(self.upload_finished)
+        try:
+            self.jobs = UploadQueue(api=get_ckan_api(),
+                                    path_persistent_job_list=shelf_path,
+                                    cache_dir=self.cache_dir)
+        except ConnectionTimeoutErrors:
+            # TODO: allow user to re-enable without restarting DCOR-Aid
+            self.jobs = None
+            self.setEnabled(False)
+        else:
+            self.widget_jobs.set_job_list(self.jobs)
+            # upload finished signal
+            self.widget_jobs.upload_finished.connect(self.upload_finished)
 
     @QtCore.pyqtSlot()
     def on_upload_manual(self):
