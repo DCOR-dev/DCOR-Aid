@@ -1,3 +1,7 @@
+0.7.2
+ - fix: when --version is passed, don't load the entire UI to prevent
+   uploads/downlodas from blocking in the background
+ - ref: add pyqtSlots where appropriate
 0.7.1
  - fix: handle connection errors on startup when no internet connection
    is available (#34)

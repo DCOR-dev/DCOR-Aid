@@ -283,7 +283,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         """
         wid = self.cellWidget(row, col)
         if wid is None:
-            wid = TableCellActions(job)
+            wid = TableCellActions(job, parent=self)
             wid.delete_job.connect(self.on_job_delete)
             wid.abort_job.connect(self.on_job_abort)
             self.setCellWidget(row, col, wid)

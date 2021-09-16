@@ -41,6 +41,14 @@ class DCORAid(QtWidgets.QMainWindow):
         and exit.
         """
         super(DCORAid, self).__init__(*args, **kwargs)
+
+        # if "--version" was specified, print the version and exit
+        if "--version" in sys.argv:
+            print(__version__)
+            QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
+                                                 300)
+            sys.exit(0)
+
         # Settings are stored in the .ini file format. Even though
         # `self.settings` may return integer/bool in the same session,
         # in the next session, it will reliably return strings. Lists
@@ -69,12 +77,7 @@ class DCORAid(QtWidgets.QMainWindow):
         path_ui = pkg_resources.resource_filename(
             "dcoraid.gui", "main.ui")
         uic.loadUi(path_ui, self)
-        # if "--version" was specified, print the version and exit
-        if "--version" in sys.argv:
-            print(__version__)
-            QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                                 300)
-            sys.exit(0)
+
         # GUI
         # Preferences dialog
         self.dlg_pref = PreferencesDialog()
@@ -140,6 +143,7 @@ class DCORAid(QtWidgets.QMainWindow):
                                              3000)
         super(DCORAid, self).close()
 
+    @QtCore.pyqtSlot()
     def on_action_about(self):
         dcor = "https://dcor.mpl.mpg.de"
         gh = "DCOR-dev/DCOR-Aid"
@@ -155,6 +159,7 @@ class DCORAid(QtWidgets.QMainWindow):
                                     "DCOR-Aid {}".format(__version__),
                                     about_text)
 
+    @QtCore.pyqtSlot()
     def on_action_software(self):
         libs = [dclab,
                 requests,

@@ -67,14 +67,17 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
         # This is the actual initialization
         self.jobs = jobs
 
+    @QtCore.pyqtSlot(str)
     def on_job_abort(self, resource_id):
         self.jobs.abort_job(resource_id)
 
+    @QtCore.pyqtSlot(str)
     def on_job_delete(self, resource_id):
         self.jobs.remove_job(resource_id)
         self.clearContents()
         self.update_job_status()
 
+    @QtCore.pyqtSlot(str)
     def on_download_finished(self, resource_id):
         """Triggers download_finished whenever a download is finished"""
         if resource_id not in self._finished_downloads:
