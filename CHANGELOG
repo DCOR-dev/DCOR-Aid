@@ -1,6 +1,7 @@
 0.7.1
  - fix: handle connection errors on startup when no internet connection
    is available (#34)
+ - fix: QTimer timeout value for downloads and uploads was too short
  - fix: simplify error messages on connection errors in UI
  - enh: do not re-download already-downloaded resources (#31)
  - enh: implement resume for downloads (#31)

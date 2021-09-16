@@ -200,7 +200,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         else:
             self.timer = QtCore.QTimer()
             self.timer.timeout.connect(self.update_job_status)
-            self.timer.start(30)
+            self.timer.start(1000)
         self._finished_uploads = []
 
     def set_job_list(self, jobs):
