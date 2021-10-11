@@ -1,5 +1,6 @@
 import copy
 import json
+import warnings
 
 import requests
 
@@ -179,16 +180,22 @@ class CKANAPI:
 
         The user name is inferred from the user list.
         """
-        # Workaround for https://github.com/ckan/ckan/issues/5490
-        # Get the user for which the email field is visible.
-        data = self.get("user_list")
-        for user in data:
-            if user.get("email", ""):
-                userdata = user
-                break
-        else:
-            raise APIKeyError(
-                "Could not determine user data. Please check API key.")
+        try:
+            userdata = self.get("user_show")
+            warnings.warn("This function is now obsolete, because CKAN "
+                          "now implements `user_show` without id argument!",
+                          DeprecationWarning)
+        except APINotFoundError:
+            # Workaround for https://github.com/ckan/ckan/issues/5490
+            # Get the user for which the email field is visible.
+            data = self.get("user_list")
+            for user in data:
+                if user.get("email", ""):
+                    userdata = user
+                    break
+            else:
+                raise APIKeyError(
+                    "Could not determine user data. Please check API key.")
         return userdata
 
     def post(self, api_call, data, dump_json=True, headers=None):

@@ -1,3 +1,5 @@
+0.7.3
+ - ref: add future-compatibility with `user_show` without `id`
 0.7.2
  - fix: when --version is passed, don't load the entire UI to prevent
    uploads/downlodas from blocking in the background
