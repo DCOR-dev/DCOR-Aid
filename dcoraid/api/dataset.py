@@ -154,21 +154,37 @@ def resource_add(dataset_id, path, api, resource_name=None,
         data = pkg_dict["resources"][res_names.index(resource_name)]
     else:
         # Attempt upload
-        e = MultipartEncoder(fields={
-            'package_id': dataset_id,
-            'name': resource_name,
-            'upload': (resource_name, path.open('rb'))})
-        m = MultipartEncoderMonitor(e, monitor_callback)
-        # perform upload
-        data = api.post("resource_create",
-                        data=m,
-                        dump_json=False,
-                        headers={"Content-Type": m.content_type})
+        with path.open("rb") as fd:
+            e = MultipartEncoder(fields={
+                'package_id': dataset_id,
+                'name': resource_name,
+                'upload': (resource_name, fd)})
+            m = MultipartEncoderMonitor(e, monitor_callback)
+            # perform upload
+            data = api.post("resource_create",
+                            data=m,
+                            dump_json=False,
+                            headers={"Content-Type": m.content_type})
+        if False:
+            # TODO: Seems like package_revise does not trigger
+            #       IResourceController.after_create!
+            #       https://github.com/DCOR-dev/DCOR-Aid/issues/28
+            e = MultipartEncoder(fields={
+                'match__id': dataset_id,
+                'update__resources__extend': f'[{{"name":"{resource_name}"}}]',
+                'update__resources__-1__upload': (resource_name, fd)})
+            m = MultipartEncoderMonitor(e, monitor_callback)
+            # perform upload
+            ret_data = api.post("package_revise",
+                                data=m,
+                                dump_json=False,
+                                headers={"Content-Type": m.content_type})
+            data = ret_data["package"]["resources"][-1]
     if resource_dict:
         # add resource_dict
         revise_dict = {
-            "match": {"id": dataset_id},
-            "update__resources__{}".format(data["id"]): resource_dict}
+            "match__id": dataset_id,
+            f"update__resources__{data['id']}": resource_dict}
         api.post("package_revise", revise_dict)
 
 
