@@ -1,4 +1,5 @@
 0.7.3
+ - enh: check for CKAN version on startup (#38)
  - ref: add future-compatibility with `user_show` without `id`
 0.7.2
  - fix: when --version is passed, don't load the entire UI to prevent

@@ -1,4 +1,6 @@
 import copy
+from distutils.version import LooseVersion
+import functools
 import json
 import warnings
 
@@ -10,6 +12,8 @@ from .errors import (APIConflictError, APINotFoundError, APIKeyError,
                      APIBadGatewayError, APIGatewayTimeoutError,
                      APIAuthorizationError)
 
+#: Minimum required CKAN version on the server side
+MIN_CKAN_VERSION = "2.9.3"
 
 #: List of license lists for each DCOR server
 SERVER_LICENCES = {}
@@ -22,7 +26,8 @@ SERVER_RSUFFIX = {}
 
 
 class CKANAPI:
-    def __init__(self, server, api_key, ssl_verify=True):
+    def __init__(self, server, api_key="", ssl_verify=True,
+                 check_ckan_version=True):
         """User-convenient interface to the CKAN API"""
         self.api_key = api_key
         self.server = self._make_server_url(server)
@@ -33,6 +38,9 @@ class CKANAPI:
         self.verify = ssl_verify
 
         self._user_dict = None
+
+        if check_ckan_version:
+            CKANAPI.check_ckan_version(self.server, ssl_verify=ssl_verify)
 
     @property
     def user_name(self):
@@ -75,6 +83,20 @@ class CKANAPI:
         if not url.count("//"):
             url = "https://" + url
         return url
+
+    @staticmethod
+    @functools.lru_cache(maxsize=10)
+    def check_ckan_version(server, ssl_verify):
+        api = CKANAPI(server=server, ssl_verify=ssl_verify,
+                      check_ckan_version=False)
+        version_act = api.get("status_show")["ckan_version"]
+        if LooseVersion(version_act) < LooseVersion(MIN_CKAN_VERSION):
+            raise ValueError(
+                f"DCOR-Aid requires CKAN version {MIN_CKAN_VERSION}, but "
+                + f"the server {api.server} is running CKAN {version_act}. "
+                + "Please ask the admin of the server to upgrade CKAN or "
+                + "downgrade your version of DCOR-Aid."
+            )
 
     def copy(self):
         return CKANAPI(server=self.server, api_key=self.api_key,
