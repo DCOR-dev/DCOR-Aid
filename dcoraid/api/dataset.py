@@ -169,6 +169,7 @@ def resource_add(dataset_id, path, api, resource_name=None,
             # TODO: Seems like package_revise does not trigger
             #       IResourceController.after_create!
             #       https://github.com/DCOR-dev/DCOR-Aid/issues/28
+            #       https://github.com/ckan/ckan/issues/6472
             e = MultipartEncoder(fields={
                 'match__id': dataset_id,
                 'update__resources__extend': f'[{{"name":"{resource_name}"}}]',
