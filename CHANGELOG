@@ -1,3 +1,5 @@
+0.7.5
+ - fix: fatal typo in 0.7.4 release
 0.7.4
  - enh: implement indexing (id and index) in DBExtract
  - enh: make CKANAPI and APIInterrogator available in the root module
