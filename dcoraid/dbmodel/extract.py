@@ -1,3 +1,4 @@
+import numbers
 from functools import lru_cache
 
 
@@ -25,6 +26,12 @@ class DBExtract:
     def __iadd__(self, other):
         self.add_datasets(other.datasets)
         return self
+
+    def __getitem__(self, idx_or_name):
+        if isinstance(idx_or_name, numbers.Integral):
+            return self.datasets[idx_or_name]
+        else:
+            return self.get_dataset_dict(idx_or_name)
 
     def __len__(self):
         return len(self.datasets)
