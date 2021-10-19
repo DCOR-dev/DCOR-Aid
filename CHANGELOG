@@ -1,6 +1,8 @@
 0.7.3
  - enh: check for CKAN version on startup (#38)
  - ref: add future-compatibility with `user_show` without `id`
+ - setup: bump dclab from 0.35.6 to 0.36.1 (improved speed and
+   fixed minor issues)
 0.7.2
  - fix: when --version is passed, don't load the entire UI to prevent
    uploads/downlodas from blocking in the background
