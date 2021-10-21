@@ -86,7 +86,7 @@ def dataset_draft_remove(dataset_id, api):
     api.post("dataset_purge", {"id": dataset_id})
 
 
-def dataset_draft_remove_all(api):
+def dataset_draft_remove_all(api, ignore_dataset_ids=None):
     """Remove all draft datasets
 
     Find and delete all draft datasets for a user. The user
@@ -96,19 +96,34 @@ def dataset_draft_remove_all(api):
     ----------
     api: dcoraid.api.CKANAPI
         API instance with server, api_key (and optional certificate)
+    ignore_dataset_ids: list or dcoraid.upload.queue.PersistentUploadJobList
+        List of IDs that should not be deleted
     """
+    if ignore_dataset_ids is None:
+        ignore_dataset_ids = []
     user_dict = api.get_user_dict()
     data = api.get(
         "package_search",
         q="*:*",
         include_drafts=True,
         include_private=True,
-        fq="creator_user_id:{} AND state:draft".format(user_dict["id"]),
+        fq=f"creator_user_id:{user_dict['id']} AND state:draft",
         rows=1000)
+    deleted = []
+    ignored = []
     for dd in data["results"]:
         assert dd["state"] == "draft"
-        dataset_draft_remove(dd["id"], api=api)
-    return data["results"]
+        if dd["id"] not in ignore_dataset_ids:
+            dataset_draft_remove(dd["id"], api=api)
+            deleted.append(dd)
+        else:
+            ignored.append(dd)
+    if len(data["results"]) == 1000:
+        # get more
+        del2, ign2 = dataset_draft_remove_all(api)
+        deleted += del2
+        ignored += ign2
+    return deleted, ignored
 
 
 def resource_add(dataset_id, path, api, resource_name=None,

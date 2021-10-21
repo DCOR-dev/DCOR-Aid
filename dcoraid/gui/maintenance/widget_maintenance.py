@@ -1,10 +1,13 @@
+from os import path as os_path
 import shutil
 
 import pkg_resources
 
 from PyQt5 import uic, QtCore, QtWidgets
+from PyQt5.QtCore import QStandardPaths
 
 from ...api import dataset_draft_remove_all
+from ...upload import PersistentUploadJobList
 
 from ..api import get_ckan_api
 from ..main import DCORAid
@@ -53,13 +56,27 @@ class MaintenanceWidget(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def on_remove_drafts(self):
         with ShowWaitCursor():
-            data = dataset_draft_remove_all(api=get_ckan_api())
+            # get all dataset IDs that should not be removed
+            pers_job_path = os_path.join(
+                QStandardPaths.writableLocation(
+                    QStandardPaths.AppLocalDataLocation),
+                "persistent_upload_jobs")
+            pers_datasets = PersistentUploadJobList(pers_job_path)
+            # perform deletion
+            deleted, ignored = dataset_draft_remove_all(
+                api=get_ckan_api(),
+                ignore_dataset_ids=pers_datasets)
         msg = QtWidgets.QMessageBox()
         msg.setIcon(QtWidgets.QMessageBox.Information)
-        if len(data):
-            details = [f"{d['title']} ({d['name']})" for d in data]
-            msg.setText(f"Drafts removed: {len(data)}")
-            msg.setDetailedText("\n".join(details))
+        del_titles = [f"{d['name']}" for d in deleted]
+        ign_titles = [f"{d['name']}" for d in ignored]
+        if del_titles + ign_titles:
+            msg.setText(f"Drafts removed: {len(del_titles)}\n"
+                        + f"Ignored: {len(ign_titles)}\n")
+            msg.setDetailedText("Ignored (pending upload):\n"
+                                + "\n".join(ign_titles)
+                                + "\n\nDeleted:\n"
+                                + "\n".join(del_titles))
             msg.setWindowTitle("Success")
         else:
             msg.setText("No drafts found.")
