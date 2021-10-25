@@ -1,9 +1,8 @@
-0.7.7
+0.7.6
  - enh: add "create_task" function for generating custom .dcoraid-task
    files in Python scripts
- - setup: bump dclab from 0.36.1 to 0.37.1
-0.7.6
  - fix: do not delete drafts that are in the upload queue (#36)
+ - setup: bump dclab from 0.36.1 to 0.37.1
 0.7.5
  - fix: fatal typo in 0.7.4 release
 0.7.4
