@@ -81,32 +81,6 @@ class PersistentTaskDatasetIDDict:
         return self._dict.get(task_id, default)
 
 
-def save_task(upload_job, path, dataset_dict=None):
-    """Save an upload job to a JSON file
-
-    Parameters
-    ----------
-    upload_job: dcoraid.upload.job.UploadJob
-        Upload job from which to create a snapshot
-    path: str or pathlib.Path
-        Output path
-    dataset_dict: dict
-        An optional dataset dictionary. This dictionary is
-        purely informative; it only contains redundant
-        information (which is stored on the DCOR server).
-    """
-    path = pathlib.Path(path)
-    uj_state = {"upload_job": upload_job.__getstate__()}
-    if dataset_dict:
-        uj_state["dataset_dict"] = dataset_dict
-    with path.open("w") as fd:
-        json.dump(uj_state, fd,
-                  ensure_ascii=False,
-                  indent=2,
-                  sort_keys=True,
-                  )
-
-
 def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
               update_dataset_id=False, cache_dir=None):
     """Open a task file and load it into an UploadJob
@@ -264,6 +238,32 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
         save_task(uj, path, dataset_dict=dataset_dict)
 
     return uj
+
+
+def save_task(upload_job, path, dataset_dict=None):
+    """Save an upload job to a JSON file
+
+    Parameters
+    ----------
+    upload_job: dcoraid.upload.job.UploadJob
+        Upload job from which to create a snapshot
+    path: str or pathlib.Path
+        Output path
+    dataset_dict: dict
+        An optional dataset dictionary. This dictionary is
+        purely informative; it only contains redundant
+        information (which is stored on the DCOR server).
+    """
+    path = pathlib.Path(path)
+    uj_state = {"upload_job": upload_job.__getstate__()}
+    if dataset_dict:
+        uj_state["dataset_dict"] = dataset_dict
+    with path.open("w") as fd:
+        json.dump(uj_state, fd,
+                  ensure_ascii=False,
+                  indent=2,
+                  sort_keys=True,
+                  )
 
 
 def task_has_circle(path):
