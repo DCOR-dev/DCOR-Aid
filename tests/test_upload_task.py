@@ -17,6 +17,41 @@ import common
 dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
 
 
+def test_create_task():
+    tdir = pathlib.Path(tempfile.mkdtemp(prefix="create_task"))
+    path_rtdc = tdir / dpath.name
+    shutil.copy2(dpath, path_rtdc)
+    path_task = tdir / "test.dcoraid-task"
+    path_text = tdir / "green.txt"
+    path_text.write_text("Peter!")
+    dcoraid.create_task(
+        path=path_task,
+        dataset_dict={"authors": "Bruce Banner",
+                      "license_id": "CC0-1.0",
+                      "owner_org": common.CIRCLE},
+        resource_dicts=[{"path": path_rtdc,
+                         "name": "hulk.rtdc",
+                         "supplements": {"chip": {"comments": "Loki bash"}}},
+                        {"path": path_text}
+                        ]
+    )
+    # Upload the task
+    api = common.get_api()
+    uj = task.load_task(path_task, api=api)
+    uj.task_compress_resources()
+    uj.task_upload_resources()
+    uj.task_verify_resources()
+    common.wait_for_job_no_queue(uj)
+    # Now make sure that all the information is still there
+    ddict = api.get("package_show", id=uj.dataset_id)
+    assert ddict["authors"] == "Bruce Banner"
+    assert ddict["license_id"] == "CC0-1.0"
+    assert ddict["resources"][0]["name"] == "hulk.rtdc"
+    assert ddict["resources"][0]["sp:chip:comments"] == "Loki bash"
+    assert ddict["resources"][1]["name"] == "green.txt"
+    assert ddict["resources"][1]["size"] == 6
+
+
 def test_custom_dataset_dict():
     api = common.get_api()
     # post dataset creation request

@@ -11,8 +11,10 @@ can be converted back to a task using hte :func:`save_task`
 method. The new task now automatically has a dataset ID
 (given to it by CKAN/DCOR).
 """
+import copy
 import json
 import pathlib
+import uuid
 
 from ..api import dataset_create
 
@@ -20,9 +22,9 @@ from .job import UploadJob
 
 
 class LocalTaskResourcesNotFoundError(FileNotFoundError):
-    def __init__(self, missing_resources, *args, **kwargs):
+    def __init__(self, missing_resources, *args):
         self.missing_resources = missing_resources
-        super(LocalTaskResourcesNotFoundError, self).__init__(*args, **kwargs)
+        super(LocalTaskResourcesNotFoundError, self).__init__(*args)
 
 
 class PersistentTaskDatasetIDDict:
@@ -62,12 +64,7 @@ class PersistentTaskDatasetIDDict:
                 # everything ok
                 pass  # this line is covered, even though coverage disagrees
         else:
-            valid_ch = "0123456789-_abcdefghijklmnopqrstuvwxyz"
-            task_id_check = "".join([ch for ch in task_id if ch in valid_ch])
-            if task_id_check != task_id:
-                raise ValueError("task IDs may only contain numbers, "
-                                 "lower-case characters, and '-_'."
-                                 f"Got '{task_id}'!")
+            assert_task_id_is_valid(task_id)
             # append to end of file
             with self._path.open("a") as fd:
                 fd.write(f"{task_id} {dataset_id}\n")
@@ -79,6 +76,84 @@ class PersistentTaskDatasetIDDict:
 
     def get(self, task_id, default=None):
         return self._dict.get(task_id, default)
+
+
+def assert_task_id_is_valid(task_id):
+    valid_ch = "0123456789-_abcdefghijklmnopqrstuvwxyz"
+    task_id_check = "".join([ch for ch in task_id if ch in valid_ch])
+    if task_id_check != task_id:
+        raise ValueError("task IDs may only contain numbers, "
+                         "lower-case characters, and '-_'."
+                         f"Got '{task_id}'!")
+
+
+def create_task(path, dataset_dict, resource_dicts, task_id=None):
+    """Create a DCOR-Aid upload job task file
+
+    Parameters
+    ----------
+    path: str or pathlib.Path
+        Path where the JSON-encoded task data will be stored
+    dataset_dict: dict
+        CKAN dataset dictionary
+        (just like :func:`dcoraid.api.dataset.dataset_create`)
+    resource_dicts: list of dict
+        Each item in the list represents one resource. Valid
+        keys are:
+
+        - "path": Path to the resource
+        - "name": Name of the resource (optional)
+        - "supplements": Supplementary resource metadata (only for
+          RT-DC data, dict)
+    task_id: str
+        Optional unique task ID (defaults to :func:`uuid.uuid4`)
+    """
+    path = pathlib.Path(path)
+
+    # Make sure nothing is overridden
+    resource_dicts = copy.deepcopy(resource_dicts)
+    dataset_dict = copy.deepcopy(dataset_dict)
+
+    # complete input data
+    if task_id is None:
+        task_id = str(uuid.uuid4())
+    dataset_dict.setdefault("title", task_id)
+    dataset_dict.setdefault("private", False)
+    dataset_dict.setdefault("license_id", "CC0-1.0")
+
+    # sanity checks
+    assert_task_id_is_valid(task_id)
+    if "authors" not in dataset_dict:
+        raise ValueError("No 'authors' key specified in `dataset_dict`!")
+
+    # reorder resource metadata into lists
+    resource_paths = []
+    resource_names = []
+    resource_supplements = []
+
+    for rsd in resource_dicts:
+        resource_paths.append(str(rsd["path"]))
+        # name falls back to path name
+        resource_names.append(str(rsd.get("name", rsd["path"].name)))
+        # set supplementary resource metadata
+        resource_supplements.append(rsd.get("supplements", {}))
+
+    data = {
+        "dataset_dict": dataset_dict,
+        "upload_job": {
+            "task_id": task_id,
+            "resource_paths": resource_paths,
+            "resource_names": resource_names,
+            "resource_supplements": resource_supplements,
+            },
+        }
+
+    with path.open("w") as fd:
+        json.dump(data, fd,
+                  ensure_ascii=False,
+                  indent=2,
+                  sort_keys=True)
+    return task_id
 
 
 def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,

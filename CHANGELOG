@@ -1,3 +1,6 @@
+0.7.7
+ - enh: add "create_task" function for generating custom .dcoraid-task
+   files in Python scripts
 0.7.6
  - fix: do not delete drafts that are in the upload queue (#36)
 0.7.5
