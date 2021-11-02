@@ -170,21 +170,8 @@ def resource_add(dataset_id, path, api, resource_name=None,
     else:
         # Attempt upload
         with path.open("rb") as fd:
-            e = MultipartEncoder(fields={
-                'package_id': dataset_id,
-                'name': resource_name,
-                'upload': (resource_name, fd)})
-            m = MultipartEncoderMonitor(e, monitor_callback)
-            # perform upload
-            data = api.post("resource_create",
-                            data=m,
-                            dump_json=False,
-                            headers={"Content-Type": m.content_type})
-        if False:
-            # TODO: Seems like package_revise does not trigger
-            #       IResourceController.after_create!
-            #       https://github.com/DCOR-dev/DCOR-Aid/issues/28
-            #       https://github.com/ckan/ckan/issues/6472
+            # use package_revise to upload the resource
+            # https://github.com/DCOR-dev/DCOR-Aid/issues/28
             e = MultipartEncoder(fields={
                 'match__id': dataset_id,
                 'update__resources__extend': f'[{{"name":"{resource_name}"}}]',

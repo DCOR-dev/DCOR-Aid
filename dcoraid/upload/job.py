@@ -404,20 +404,6 @@ class UploadJob(object):
                         exist_ok=True,
                         monitor_callback=self.monitor_callback)
                     self.paths_uploaded.append(path)
-                    # Workaround until `package_revise` is in `resource_add`
-                    # (https://github.com/DCOR-dev/DCOR-Aid/issues/28):
-                    # Wait for the SHA256 sum to be computed by DCOR.
-                    for _ in range(60):
-                        sha256dict = resource_sha256_sums(
-                            dataset_id=self.dataset_id,
-                            api=self.api)
-                        if sha256dict[resource_name] is not None:
-                            break
-                        time.sleep(10)
-                    else:
-                        warnings.warn(
-                            f"SHA256 sum for {self.dataset_id}: "
-                            + f"{resource_name} not yet computed by DCOR!")
             self.end_time = time.perf_counter()
             self.set_state("online")
         else:
