@@ -1,3 +1,4 @@
+import logging
 import traceback
 
 import time
@@ -44,6 +45,7 @@ class Daemon(KThread):
                     continue
                 # Perform daemon task
                 task = getattr(job, self.job_function_name)
+                logger = logging.getLogger(__name__)
                 try:
                     task()
                 except ConnectionTimeoutErrors:
@@ -53,12 +55,17 @@ class Daemon(KThread):
                     job.set_state("error")
                     job.traceback = traceback.format_exc(limit=1) \
                         + "\nDCOR-Aid will retry in 10s!"
+                    logger.error(
+                        f"(dataset {job.dataset_id}) {traceback.format_exc()}")
                     time.sleep(10)
                     job.set_state(self.job_trigger_state)
                 except SystemExit:
                     job.set_state("abort")
+                    logger.error(f"(dataset {job.dataset_id}) Aborted!")
                 except BaseException:
                     # Set job to error state and let the user figure
                     # out what to do next.
                     job.set_state("error")
                     job.traceback = traceback.format_exc()
+                    logger.error(
+                        f"(dataset {job.dataset_id}) {traceback.format_exc()}")

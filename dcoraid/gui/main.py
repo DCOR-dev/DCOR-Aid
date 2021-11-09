@@ -1,9 +1,11 @@
+import logging
 import os
 import pathlib
 import pkg_resources
 import shutil
 import signal
 import sys
+import time
 import traceback as tb
 
 import appdirs
@@ -59,6 +61,23 @@ class DCORAid(QtWidgets.QMainWindow):
         QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
         QtCore.QCoreApplication.setApplicationName("dcoraid")
         QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+
+        # setup logging
+        log_dir = pathlib.Path(
+            QtCore.QStandardPaths.writableLocation(
+                QtCore.QStandardPaths.AppLocalDataLocation)) / "logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        log_file = log_dir / time.strftime("dcoraid_%Y-%m-%d_%H-%M-%S.log")
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s %(levelname)s [%(threadName)s] in %(name)s "
+                   + "%(funcName)s:%(lineno)d: %(message)s",
+            filename=str(log_file))
+        # keep ten logs
+        log_entries = sorted(log_dir.glob("*.log"))
+        log_entries.reverse()
+        for pp in log_entries[10:]:
+            pp.unlink()
 
         # TODO: Remove this block in a future release
         # BEGIN REMOVE
@@ -323,6 +342,10 @@ def excepthook(etype, value, trace):
         __version__)
     tmp = tb.format_exception(etype, value, trace)
     exception = "".join([vinfo] + tmp)
+
+    # log the exception
+    logger = logging.getLogger(__name__)
+    logger.error(exception)
 
     errorbox = QtWidgets.QMessageBox()
     errorbox.setIcon(QtWidgets.QMessageBox.Critical)

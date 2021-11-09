@@ -1,3 +1,4 @@
+import logging
 import pkg_resources
 import random
 import socket
@@ -39,6 +40,9 @@ class PreferencesDialog(QtWidgets.QMainWindow):
 
         self.settings = QtCore.QSettings()
         self.on_uploads_init()
+
+        self.logger = logging.getLogger(__name__)
+
         # hidden initially
         self.hide()
 
@@ -104,6 +108,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
                 # revoke the old API token
                 api.post("api_token_revoke",
                          data={"token": api_key})
+            self.logger.info("Exiting, because user renewed API token.")
             QtWidgets.QApplication.quit()
 
     @QtCore.pyqtSlot()
@@ -128,6 +133,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
                 api.post("api_token_revoke",
                          data={"token": self.settings.value("auth/api key")})
             self.settings.remove("auth/api key")
+            self.logger.info("Exiting, because user revoked API token.")
             QtWidgets.QApplication.quit()
 
     @QtCore.pyqtSlot()
@@ -243,4 +249,5 @@ class PreferencesDialog(QtWidgets.QMainWindow):
                 if self.ask_change_server_or_api_key():
                     self.settings.setValue("auth/api key", api_key)
                     self.settings.setValue("auth/server", server)
+                    self.logger.info("Exiting, because of new credentials.")
                     QtWidgets.QApplication.quit()
