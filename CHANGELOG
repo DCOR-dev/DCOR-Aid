@@ -1,6 +1,6 @@
 0.7.7
  - ref: mirgrate to package_revise for updating datasets (#28)
- - setup: bump dclab from 0.37.2 to 0.38.0
+ - setup: bump dclab from 0.37.2 to 0.38.1
 0.7.6
  - enh: add "create_task" function for generating custom .dcoraid-task
    files in Python scripts
