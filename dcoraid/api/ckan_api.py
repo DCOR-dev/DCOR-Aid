@@ -32,9 +32,11 @@ class CKANAPI:
         self.api_key = api_key
         self.server = self._make_server_url(server)
         self.api_url = self._make_api_url(server)
-        self.headers = {"X-CKAN-API-Key": api_key,
-                        "user-agent": "DCOR-Aid/{}".format(version)
+        self.headers = {"user-agent": "DCOR-Aid/{}".format(version)
                         }
+        if api_key:
+            self.headers["X-CKAN-API-Key"] = api_key
+
         self.verify = ssl_verify
 
         self._user_dict = None
