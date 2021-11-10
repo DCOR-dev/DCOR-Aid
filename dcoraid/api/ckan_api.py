@@ -29,13 +29,13 @@ class CKANAPI:
     def __init__(self, server, api_key="", ssl_verify=True,
                  check_ckan_version=True):
         """User-convenient interface to the CKAN API"""
-        self.api_key = api_key
+        self.api_key = api_key.strip()
         self.server = self._make_server_url(server)
         self.api_url = self._make_api_url(server)
         self.headers = {"user-agent": "DCOR-Aid/{}".format(version)
                         }
-        if api_key:
-            self.headers["X-CKAN-API-Key"] = api_key
+        if self.api_key:
+            self.headers["X-CKAN-API-Key"] = self.api_key
 
         self.verify = ssl_verify
 
