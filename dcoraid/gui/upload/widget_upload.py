@@ -117,7 +117,10 @@ class UploadWidget(QtWidgets.QWidget):
         software creates upload tasks which are then loaded by
         DCOR-Aid.
         """
-        if action.data() == "single":
+        if isinstance(action, pathlib.Path):
+            # special case for docs generation
+            files = [action]
+        elif action.data() == "single":
             files, _ = QtWidgets.QFileDialog.getOpenFileNames(
                 self,
                 "Select DCOR-Aid task files",
