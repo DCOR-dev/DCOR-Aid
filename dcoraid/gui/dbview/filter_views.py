@@ -95,6 +95,13 @@ class FilterDatasets(filter_base.FilterBase):
 
     @QtCore.pyqtSlot(str)
     def download_dataset(self, dataset_id):
+        """Emit signals to download all resources of a dataset
+
+        Parameters
+        ----------
+        dataset_id: str
+            dataset ID
+        """
         api = get_ckan_api()
         ds_dict = api.get("package_show", id=dataset_id)
         for res_dict in ds_dict["resources"]:
