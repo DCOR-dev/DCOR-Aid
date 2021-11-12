@@ -134,6 +134,8 @@ class DCORAid(QtWidgets.QMainWindow):
         # Signal for requesting resource download
         self.public_filter_chain.download_resource.connect(
             self.panel_download.download_resource)
+        self.user_filter_chain.download_resource.connect(
+            self.panel_download.download_resource)
 
         QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
                                              300)
