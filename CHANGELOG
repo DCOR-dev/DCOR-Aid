@@ -1,4 +1,5 @@
 0.7.10
+ - enh: improve spacing in GUI design (#44)
  - fix: download in "My Data" tab did not work (#42)
 0.7.9
  - fix: skip passing emtpy-valued API-Key (#41)

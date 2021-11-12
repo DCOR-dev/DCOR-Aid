@@ -58,7 +58,7 @@
             <property name="sizeHint" stdset="0">
              <size>
               <width>20</width>
-              <height>20</height>
+              <height>30</height>
              </size>
             </property>
            </spacer>
@@ -159,7 +159,7 @@
             <property name="sizeHint" stdset="0">
              <size>
               <width>40</width>
-              <height>20</height>
+              <height>30</height>
              </size>
             </property>
            </spacer>
@@ -172,13 +172,6 @@
            </widget>
           </item>
          </layout>
-        </item>
-        <item>
-         <widget class="Line" name="line">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
         </item>
         <item>
          <widget class="FilterChain" name="user_filter_chain" native="true">
