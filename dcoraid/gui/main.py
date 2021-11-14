@@ -2,13 +2,11 @@ import logging
 import os
 import pathlib
 import pkg_resources
-import shutil
 import signal
 import sys
 import time
 import traceback as tb
 
-import appdirs
 import dclab
 import requests
 import requests_toolbelt
@@ -78,18 +76,6 @@ class DCORAid(QtWidgets.QMainWindow):
         log_entries.reverse()
         for pp in log_entries[10:]:
             pp.unlink()
-
-        # TODO: Remove this block in a future release
-        # BEGIN REMOVE
-        # Clear the old cache. Unfortunately, it does not make sense to
-        # move the cache to a new location, because the old version
-        # of dclab did not use temporary files when compressing data.
-        # Hence, we cannot be sure that the compression task successfully
-        # finished.
-        old_cache = pathlib.Path(appdirs.user_cache_dir()) / "dcoraid"
-        if old_cache.exists():
-            shutil.rmtree(old_cache, ignore_errors=True)
-        # END REMOVE
 
         #: DCOR-Aid settings
         self.settings = QtCore.QSettings()
