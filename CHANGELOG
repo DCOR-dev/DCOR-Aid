@@ -1,5 +1,6 @@
 0.7.10
  - enh: improve spacing in GUI design (#44)
+ - enh: make sure there are no uploads without RT-DC files
  - fix: download in "My Data" tab did not work (#42)
  - ref: remove old code that cleared old cache and
    get rid of the appdirs dependency

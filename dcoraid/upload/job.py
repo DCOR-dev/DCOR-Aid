@@ -291,8 +291,12 @@ class UploadJob(object):
         Data are stored in the user's cache directory and
         deleted after upload is complete.
         """
+        # make sure that we have .rtdc or .dc files
+        dc_files = [pp for pp in self.paths if pp.suffix in [".rtdc", ".dc"]]
+        if not dc_files:
+            raise ValueError("There are no RT-DC files in this dataset!")
         self.set_state("compress")
-        for ii, path in enumerate(list(self.paths)):
+        for ii, path in enumerate(self.paths):
             if path.suffix in [".rtdc", ".dc"]:  # do we have an .rtdc file?
                 with IntegrityChecker(path) as ic:
                     # check for compression
