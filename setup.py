@@ -26,10 +26,12 @@ setup(
     long_description=open('README.rst').read() if exists('README.rst') else '',
     install_requires=[
         "dclab[dcor]==0.38.2",  # pin for triage
-        "pyqt5",
         "requests>=2.13",
         "requests_toolbelt",  # multipart uploads with progress
         ],
+    extras_require={
+        "GUI": ["pyqt5"],
+        },
     python_requires='>=3.8, <4',
     entry_points={"gui_scripts": ['dcoraid = dcoraid.__main__:main']},
     keywords=["RT-DC", "deformability", "cytometry", "zellmechanik"],

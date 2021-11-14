@@ -3,6 +3,7 @@
  - fix: download in "My Data" tab did not work (#42)
  - ref: remove old code that cleared old cache and
    get rid of the appdirs dependency
+ - setup: make pyqt5 an optional dependency (#39)
 0.7.9
  - fix: skip passing emtpy-valued API-Key (#41)
  - enh: added logging capabilities (#18)

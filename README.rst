@@ -9,13 +9,14 @@ DCOR-Aid is a GUI for managing data on DCOR (https://dcor.mpl.mpg.de).
 
 Installation
 ------------
-Installers for Windows and macOS are available at the `release page <https://github.com/DCOR-dev/DCOR-Aid/releases>`__.
+Installers for Windows and macOS are available at the
+`release page <https://github.com/DCOR-dev/DCOR-Aid/releases>`__.
 
 If you have Python 3 installed, you can install DCOR-Aid with
 
 ::
 
-    pip install dcoraid
+    pip install dcoraid[GUI]
 
 
 Testing
@@ -26,7 +27,7 @@ By default, testing is done with https://dcor-dev.mpl.mpg.de and the user
 
 ::
 
-    pip install -e .
+    pip install -e .[GUI]
     pip install pytest pytest-qt
     pytest tests
 
