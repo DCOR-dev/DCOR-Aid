@@ -30,6 +30,15 @@ class FilterBase(QtWidgets.QWidget):
         # TODO: enable quick-filters via lineEdit
         self.lineEdit.setVisible(False)
 
+        # default drag&drop behavior is "off"
+        self.tableWidget.setDropIndicatorShown(False)  # don't show indicator
+        self.tableWidget.setDragEnabled(False)  # disable drag
+        self.tableWidget.setDragDropOverwriteMode(False)  # don't overwrite
+        self.tableWidget.setDragDropMode(
+            QtWidgets.QAbstractItemView.NoDragDrop)  # drag & drop disabled
+        self.tableWidget.setDefaultDropAction(
+            QtCore.Qt.IgnoreAction)  # no drop by default
+
     def get_entry_actions(self, row, entry):
         """This is defined in the subclasses (Circle, Collection, etc)"""
         return []
@@ -87,6 +96,7 @@ class FilterBase(QtWidgets.QWidget):
             tbact.clicked.connect(action["function"])
             horz_layout.addWidget(tbact)
         self.tableWidget.setCellWidget(row, 1, widact)
+        return widact
 
     def set_entry_label(self, row, entry):
         """Set table Widget entry text at index `row`

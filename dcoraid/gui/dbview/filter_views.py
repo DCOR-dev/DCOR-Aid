@@ -37,19 +37,6 @@ class FilterCollections(filter_base.FilterBase):
         self.checkBox.setVisible(False)
         self.label_info.setVisible(False)
 
-    def get_entry_actions(self, row, entry):
-        api = get_ckan_api()
-        url = f"{api.server}/group/{entry['name']}"
-        actions = [
-            {"icon": "download",
-             "tooltip": f"download collection {entry['name']}",
-             "function": partial(self.download_collection, entry["name"])},
-            {"icon": "eye",
-             "tooltip": f"view collection {entry['name']} online",
-             "function": partial(webbrowser.open, url)}
-        ]
-        return actions
-
     def download_collection(self, collection_name):
         with ShowWaitCursor():
             api = get_ckan_api()
@@ -71,6 +58,19 @@ class FilterCollections(filter_base.FilterBase):
                         QtCore.QEventLoop.AllEvents,
                         300)
 
+    def get_entry_actions(self, row, entry):
+        api = get_ckan_api()
+        url = f"{api.server}/group/{entry['name']}"
+        actions = [
+            {"icon": "download",
+             "tooltip": f"download collection {entry['name']}",
+             "function": partial(self.download_collection, entry["name"])},
+            {"icon": "eye",
+             "tooltip": f"view collection {entry['name']} online",
+             "function": partial(webbrowser.open, url)}
+        ]
+        return actions
+
 
 class FilterDatasets(filter_base.FilterBase):
     def __init__(self, *args, **kwargs):
@@ -79,19 +79,6 @@ class FilterDatasets(filter_base.FilterBase):
         self.lineEdit.setPlaceholderText("filter titles...")
         self.checkBox.setVisible(False)
         self.label_info.setVisible(False)
-
-    def get_entry_actions(self, row, entry):
-        api = get_ckan_api()
-        url = f"{api.server}/dataset/{entry['name']}"
-        actions = [
-            {"icon": "download",
-             "tooltip": f"download dataset {entry['name']}",
-             "function": partial(self.download_dataset, entry["id"])},
-            {"icon": "eye",
-             "tooltip": f"view dataset {entry['name']} online",
-             "function": partial(webbrowser.open, url)},
-        ]
-        return actions
 
     @QtCore.pyqtSlot(str)
     def download_dataset(self, dataset_id):
@@ -110,6 +97,19 @@ class FilterDatasets(filter_base.FilterBase):
                 QtCore.QEventLoop.AllEvents,
                 300)
 
+    def get_entry_actions(self, row, entry):
+        api = get_ckan_api()
+        url = f"{api.server}/dataset/{entry['name']}"
+        actions = [
+            {"icon": "download",
+             "tooltip": f"download dataset {entry['name']}",
+             "function": partial(self.download_dataset, entry["id"])},
+            {"icon": "eye",
+             "tooltip": f"view dataset {entry['name']} online",
+             "function": partial(webbrowser.open, url)},
+        ]
+        return actions
+
 
 class FilterResources(filter_base.FilterBase):
     def __init__(self, *args, **kwargs):
@@ -120,6 +120,8 @@ class FilterResources(filter_base.FilterBase):
         self.checkBox.setText(".rtdc only")
         self.checkBox.setChecked(True)
         self.tableWidget.setDragEnabled(True)
+        self.tableWidget.setDragDropMode(
+            QtWidgets.QAbstractItemView.DragOnly)
         self.label_info.setText("<i>Tip: You can drag and drop your selection "
                                 "from the resources list to Shape-Out!</i>")
 
