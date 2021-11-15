@@ -1,7 +1,6 @@
 import pathlib
 import shutil
 import tempfile
-import time
 from unittest import mock
 
 import uuid
