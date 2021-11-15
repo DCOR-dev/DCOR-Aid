@@ -4,6 +4,9 @@ import pkg_resources
 
 from PyQt5 import QtCore, QtWidgets, uic
 
+from ..tools import ShowWaitCursor
+from ..api import get_ckan_api
+
 
 class FilterChain(QtWidgets.QWidget):
     download_resource = QtCore.pyqtSignal(str)
@@ -39,20 +42,24 @@ class FilterChain(QtWidgets.QWidget):
     @property
     def selected_circles(self):
         """Circles currently selected"""
-        circs = self.fw_circles.get_entry_identifiers(selected=True)
+        circs = self.fw_circles.get_entry_identifiers(selected=True,
+                                                      which="name")
         if not circs:
-            circs = self.fw_circles.get_entry_identifiers(selected=False)
+            circs = self.fw_circles.get_entry_identifiers(selected=False,
+                                                          which="name")
         return circs
 
     @property
     def selected_collections(self):
         """Collections currently selected"""
-        return self.fw_collections.get_entry_identifiers(selected=True)
+        return self.fw_collections.get_entry_identifiers(selected=True,
+                                                         which="name")
 
     @property
     def selected_datasets(self):
         """Datasets currently selected"""
-        return self.fw_datasets.get_entry_identifiers(selected=True)
+        return self.fw_datasets.get_entry_identifiers(selected=True,
+                                                      which="name")
 
     @QtCore.pyqtSlot()
     def on_select_circles(self):
@@ -117,3 +124,60 @@ class FilterChain(QtWidgets.QWidget):
                 else:
                     rs_entries.append(rs)
         self.fw_resources.set_entries(rs_entries)
+
+
+class FilterChainUser(FilterChain):
+
+    def __init__(self, *args, **kwargs):
+        """Filter chain with user-related features"""
+        super(FilterChainUser, self).__init__(*args, **kwargs)
+
+        # Enable the "add to collection tool box"
+        self.fw_datasets.toolButton_custom.setText(
+            "Add selected datasets to a collection...")
+        self.fw_datasets.toolButton_custom.setVisible(True)
+        self.fw_datasets.toolButton_custom.clicked.connect(
+            self.on_add_datasets_to_collection)
+
+    @QtCore.pyqtSlot()
+    def on_add_datasets_to_collection(self):
+        """Add all datasets currently selected to a collection
+
+        Displays a dialog where the user can choose a collection
+        she has write-access to.
+        """
+        # get current selection
+        dataset_ids = self.fw_datasets.get_entry_identifiers(selected=True)
+        if not dataset_ids:
+            # no datasets selected
+            QtWidgets.QMessageBox.information(
+                self, "No datasets selected",
+                "Please select at least one dataset.")
+        else:
+            # get list of writable collections
+            with ShowWaitCursor():
+                api = get_ckan_api()
+                grps = api.get("group_list_authz")
+            grps = sorted(grps, key=lambda x: x["display_name"])
+            item, ok = QtWidgets.QInputDialog.getItem(
+                self,
+                "Select a collection",
+                f"Please choose a collection for {len(dataset_ids)} datasets.",
+                [f"{ii}: {g['display_name']}" for ii, g in enumerate(grps)],
+                0,  # current index
+                False,  # editable
+                )
+            if ok:
+                index = int(item.split(":")[0])
+                collection = grps[index]
+                with ShowWaitCursor():
+                    # add all datasets to that collection
+                    for did in dataset_ids:
+                        api.post(
+                            "member_create",
+                            data={"id": collection["id"],
+                                  "object": did,
+                                  "object_type": "package",
+                                  # "capacity" should not be necessary
+                                  # https://github.com/ckan/ckan/issues/6543
+                                  "capacity": "member"})

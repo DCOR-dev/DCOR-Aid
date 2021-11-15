@@ -30,6 +30,9 @@ class FilterBase(QtWidgets.QWidget):
         # TODO: enable quick-filters via lineEdit
         self.lineEdit.setVisible(False)
 
+        # Disable custom tool button
+        self.toolButton_custom.setVisible(False)
+
         # default drag&drop behavior is "off"
         self.tableWidget.setDropIndicatorShown(False)  # don't show indicator
         self.tableWidget.setDragEnabled(False)  # disable drag
@@ -43,15 +46,15 @@ class FilterBase(QtWidgets.QWidget):
         """This is defined in the subclasses (Circle, Collection, etc)"""
         return []
 
-    def get_entry_identifiers(self, selected=False):
+    def get_entry_identifiers(self, selected=False, which="id"):
         """Return the identifiers of the current tableWidget entries"""
         if selected:
             identifiers = []
             for ii, entry in enumerate(self.entries):
                 if self.tableWidget.item(ii, 0).isSelected():
-                    identifiers.append(entry["name"])
+                    identifiers.append(entry[which])
         else:
-            identifiers = [ee["name"] for ee in self.entries]
+            identifiers = [ee[which] for ee in self.entries]
         return identifiers
 
     @QtCore.pyqtSlot()

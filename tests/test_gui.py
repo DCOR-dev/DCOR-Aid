@@ -1,17 +1,19 @@
 import pathlib
 import shutil
 import tempfile
+import time
 from unittest import mock
 
 import uuid
 
+from dcoraid.gui.api import get_ckan_api
 from dcoraid.gui.main import DCORAid
 from dcoraid.gui.upload.dlg_upload import UploadDialog
 from dcoraid.gui.upload import widget_upload
 
 import pytest
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QInputDialog, QMessageBox
 
 import common
 
@@ -64,6 +66,54 @@ def test_anonymous(qtbot):
         spath.unlink()
         shutil.copy2(stmp, spath)
     mw.close()
+
+
+def test_mydata_dataset_add_to_collection(qtbot, monkeypatch):
+    """Upload a dataset and add it to a collection"""
+    # upload via task
+    task_id = str(uuid.uuid4())
+    tpath = pathlib.Path(common.make_upload_task(task_id=task_id))
+    mw = DCORAid()
+    mw.panel_upload.on_upload_task(action=tpath)
+    # get the dataset ID
+    uj = mw.panel_upload.jobs[-1]
+    ds_id = uj.dataset_id
+    # wait for the job
+    common.wait_for_job_no_queue(uj)
+    # go to the "My Data" tab and click update
+    mw.tabWidget.setCurrentIndex(1)
+    qtbot.mouseClick(mw.pushButton_user_refresh,
+                     QtCore.Qt.MouseButton.LeftButton)
+    # select our dataset
+    entries = mw.user_filter_chain.fw_datasets.get_entry_identifiers()
+    index = entries.index(ds_id)
+    # we cannot click on qtablewidgetitems (because they are not widgets)
+    widget1 = mw.user_filter_chain.fw_datasets.tableWidget.item(index, 0)
+    assert widget1 is not None
+    widget1.setSelected(True)
+    selected = mw.user_filter_chain.fw_datasets.get_entry_identifiers(
+        selected=True)
+    assert len(selected) == 1
+    assert selected[0] == ds_id
+    # mock the dialog
+    api = get_ckan_api()
+    grps = api.get("group_list_authz")
+    grps = sorted(grps, key=lambda x: x["display_name"])
+    for ii, item in enumerate(grps):
+        if item["name"] == "dcoraid-collection":
+            break
+    else:
+        assert False, "could not find dcoraid-collection"
+    monkeypatch.setattr(QInputDialog,
+                        "getItem",
+                        lambda *args: (f"{ii}: {item['display_name']}", True))
+    qtbot.mouseClick(mw.user_filter_chain.fw_datasets.toolButton_custom,
+                     QtCore.Qt.MouseButton.LeftButton)
+    # Now check whether that worked
+    ds_dict = api.get("package_show", id=ds_id)
+    assert "groups" in ds_dict
+    assert len(ds_dict["groups"]) == 1
+    assert ds_dict["groups"][0]["name"] == "dcoraid-collection"
 
 
 def test_upload_simple(qtbot, monkeypatch):

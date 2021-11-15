@@ -174,7 +174,7 @@
          </layout>
         </item>
         <item>
-         <widget class="FilterChain" name="user_filter_chain" native="true">
+         <widget class="FilterChainUser" name="user_filter_chain" native="true">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
             <horstretch>0</horstretch>
@@ -504,6 +504,12 @@
    <class>DownloadWidget</class>
    <extends>QWidget</extends>
    <header>dcoraid.gui.download.widget_download</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FilterChainUser</class>
+   <extends>QWidget</extends>
+   <header>dcoraid.gui.dbview.filter_chain</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
