@@ -206,6 +206,102 @@ def test_load_with_existing_dataset_map_from_task_control():
     assert uj.dataset_id != dataset_dict_with_id["id"]
 
 
+def test_load_with_existing_dataset_id_does_not_exist_using_dataset_id_kwarg():
+    api = common.get_api()
+    # create some metadata
+    dataset_dict = common.make_dataset_dict(hint="task_test")
+    # post dataset creation request
+    dataset_dict_with_id = dataset_create(dataset_dict=dataset_dict,
+                                          resources=[dpath],
+                                          api=api)
+
+    task_path = common.make_upload_task(dataset_dict=dataset_dict,
+                                        dataset_id="wrong_id",
+                                        resource_paths=[str(dpath)],
+                                        resource_names=[dpath.name],
+                                        task_id="xwing")
+
+    # The dataset_id "wrong_id" does not exist on DCOR.
+    with pytest.raises(dcoraid.api.APINotFoundError,
+                       match="You may force the creation of a new"):
+        task.load_task(
+            task_path,
+            api=api)
+
+    # A new dataset_id is generated here
+    uj2 = task.load_task(
+        task_path,
+        api=api,
+        force_dataset_creation=True
+    )
+    assert uj2.dataset_id != dataset_dict_with_id["id"]
+    assert uj2.dataset_id != "wrong_id", "sanity check"
+
+
+def test_load_with_existing_dataset_id_does_not_exist_using_load_dict():
+    api = common.get_api()
+    # create some metadata
+    dataset_dict = common.make_dataset_dict(hint="task_test")
+    # post dataset creation request
+    dataset_dict_with_id = dataset_create(dataset_dict=dataset_dict,
+                                          resources=[dpath],
+                                          api=api)
+
+    task_path = common.make_upload_task(dataset_dict=dataset_dict,
+                                        resource_paths=[str(dpath)],
+                                        resource_names=[dpath.name],
+                                        task_id="xwing")
+
+    # The dataset_id "wrong_id" does not exist on DCOR.
+    with pytest.raises(dcoraid.api.APINotFoundError,
+                       match="You may force the creation of a new"):
+        task.load_task(
+            task_path,
+            dataset_kwargs={"id": "wrong_id"},
+            api=api)
+
+    # A new dataset_id is generated here
+    uj2 = task.load_task(
+        task_path,
+        api=api,
+        force_dataset_creation=True
+    )
+    assert uj2.dataset_id != dataset_dict_with_id["id"]
+    assert uj2.dataset_id != "wrong_id", "sanity check"
+
+
+def test_load_with_existing_dataset_id_does_not_exist_using_task_dict():
+    api = common.get_api()
+    # create some metadata
+    dataset_dict = common.make_dataset_dict(hint="task_test")
+    # post dataset creation request
+    dataset_dict_with_id = dataset_create(dataset_dict=dataset_dict,
+                                          resources=[dpath],
+                                          api=api)
+    task_path = common.make_upload_task(dataset_dict=dataset_dict,
+                                        resource_paths=[str(dpath)],
+                                        resource_names=[dpath.name],
+                                        task_id="xwing")
+
+    # The dataset_id "wrong_id" does not match the task_id in dict.
+    with pytest.raises(dcoraid.api.APINotFoundError,
+                       match="You may force the creation of a new"):
+        task.load_task(
+            task_path,
+            api=api,
+            map_task_to_dataset_id={"xwing": "wrong_id"})
+
+    # A new dataset_id is generated here
+    uj2 = task.load_task(
+        task_path,
+        api=api,
+        map_task_to_dataset_id={"xwing": "wrong_id"},
+        force_dataset_creation=True
+    )
+    assert uj2.dataset_id != dataset_dict_with_id["id"]
+    assert uj2.dataset_id != "wrong_id", "sanity check"
+
+
 def test_load_with_update():
     api = common.get_api()
     task_path = common.make_upload_task(task_id="blackfalcon",
@@ -284,6 +380,27 @@ def test_persistent_dict_override_forbidden():
     # make sure it is not stored
     pd2 = task.PersistentTaskDatasetIDDict(path)
     assert pd2["peter"] == "pan"
+
+
+def test_persistent_dict_override_method():
+    tdir = tempfile.mkdtemp(prefix="upload_task_persistent_dict_")
+    path = pathlib.Path(tdir) / "persistent_dict.txt"
+    pd = task.PersistentTaskDatasetIDDict(path)
+    pd["tony"] = "stark"
+    pd["peter"] = "pan"
+    pd["captain"] = "america"
+    assert "peter" in pd
+    assert pd["peter"] == "pan"
+    pd.override_entry("peter", "hook")
+    # make sure this worked
+    assert pd["peter"] == "hook"
+    assert pd["tony"] == "stark"
+    assert pd["captain"] == "america"
+    # make sure it's written to disk
+    pd2 = task.PersistentTaskDatasetIDDict(path)
+    assert pd2["peter"] == "hook"
+    assert pd2["tony"] == "stark"
+    assert pd2["captain"] == "america"
 
 
 def test_resource_name_lengths():

@@ -6,6 +6,7 @@ import pkg_resources
 from PyQt5 import uic, QtCore, QtWidgets
 from PyQt5.QtCore import QStandardPaths
 
+from ...api import APINotFoundError
 from ...common import ConnectionTimeoutErrors
 from ...upload import UploadQueue, task
 
@@ -150,6 +151,7 @@ class UploadWidget(QtWidgets.QWidget):
         jobs_known_count = 0
         jobs_imported_count = 0
         jobs_total_count = 0
+        jobs_ignored_count = 0
         for pp in files:
             jobs_total_count += 1
             if (not task.task_has_circle(pp)
@@ -163,31 +165,72 @@ class UploadWidget(QtWidgets.QWidget):
                     break
                 else:
                     dataset_kwargs["owner_org"] = cdict["name"]
-            with ShowWaitCursor():
-                upload_job = task.load_task(
-                    path=pp,
-                    map_task_to_dataset_id=map_task_to_dataset_id,
-                    api=api,
-                    dataset_kwargs=dataset_kwargs,
-                    update_dataset_id=update_dataset_id,
-                    cache_dir=self.cache_dir,
-                )
-                job_msg = self.jobs.add_job(upload_job)
-                if job_msg == "new":
-                    jobs_imported_count += 1
+            load_kw = dict(
+                path=pp,
+                map_task_to_dataset_id=map_task_to_dataset_id,
+                api=api,
+                dataset_kwargs=dataset_kwargs,
+                update_dataset_id=update_dataset_id,
+                cache_dir=self.cache_dir)
+            try:
+                with ShowWaitCursor():
+                    upload_job = task.load_task(**load_kw)
+            except APINotFoundError:
+                # This may happen when the dataset is not found online (#19).
+                # Give the user the option to create a new dataset.
+                ret = QtWidgets.QMessageBox.question(
+                    self,
+                    "Dataset ID in task file not found on DCOR server",
+                    f"The dataset speficied in {pp} does not exist on "
+                    + f"{api.server}. Possible reasons:"
+                    + "<ul>"
+                    + "<li>You deleted an upload job or a draft dataset.</li>"
+                    + "<li>This task file was created by a different "
+                    + f"user on the {api.server} instance.</li>"
+                    + "<li>This task file was created using a different DCOR "
+                    + "instance.</li>"
+                    + "</ul>"
+                    + "Would you like to create a new dataset for this "
+                    + f"task file on {api.server} (select 'No' if in doubt)?"
+                    )
+                if ret == QtWidgets.QMessageBox.Yes:
+                    # retry, this time forcing the creation of a new dataset
+                    upload_job = task.load_task(force_dataset_creation=True,
+                                                **load_kw)
                 else:
-                    jobs_known_count += 1
+                    # ignore this task
+                    jobs_ignored_count += 1
+                    continue
+
+            # proceed with adding the job
+            job_msg = self.jobs.add_job(upload_job)
+            if job_msg == "new":
+                jobs_imported_count += 1
+            else:
+                jobs_known_count += 1
 
         # sanity check
-        assert jobs_known_count + jobs_imported_count == jobs_total_count
+        assert jobs_total_count == \
+               jobs_known_count + jobs_imported_count + jobs_ignored_count
+
+        # give the user some stats
+        messages = [f"Found {jobs_total_count} task(s) and imported "
+                    + f"{jobs_imported_count} task(s)."]
         if jobs_known_count:
-            # Display a message box telling the user that this job is known
-            QtWidgets.QMessageBox.information(
-                self,
-                "Task import complete",
-                f"{jobs_known_count} out of {jobs_total_count} tasks were "
-                + "already imported in a previous DCOR-Aid session."
-            )
+            messages.append(
+                f"{jobs_known_count} tasks were already imported in a "
+                + "previous DCOR-Aid session.")
+        if jobs_ignored_count:
+            messages.append(
+                f"{jobs_ignored_count} tasks were not imported, because their "
+                + "dataset IDs are not known on the present DCOR instance.")
+
+        # Display a message box telling the user that this job is known
+        QtWidgets.QMessageBox.information(
+            self,
+            "Task import complete",
+            "\n\n".join(messages),
+        )
 
 
 class UploadTableWidget(QtWidgets.QTableWidget):

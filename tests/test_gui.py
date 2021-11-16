@@ -73,6 +73,9 @@ def test_mydata_dataset_add_to_collection(qtbot, monkeypatch):
     task_id = str(uuid.uuid4())
     tpath = pathlib.Path(common.make_upload_task(task_id=task_id))
     mw = DCORAid()
+    # monkeypatch success message box
+    monkeypatch.setattr(QMessageBox, "information",
+                        lambda *args: None)
     mw.panel_upload.on_upload_task(action=tpath)
     # get the dataset ID
     uj = mw.panel_upload.jobs[-1]
@@ -143,6 +146,62 @@ def test_upload_task(qtbot, monkeypatch):
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
     monkeypatch.setattr(QtWidgets.QFileDialog, "getOpenFileNames",
                         lambda *args: ([tpath], None))
+    # monkeypatch success message box
+    monkeypatch.setattr(QMessageBox, "information",
+                        lambda *args: None)
+    act = QtWidgets.QAction("some unimportant text")
+    act.setData("single")
+    mw.panel_upload.on_upload_task(action=act)
+    uj = mw.panel_upload.jobs[-1]
+    assert uj.task_id == task_id
+    mw.close()
+
+
+def test_upload_task_bad_dataset_id_no(qtbot, monkeypatch):
+    """When the dataset ID does not exist, DCOR-Aid should ask what to do"""
+    task_id = str(uuid.uuid4())
+    dataset_dict = common.make_dataset_dict(hint="task_upload_no_org_")
+    tpath = common.make_upload_task(task_id=task_id,
+                                    dataset_id="wrong_id",
+                                    dataset_dict=dataset_dict)
+    mw = DCORAid()
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+    # monkeypatch file selection dialog
+    monkeypatch.setattr(QtWidgets.QFileDialog, "getOpenFileNames",
+                        lambda *args: ([tpath], None))
+    # monkeypatch yes-no dialog
+    monkeypatch.setattr(QMessageBox, "question",
+                        lambda *args: QMessageBox.No)
+    # monkeypatch success message box
+    monkeypatch.setattr(QMessageBox, "information",
+                        lambda *args: None)
+    act = QtWidgets.QAction("some unimportant text")
+    act.setData("single")
+    mw.panel_upload.on_upload_task(action=act)
+    if len(mw.panel_upload.jobs):
+        # there might be upload jobs from previous tests here
+        assert mw.panel_upload.jobs[-1].task_id != task_id
+    mw.close()
+
+
+def test_upload_task_bad_dataset_id_yes(qtbot, monkeypatch):
+    """When the dataset ID does not exist, DCOR-Aid should ask what to do"""
+    task_id = str(uuid.uuid4())
+    dataset_dict = common.make_dataset_dict(hint="task_upload_no_org_")
+    tpath = common.make_upload_task(task_id=task_id,
+                                    dataset_id="wrong_id",
+                                    dataset_dict=dataset_dict)
+    mw = DCORAid()
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+    # monkeypatch file selection dialog
+    monkeypatch.setattr(QtWidgets.QFileDialog, "getOpenFileNames",
+                        lambda *args: ([tpath], None))
+    # monkeypatch yes-no dialog
+    monkeypatch.setattr(QMessageBox, "question",
+                        lambda *args: QMessageBox.Yes)
+    # monkeypatch success message box
+    monkeypatch.setattr(QMessageBox, "information",
+                        lambda *args: None)
     act = QtWidgets.QAction("some unimportant text")
     act.setData("single")
     mw.panel_upload.on_upload_task(action=act)
@@ -167,6 +226,9 @@ def test_upload_task_missing_circle(qtbot, monkeypatch):
     monkeypatch.setattr(QtWidgets.QInputDialog, "getItem",
                         # return the first item in the circle list
                         lambda *args: (args[3][0], True))
+    # monkeypatch success message box
+    monkeypatch.setattr(QMessageBox, "information",
+                        lambda *args: None)
     act = QtWidgets.QAction("some unimportant text")
     act.setData("single")
     mw.panel_upload.on_upload_task(action=act)
@@ -204,6 +266,9 @@ def test_upload_task_missing_circle_multiple(qtbot, monkeypatch):
     monkeypatch.setattr(QtWidgets.QInputDialog, "getItem",
                         # return the first item in the circle list
                         lambda *args: (args[3][0], True))
+    # monkeypatch success message box
+    monkeypatch.setattr(QMessageBox, "information",
+                        lambda *args: None)
     act = QtWidgets.QAction("some unimportant text")
     act.setData("bulk")
     request_circle = widget_upload.circle_mgr.request_circle
@@ -232,6 +297,9 @@ def test_upload_private(qtbot, monkeypatch):
     dlg.comboBox_vis.setCurrentIndex(dlg.comboBox_vis.findData("private"))
     # Avoid message boxes
     monkeypatch.setattr(QMessageBox, "question", lambda *args: QMessageBox.Yes)
+    # monkeypatch success message box
+    monkeypatch.setattr(QMessageBox, "information",
+                        lambda *args: None)
     # Commence upload
     dlg.on_proceed()
     dataset_id = dlg.dataset_id

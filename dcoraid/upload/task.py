@@ -14,9 +14,10 @@ method. The new task now automatically has a dataset ID
 import copy
 import json
 import pathlib
+import threading
 import uuid
 
-from ..api import dataset_create
+from ..api import dataset_create, APINotFoundError
 
 from .job import UploadJob
 
@@ -33,7 +34,8 @@ class PersistentTaskDatasetIDDict:
 
         Features:
 
-        - Not possible to override any keys with other values
+        - Not possible to override any keys with other values,
+          except explicitly with `override_entry`
         - allowed key characters are
           "0123456789-_abcdefghijklmnopqrstuvwxyz"
         - New keys are appended to the end of the file
@@ -43,6 +45,7 @@ class PersistentTaskDatasetIDDict:
           each new entry, the internal dictionary is updated
           and a new line is appended to the file on disk
         """
+        self.lock = threading.Lock()
         self._path = pathlib.Path(path)
         self._path.touch(exist_ok=True)
         self._dict = {}
@@ -50,8 +53,9 @@ class PersistentTaskDatasetIDDict:
         with self._path.open() as fd:
             lines = fd.readlines()
             for line in lines:
-                task_id, dataset_id = line.strip().split()
-                self._dict[task_id] = dataset_id
+                if line.strip():  # ignore empty lines
+                    task_id, dataset_id = line.strip().split()
+                    self._dict[task_id] = dataset_id
 
     def __contains__(self, task_id):
         return self._dict.__contains__(task_id)
@@ -66,8 +70,9 @@ class PersistentTaskDatasetIDDict:
         else:
             assert_task_id_is_valid(task_id)
             # append to end of file
-            with self._path.open("a") as fd:
-                fd.write(f"{task_id} {dataset_id}\n")
+            with self.lock:
+                with self._path.open("a") as fd:
+                    fd.write(f"{task_id} {dataset_id}\n")
             # append to dict
             self._dict[task_id] = dataset_id
 
@@ -76,6 +81,20 @@ class PersistentTaskDatasetIDDict:
 
     def get(self, task_id, default=None):
         return self._dict.get(task_id, default)
+
+    def override_entry(self, task_id, dataset_id):
+        """Convenience function for overriding an entry"""
+        # Check whether it exists
+        cur_id = self.get(task_id)
+        if cur_id is not None:
+            # Change in-memory
+            self._dict[task_id] = dataset_id
+            # Change on-disk
+            curdata = self._path.read_text()
+            newdata = curdata.replace(
+                f"{task_id} {cur_id}", f"{task_id} {dataset_id}")
+            with self.lock:
+                self._path.write_text(newdata)
 
 
 def assert_task_id_is_valid(task_id):
@@ -157,7 +176,8 @@ def create_task(path, dataset_dict, resource_dicts, task_id=None):
 
 
 def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
-              update_dataset_id=False, cache_dir=None):
+              update_dataset_id=False, force_dataset_creation=False,
+              cache_dir=None):
     """Open a task file and load it into an UploadJob
 
     Parameters
@@ -185,6 +205,12 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
     update_dataset_id: bool
         If True, update the task file with the dataset identifier
         assigned to by the CKAN/DCOR server.
+    force_dataset_creation: bool
+        If True, force creation of a new dataset for this task, even
+        if a dataset_id is specified in the task dictionary or in
+        `dataset_kwargs`. This should only be used in extreme cases,
+        e.g. when a user deleted upload jobs and the corresponding
+        draft datasets.
     cache_dir: str or pathlib.Path
         Cache directory for storing compressed .rtdc files;
         if not supplied, a temporary directory is created
@@ -202,12 +228,9 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
     with path.open() as fd:
         task_dict = json.load(fd)
 
-    if "dataset_dict" in task_dict:
-        # separate "dataset_dict" from the task file
-        # (e.g. the dataset_id and other things might be in here)
-        dataset_dict = task_dict["dataset_dict"]
-    else:
-        dataset_dict = {}
+    # separate "dataset_dict" from the task file
+    # (e.g. the dataset_id and other things might be in here)
+    dataset_dict = task_dict.get("dataset_dict", {})
 
     if dataset_kwargs is not None:
         dataset_dict.update(dataset_kwargs)
@@ -269,8 +292,10 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
 
     # use the ids to determine what to do next
     ids = [dd for dd in [id_u, id_d, id_m] if dd is not None]
-    if len(set(ids)) == 0:
-        # We have no dataset_id, so we create a dataset first
+    if len(set(ids)) == 0 or force_dataset_creation:
+        # We have no dataset_id or we ignore the current dataset_id,
+        # so we create a new dataset first
+        dataset_dict.pop("dataset_id", None)  # remove any current dataset_id
         ddict = dataset_create(
             dataset_dict=dataset_dict,
             api=api,
@@ -279,6 +304,18 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
     elif len(set(ids)) == 1:
         # We have a unique dataset_id
         dataset_id = ids[0]
+        # Perform a sanity check to make sure that the dataset_id
+        # actually exists.
+        try:
+            api.get("package_show", id=dataset_id)
+        except APINotFoundError as e:
+            # This means that the dataset does not exist. Give the
+            # user a little help how to resolve this.
+            msg = f"{e.args[0]} - You may force the creation of a new " \
+                  + "dataset by setting `force_dataset_creation=True` in " \
+                  + "the `load_task` method."
+            e.args = (msg,)
+            raise
     else:
         # Something went wrong when creating the task file or the
         # user is insane.
