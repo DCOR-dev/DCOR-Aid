@@ -338,10 +338,11 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
 
     if task_id is not None:
         # Also update the ID dictionary
-        # This part here should come after instantiation of UploadJob,
-        # because that just might fail if the specified dataset_id is invalid
-        # (and we don't want invalid IDs in our dictionary).
-        map_task_to_dataset_id[task_id] = dataset_id
+        if (isinstance(map_task_to_dataset_id, PersistentTaskDatasetIDDict)
+                and force_dataset_creation):
+            map_task_to_dataset_id.override_entry(task_id, dataset_id)
+        else:
+            map_task_to_dataset_id[task_id] = dataset_id
 
     if update_dataset_id:
         # If everything went well so far, then we can safely update the

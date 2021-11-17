@@ -1,7 +1,10 @@
+0.8.1
+ - fix: missed a case for task dataset IDs that don't exist but
+   have been stored in the persistent task dictionary
 0.8.0
  - feat: allow to add datasets to a collection (#11)
  - fix: allow empty lines in PersistentTaskDatasetIDDict files
- - fix: properly handle dataset IDs in tasks that don't exist (#19)
+ - fix: properly handle task dataset IDs that don't exist (#19)
 0.7.10
  - enh: improve spacing in GUI design (#44)
  - enh: make sure there are no uploads without RT-DC files
