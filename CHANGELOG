@@ -1,8 +1,10 @@
 0.8.2
+ - enh: include datasets share with the user in the "My Data" tab
  - fix: catch OSError when trying to load a task that is on an
    unmounted network share (#48)
  - fix: tell users when persistent tasks cannot be loaded because
    the paths to the resources are invalid (#48)
+ - ref: extended APIInterrogator by `registry_id` and `__contains__`
 0.8.1
  - fix: missed a case for task dataset IDs that don't exist but
    have been stored in the persistent task dictionary

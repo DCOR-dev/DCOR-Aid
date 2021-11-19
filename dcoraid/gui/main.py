@@ -216,6 +216,8 @@ class DCORAid(QtWidgets.QMainWindow):
                     data += ai.get_datasets_user_following()
                 if self.checkBox_user_owned.isChecked():
                     data += ai.get_datasets_user_owned()
+                if self.checkBox_user_shared.isChecked():
+                    data += ai.get_datasets_user_shared()
                 self.user_filter_chain.set_db_extract(data)
             except ConnectionTimeoutErrors:
                 QtWidgets.QMessageBox.critical(

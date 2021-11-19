@@ -58,29 +58,33 @@ class APIInterrogator(DBInterrogator):
     def get_datasets_user_owned(self):
         """Return datasets the user created"""
         assert self.mode == "user"
-        datasets = self.search_dataset(
+        dbextract = self.search_dataset(
             filter_queries=[f"+creator_user_id:{self.api.user_id}"],
             limit=0,
         )
-        return datasets
+        return dbextract
 
     def get_datasets_user_shared(self):
         """Return datasets shared with the user"""
         assert self.mode == "user"
-        # TODO:
-        # - package_collaborator_list_for_user
-        #   - https://github.com/DCOR-dev/DCOR-Aid/issues/32
-        #   - https://github.com/DCOR-dev/ckanext-dcor_schemas/issues/10
-
-        # perform a dataset search with those circles and collections
-        datasets = self.search_dataset(
+        # perform a dataset search with all circles and collections
+        dbextract = self.search_dataset(
             circles=self.get_circles(),
             collections=self.get_collections(),
             circle_collection_union=True,
             filter_queries=[f"-creator_user_id:{self.api.user_id}"],
             limit=0,
         )
-        return datasets
+
+        # all packages the user is a collaborator in
+        collaborated = self.api.get("package_collaborator_list_for_user",
+                                    id=self.user_data["id"])
+        for col in collaborated:
+            if col["package_id"] not in dbextract:
+                ds_dict = self.api.get("package_show", id=col["package_id"])
+                dbextract.add_datasets([ds_dict])
+
+        return dbextract
 
     @ttl_cache(seconds=3600)
     def get_users(self, ret_fullnames=False):

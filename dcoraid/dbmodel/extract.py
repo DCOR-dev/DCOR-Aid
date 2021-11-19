@@ -16,6 +16,7 @@ class DBExtract:
         self._dataset_name_index = None
 
         self.registry = {}
+        self.registry_id = {}
         self.datasets = []
         if datasets:
             self.add_datasets(datasets)
@@ -26,6 +27,24 @@ class DBExtract:
     def __iadd__(self, other):
         self.add_datasets(other.datasets)
         return self
+
+    def __contains__(self, item):
+        """Check whether dataset is in this DBExtract
+
+        Parameters
+        ----------
+        item: dict or str
+            The dataset dictionary or the name or the id of the dataset
+        """
+        if isinstance(item, dict):
+            id_name = item["id"]
+        else:
+            id_name = item
+        if len(id_name) == 36:  # minor optimization
+            # we probably have a UUID
+            return id_name in self.registry_id or id_name in self.registry
+        else:
+            return id_name in self.registry
 
     def __getitem__(self, idx_or_name):
         if isinstance(idx_or_name, numbers.Integral):
