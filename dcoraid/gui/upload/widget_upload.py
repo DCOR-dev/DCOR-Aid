@@ -1,3 +1,4 @@
+import warnings
 from functools import lru_cache
 import os.path as os_path
 import pathlib
@@ -8,7 +9,7 @@ from PyQt5.QtCore import QStandardPaths
 
 from ...api import APINotFoundError
 from ...common import ConnectionTimeoutErrors
-from ...upload import UploadQueue, task
+from ...upload import queue, task
 
 from ..api import get_ckan_api
 from ..tools import ShowWaitCursor
@@ -56,9 +57,32 @@ class UploadWidget(QtWidgets.QWidget):
             QtCore.QStandardPaths.CacheLocation)
 
         try:
-            self.jobs = UploadQueue(api=get_ckan_api(),
-                                    path_persistent_job_list=shelf_path,
-                                    cache_dir=self.cache_dir)
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter(
+                    "always",
+                    category=queue.DCORAidQueueMissingResourceWarning)
+                self.jobs = queue.UploadQueue(
+                    api=get_ckan_api(),
+                    path_persistent_job_list=shelf_path,
+                    cache_dir=self.cache_dir)
+                if w:
+                    msg = QtWidgets.QMessageBox()
+                    msg.setIcon(QtWidgets.QMessageBox.Information)
+                    msg.setText(
+                        "You have created upload jobs in a previous session "
+                        + "and some of the resources cannot be located on "
+                        + "this machine. You might need to insert an external "
+                        + "hard drive or mount a network share and then "
+                        + "restart DCOR-Aid. If these uploads were created "
+                        + "from .dcoraid-task files that are now in a "
+                        + "different location, it might help to load those "
+                        + "tasks from that new location. For now, these "
+                        + "uploads are not queued (but we have not forgotten "
+                        + "them).")
+                    msg.setDetailedText(
+                        "\n\n".join([str(wi.message) for wi in w]))
+                    msg.setWindowTitle("Resources for uploads missing")
+                    msg.exec_()
         except ConnectionTimeoutErrors:
             # TODO: allow user to re-enable without restarting DCOR-Aid
             self.jobs = None

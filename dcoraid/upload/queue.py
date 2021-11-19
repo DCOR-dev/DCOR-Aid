@@ -12,6 +12,10 @@ class DCORAidQueueWarning(UserWarning):
     pass
 
 
+class DCORAidQueueMissingResourceWarning(DCORAidQueueWarning):
+    pass
+
+
 class PersistentUploadJobList:
     def __init__(self, path):
         """A file-system and JSON-based persistent UploadJob list"""
@@ -124,10 +128,10 @@ class UploadQueue:
                                   DCORAidQueueWarning)
                 except LocalTaskResourcesNotFoundError as e:
                     resstr = ", ".join([str(pp) for pp in e.missing_resources])
-                    warnings.warn("The following resources are missing for "
-                                  f"dataset {dataset_id}: {resstr}. The "
-                                  "job will not be queued.",
-                                  DCORAidQueueWarning)
+                    warnings.warn(
+                        "The following resources are missing for dataset "
+                        f"{dataset_id}: {resstr}. The job will not be queued.",
+                        DCORAidQueueMissingResourceWarning)
                 else:
                     self.jobs.append(uj)
         else:
