@@ -159,7 +159,6 @@ def test_get_datasets_user_shared_figshare():
             break
     else:
         assert False, "Search did not return figshare-7771184-v2!"
-    assert len(datasets) == 1
 
 
 if __name__ == "__main__":

@@ -4,6 +4,8 @@ import os
 import pathlib
 import shutil
 import tempfile
+import warnings
+
 import time
 
 from dcoraid.api import CKANAPI, dataset_create
@@ -128,7 +130,10 @@ def wait_for_job_no_queue(upload_job, wait_time=120):
     uj = upload_job
     # wait for the upload to finish
     for _ in range(wait_time*10):
-        uj.task_verify_resources()
+        with warnings.catch_warnings():
+            # Ignore warnings about current state of upload job
+            warnings.simplefilter("ignore", category=UserWarning)
+            uj.task_verify_resources()
         if uj.state == "done":
             break
         time.sleep(.1)
