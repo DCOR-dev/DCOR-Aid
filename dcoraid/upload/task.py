@@ -300,7 +300,7 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
     if len(set(ids)) == 0 or force_dataset_creation:
         # We have no dataset_id or we ignore the current dataset_id,
         # so we create a new dataset first
-        dataset_dict.pop("dataset_id", None)  # remove any current dataset_id
+        dataset_dict.pop("id", None)  # remove any current dataset_id
         ddict = dataset_create(
             dataset_dict=dataset_dict,
             api=api,
