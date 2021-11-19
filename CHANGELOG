@@ -1,3 +1,6 @@
+0.8.2
+ - fix: catch OSError when trying to load a task that is on an
+   unmounted network share (#48)
 0.8.1
  - fix: missed a case for task dataset IDs that don't exist but
    have been stored in the persistent task dictionary

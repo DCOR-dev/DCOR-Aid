@@ -242,12 +242,17 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
     for ii in range(len(uj_state["resource_paths"])):
         pi = pathlib.Path(uj_state["resource_paths"][ii])
         pi_alt = pathlib.Path(path).parent / pi.name
-        if pi.exists():
-            pass
-        elif pi_alt.exists():
-            # replace with path relative to task file
-            uj_state["resource_paths"][ii] = str(pi_alt)
-        else:
+        try:
+            if pi.exists():
+                pass
+            elif pi_alt.exists():
+                # replace with path relative to task file
+                uj_state["resource_paths"][ii] = str(pi_alt)
+            else:
+                missing_resources.append(pi)
+        except OSError:
+            # On windows you can get an OSError if `pi` is on a
+            # network share that is not mounted (#48).
             missing_resources.append(pi)
 
     if missing_resources:
