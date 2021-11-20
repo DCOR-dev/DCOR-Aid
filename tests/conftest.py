@@ -19,20 +19,11 @@ TMPDIR = tempfile.mkdtemp(prefix=time.strftime(
 pytest_plugins = ["pytest-qt"]
 
 
-def pytest_configure(config):
-    """This is ran before all tests"""
+def cleanup_dcoraid_tasks():
     # disable update checking
     QtCore.QCoreApplication.setOrganizationName("DCOR")
     QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
     QtCore.QCoreApplication.setApplicationName("dcoraid")
-    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
-    settings = QtCore.QSettings()
-    settings.setIniCodec("utf-8")
-    settings.value("user scenario", "dcor-dev")
-    settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
-    settings.setValue("auth/api key", common.get_api_key())
-    settings.setValue("debug/without timers", 1)
-    settings.sync()
     # remove persistent upload jobs
     shelf_path = os_path.join(
         QStandardPaths.writableLocation(
@@ -47,6 +38,24 @@ def pytest_configure(config):
     path_id_dict = pathlib.Path(path_id_dict)
     if path_id_dict.exists():
         path_id_dict.unlink()
+
+
+def pytest_configure(config):
+    """This is ran before all tests"""
+    # disable update checking
+    QtCore.QCoreApplication.setOrganizationName("DCOR")
+    QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+    QtCore.QCoreApplication.setApplicationName("dcoraid")
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+    settings = QtCore.QSettings()
+    settings.setIniCodec("utf-8")
+    settings.value("user scenario", "dcor-dev")
+    settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
+    settings.setValue("auth/api key", common.get_api_key())
+    settings.setValue("debug/without timers", 1)
+    settings.sync()
+    # cleanup
+    cleanup_dcoraid_tasks()
     # set global temp directory
     tempfile.tempdir = TMPDIR
 
@@ -55,10 +64,16 @@ def pytest_unconfigure(config):
     """
     called before test process is exited.
     """
+    QtCore.QCoreApplication.setOrganizationName("DCOR")
+    QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+    QtCore.QCoreApplication.setApplicationName("dcoraid")
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
     settings = QtCore.QSettings()
     settings.setIniCodec("utf-8")
     settings.remove("debug/without timers")
     settings.sync()
+    # cleanup
+    cleanup_dcoraid_tasks()
     # clear global temp directory
     shutil.rmtree(TMPDIR, ignore_errors=True)
 
