@@ -7,7 +7,7 @@ import traceback as tb
 
 from PyQt5 import uic, QtCore, QtWidgets
 
-from ...api import APIKeyError, CKANAPI
+from ...api import NoAPIKeyError, CKANAPI
 from ..tools import show_wait_cursor
 
 from ..api import get_ckan_api
@@ -169,7 +169,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         api = get_ckan_api()
         try:
             user_dict = api.get_user_dict()
-        except (ConnectionError, APIKeyError):
+        except (ConnectionError, NoAPIKeyError):
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Warning)
             msg.setText("No connection or wrong server or invalid API key!")
@@ -199,7 +199,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         api = get_ckan_api()
         try:
             user_dict = api.get_user_dict()
-        except (ConnectionError, APIKeyError):
+        except (ConnectionError, NoAPIKeyError):
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Warning)
             msg.setText("No connection or wrong server or invalid API key!")

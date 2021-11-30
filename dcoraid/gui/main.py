@@ -13,7 +13,7 @@ import requests_toolbelt
 
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
-from ..api import APIKeyError
+from ..api import NoAPIKeyError
 from ..common import ConnectionTimeoutErrors
 from ..dbmodel import APIInterrogator, DBExtract
 from .._version import version as __version__
@@ -242,7 +242,7 @@ class DCORAid(QtWidgets.QMainWindow):
         else:
             try:
                 user_data = api.get_user_dict()
-            except APIKeyError:
+            except NoAPIKeyError:
                 text = "Login failed"
                 tip = "Click here to update your API key."
                 icon = "user-times"

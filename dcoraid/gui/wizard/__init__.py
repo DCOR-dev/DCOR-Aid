@@ -4,7 +4,7 @@ import uuid
 
 from PyQt5 import uic, QtCore, QtWidgets
 
-from ...api import APIKeyError, CKANAPI
+from ...api import NoAPIKeyError, CKANAPI
 
 from .import access_token
 
@@ -22,7 +22,7 @@ def get_dcor_dev_api_key():
                   ssl_verify=True)
     try:
         api.get_user_dict()
-    except APIKeyError:
+    except NoAPIKeyError:
         # create a new user
         rstr = str(uuid.uuid4())
         pwd = str(uuid.uuid4())[:8]

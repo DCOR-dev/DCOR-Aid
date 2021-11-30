@@ -18,9 +18,9 @@ class APIGatewayTimeoutError(APIError):
     pass
 
 
-class APIKeyError(APIError):
+class APINotFoundError(APIError):
     pass
 
 
-class APINotFoundError(APIError):
+class NoAPIKeyError(APIError):
     pass

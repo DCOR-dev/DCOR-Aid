@@ -1,3 +1,6 @@
+0.8.4
+ - fix: properly handle "user_list" for anonymous users
+ - ref: reorganized APIErros
 0.8.3
  - fix: APIConflictError "input field id was not expected"
    when loading tasks and attempting to create a new dataset

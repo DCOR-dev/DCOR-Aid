@@ -3,7 +3,7 @@ import random
 
 import pytest
 
-from dcoraid.api import dataset_create
+from dcoraid.api import CKANAPI, errors, dataset_create
 from dcoraid.dbmodel import db_api
 
 import common
@@ -27,6 +27,13 @@ def test_get_collections():
     assert common.COLLECTION in collections
     # requires that the "dcoraid" user is in the figshare-collection collection
     assert "figshare-collection" in collections
+
+
+def test_get_users_anonymous():
+    api = CKANAPI(server="dcor-dev.mpl.mpg.de")
+    db = db_api.APIInterrogator(api=api)
+    with pytest.raises(errors.APIAuthorizationError, match="Access denied"):
+        db.get_users()
 
 
 def test_public_api_interrogator():

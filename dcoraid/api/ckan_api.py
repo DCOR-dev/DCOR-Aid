@@ -8,7 +8,7 @@ import requests
 
 from .._version import version
 
-from .errors import (APIConflictError, APINotFoundError, APIKeyError,
+from .errors import (APIConflictError, APINotFoundError, NoAPIKeyError,
                      APIBadGatewayError, APIGatewayTimeoutError,
                      APIAuthorizationError)
 
@@ -57,7 +57,7 @@ class CKANAPI:
             # initial call to populate self._user_dict
             try:
                 ud = self.get_user_dict()
-            except APIKeyError:
+            except (NoAPIKeyError, APIAuthorizationError):
                 # anonymous access
                 self._user_dict = {}
             else:
@@ -163,6 +163,12 @@ class CKANAPI:
                 raise APINotFoundError(msg)
             elif req.reason == "CONFLICT":
                 raise APIConflictError(msg)
+            elif req.reason == "Gateway Time-out":
+                raise APIGatewayTimeoutError(msg)
+            elif req.reason == "Bad Gateway":
+                raise APIBadGatewayError(msg)
+            elif req.reason == "FORBIDDEN":
+                raise APIAuthorizationError(msg)
             else:
                 raise ConnectionError(msg)
         elif not rdata["success"]:
@@ -218,7 +224,7 @@ class CKANAPI:
                     userdata = user
                     break
             else:
-                raise APIKeyError(
+                raise NoAPIKeyError(
                     "Could not determine user data. Please check API key.")
         return userdata
 
