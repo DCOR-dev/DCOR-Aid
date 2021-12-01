@@ -1,3 +1,6 @@
+0.8.5
+ - enh: introduce APIOutdatedError (server response)
+ - ref: combine response handling for API GET and POST requests
 0.8.4
  - fix: properly handle "user_list" for anonymous users
  - ref: reorganized APIErros

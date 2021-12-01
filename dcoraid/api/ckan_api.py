@@ -10,7 +10,7 @@ from .._version import version
 
 from .errors import (APIConflictError, APINotFoundError, NoAPIKeyError,
                      APIBadGatewayError, APIGatewayTimeoutError,
-                     APIAuthorizationError)
+                     APIAuthorizationError, APIOutdatedError)
 
 #: Minimum required CKAN version on the server side
 MIN_CKAN_VERSION = "2.9.3"
@@ -32,7 +32,7 @@ class CKANAPI:
         self.api_key = api_key.strip()
         self.server = self._make_server_url(server)
         self.api_url = self._make_api_url(server)
-        self.headers = {"user-agent": "DCOR-Aid/{}".format(version)
+        self.headers = {"user-agent": f"DCOR-Aid/{version}"
                         }
         if self.api_key:
             self.headers["X-CKAN-API-Key"] = self.api_key
@@ -100,6 +100,46 @@ class CKANAPI:
                 + "downgrade your version of DCOR-Aid."
             )
 
+    def handle_response(self, req, api_call):
+        try:
+            rdata = req.json()
+        except BaseException:
+            rdata = {}
+        if isinstance(rdata, str):
+            raise ValueError(
+                "Command did not succeed, output: '{}'".format(rdata))
+        if not req.ok:
+            error = rdata.get("error", {})
+            etype = error.get("__type", req.reason)
+            etext = ""
+            for key in error:
+                if not key.startswith("_"):
+                    etext += "{}: {}".format(key, error[key])
+            if not etext and len(req.reason) < 100:
+                # Skip large html output, only use small error messages
+                etext = req.content.decode("utf-8")
+            msg = "{}: {} (for '{}')".format(etype, etext, api_call)
+            if req.reason == "NOT FOUND":
+                raise APINotFoundError(msg)
+            elif req.reason == "CONFLICT":
+                raise APIConflictError(msg)
+            elif req.reason == "Gateway Time-out":
+                raise APIGatewayTimeoutError(msg)
+            elif req.reason == "Bad Gateway":
+                raise APIBadGatewayError(msg)
+            elif req.reason == "FORBIDDEN":
+                raise APIAuthorizationError(msg)
+            elif req.reason == "Bad Request" and etext.endswith("outdated."):
+                raise APIOutdatedError(msg)
+            else:
+                raise ConnectionError(msg)
+        elif not rdata["success"]:
+            url_call = self.api_url + api_call
+            raise ConnectionError(
+                "Could not run API call '{}'! ".format(url_call)
+                + "Reason: {} ({})".format(req.reason, rdata["error"]))
+        return rdata
+
     def copy(self):
         return CKANAPI(server=self.server, api_key=self.api_key,
                        ssl_verify=self.verify)
@@ -139,42 +179,11 @@ class CKANAPI:
             for kw in kwargs:
                 kwv.append("{}={}".format(kw, kwargs[kw]))
             api_call += "?" + "&".join(kwv)
-        url_call = self.api_url + api_call
-        req = requests.get(url_call,
+        req = requests.get(self.api_url + api_call,
                            headers=self.headers,
                            verify=self.verify,
                            timeout=27.9)
-        try:
-            rdata = req.json()
-        except BaseException:
-            rdata = {}
-        if isinstance(rdata, str):
-            raise ValueError(
-                "Command did not succeed, output: '{}'".format(rdata))
-        if not req.ok:
-            error = rdata.get("error", {})
-            etype = error.get("__type", req.reason)
-            etext = ""
-            for key in error:
-                if not key.startswith("_"):
-                    etext += "{}: {}".format(key, error[key])
-            msg = "{}: {} (for '{}')".format(etype, etext, api_call)
-            if req.reason == "NOT FOUND":
-                raise APINotFoundError(msg)
-            elif req.reason == "CONFLICT":
-                raise APIConflictError(msg)
-            elif req.reason == "Gateway Time-out":
-                raise APIGatewayTimeoutError(msg)
-            elif req.reason == "Bad Gateway":
-                raise APIBadGatewayError(msg)
-            elif req.reason == "FORBIDDEN":
-                raise APIAuthorizationError(msg)
-            else:
-                raise ConnectionError(msg)
-        elif not rdata["success"]:
-            raise ConnectionError(
-                "Could not run API call '{}'! ".format(url_call)
-                + "Reason: {} ({})".format(req.reason, rdata["error"]))
+        rdata = self.handle_response(req, api_call)
         return rdata["result"]
 
     def get_license_list(self):
@@ -271,35 +280,5 @@ class CKANAPI:
                             data=data,
                             headers=new_headers,
                             verify=self.verify)
-        try:
-            rdata = req.json()
-        except BaseException:
-            rdata = {}
-        if isinstance(rdata, str):
-            raise ValueError(
-                "Command did not succeed, output: '{}'".format(rdata))
-        if not req.ok:
-            error = rdata.get("error", {})
-            etype = error.get("__type", req.reason)
-            etext = ""
-            for key in error:
-                if not key.startswith("_"):
-                    etext += "{}: {}".format(key, error[key])
-            msg = "{}: {} (for '{}')".format(etype, etext, api_call)
-            if req.reason == "NOT FOUND":
-                raise APINotFoundError(msg)
-            elif req.reason == "CONFLICT":
-                raise APIConflictError(msg)
-            elif req.reason == "Gateway Time-out":
-                raise APIGatewayTimeoutError(msg)
-            elif req.reason == "Bad Gateway":
-                raise APIBadGatewayError(msg)
-            elif req.reason == "FORBIDDEN":
-                raise APIAuthorizationError(msg)
-            else:
-                raise ConnectionError(msg)
-        if not rdata["success"]:
-            raise ConnectionError(
-                "Could not run API call '{}'! ".format(url_call)
-                + "Reason: {} ({})".format(req.reason, rdata["error"]))
-        return rdata["result"]
+        resp = self.handle_response(req, api_call)
+        return resp["result"]

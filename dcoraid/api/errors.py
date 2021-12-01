@@ -22,5 +22,9 @@ class APINotFoundError(APIError):
     pass
 
 
+class APIOutdatedError(APIError):
+    pass
+
+
 class NoAPIKeyError(APIError):
     pass
