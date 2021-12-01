@@ -5,4 +5,4 @@ from .dataset import (dataset_create, dataset_activate, dataset_draft_remove,
 from .dataset import resource_add, resource_exists, resource_sha256_sums
 from .errors import (APIError, APIBadGatewayError, APIConflictError,
                      APIAuthorizationError, NoAPIKeyError, APINotFoundError,
-                     APIGatewayTimeoutError)
+                     APIGatewayTimeoutError, APIOutdatedError)

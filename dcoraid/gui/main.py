@@ -13,7 +13,7 @@ import requests_toolbelt
 
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
-from ..api import NoAPIKeyError
+from ..api import APIOutdatedError, NoAPIKeyError
 from ..common import ConnectionTimeoutErrors
 from ..dbmodel import APIInterrogator, DBExtract
 from .._version import version as __version__
@@ -336,6 +336,15 @@ def excepthook(etype, value, trace):
     # log the exception
     logger = logging.getLogger(__name__)
     logger.error(exception)
+
+    # Test connectivity
+    if etype is APIOutdatedError:
+        QtWidgets.QMessageBox.warning(
+            None,
+            "DCOR-Aid version outdated!",
+            "Your version of DCOR-Aid is outdated. Please "
+            + "update DCOR-Aid."
+        )
 
     errorbox = QtWidgets.QMessageBox()
     errorbox.setIcon(QtWidgets.QMessageBox.Critical)

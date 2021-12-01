@@ -1,5 +1,7 @@
 0.8.5
  - enh: introduce APIOutdatedError (server response)
+ - enh: inform the user to upgrade DCOR-Aid, if the server does not
+   support the current version
  - ref: combine response handling for API GET and POST requests
 0.8.4
  - fix: properly handle "user_list" for anonymous users
