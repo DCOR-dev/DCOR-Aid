@@ -27,6 +27,12 @@ JOB_STATES = [
     "error",  # error occurred
 ]
 
+#: taken from ckanext-dcor_schemas
+VALID_RESOURCE_CHARS = "abcdefghijklmnopqrstuvwxyz" \
+                       + "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
+                       + "0123456789" \
+                       + ".,-_+()[]"
+
 
 class UploadJob(object):
     def __init__(self, api, dataset_id, resource_paths,
@@ -67,6 +73,8 @@ class UploadJob(object):
         self.paths = [pathlib.Path(pp).resolve() for pp in resource_paths]
         if resource_names is None:
             resource_names = [pp.name for pp in self.paths]
+        # make sure that only valid characters are used as resource names
+        resource_names = [valid_resource_name(rn) for rn in resource_names]
         #: Important supplementary resource schema meta data that will
         #: be formatted to composite {"sp:section:key" = value} an appended
         #: to the resource metadata.
@@ -457,3 +465,17 @@ class UploadJob(object):
             warnings.warn("Resource verification is only possible when state "
                           + "is 'online', but current state is "
                           + "'{}'!".format(self.state))
+
+
+def valid_resource_name(path_name):
+    """Return a valid DCOR resource name, by replacing characters"""
+    # convert spaces to underscores
+    path_name = path_name.replace(" ", "_")
+    # convert all other characters to dots
+    new_name = ""
+    for char in path_name:
+        if char in VALID_RESOURCE_CHARS:
+            new_name += char
+        else:
+            new_name += "."
+    return new_name

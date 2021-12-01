@@ -1,4 +1,5 @@
 import pathlib
+import shutil
 import tempfile
 import time
 from unittest import mock
@@ -43,6 +44,30 @@ def test_full_upload():
     assert uj.state == "online"
 
     common.wait_for_job_no_queue(uj)
+
+
+def test_full_upload_with_file_with_spaces_in_name():
+    tdir = tempfile.mkdtemp("rtdc_with_spaces_")
+    rtdc_path_with_space = pathlib.Path(tdir) / "name quest? spaces.rtdc"
+    shutil.copy2(rtdc_paths[1], rtdc_path_with_space)
+    api = common.get_api()
+    # create some metadata
+    bare_dict = common.make_dataset_dict(hint="create-with-resource")
+    # create dataset (to get the "id")
+    dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
+    uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
+                       resource_paths=[rtdc_path_with_space])
+    assert uj.state == "init"
+    uj.task_compress_resources()
+    assert uj.state == "parcel"
+    uj.task_upload_resources()
+    assert uj.state == "online"
+
+    common.wait_for_job_no_queue(uj)
+
+    # make sure everything worked
+    ds = api.get("package_show", id=uj.dataset_id)
+    assert ds["resources"][0]["name"] == "name_quest._spaces.rtdc"
 
 
 def test_saveload():
