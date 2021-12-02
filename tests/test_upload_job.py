@@ -61,7 +61,7 @@ def test_full_upload():
 
 def test_full_upload_with_file_with_spaces_in_name():
     tdir = tempfile.mkdtemp("rtdc_with_spaces_")
-    rtdc_path_with_space = pathlib.Path(tdir) / "name quest? spaces.rtdc"
+    rtdc_path_with_space = pathlib.Path(tdir) / "name questö spaces.rtdc"
     shutil.copy2(rtdc_paths[1], rtdc_path_with_space)
     api = common.get_api()
     # create some metadata
