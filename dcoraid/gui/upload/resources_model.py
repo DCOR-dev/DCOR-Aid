@@ -5,6 +5,8 @@ import pathlib
 
 from PyQt5 import QtCore, QtGui
 
+from ...upload import job
+
 
 class ResourcesModel(QtCore.QAbstractListModel):
     """Handle resources and their metadata selected in the UI
@@ -113,7 +115,8 @@ class ResourcesModel(QtCore.QAbstractListModel):
         if "file" not in data:
             data["file"] = {}
         if "filename" not in data["file"]:
-            data["file"]["filename"] = pathlib.Path(rfile).name
+            data["file"]["filename"] = job.valid_resource_name(
+                pathlib.Path(rfile).name)
         if "supplement" not in data:
             data["supplement"] = {}
         if not magic_keys:

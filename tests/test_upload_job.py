@@ -1,4 +1,5 @@
 import pathlib
+import re
 import shutil
 import tempfile
 import time
@@ -16,6 +17,18 @@ data_path = pathlib.Path(__file__).parent / "data"
 rtdc_paths = [data_path / "calibration_beads_47.rtdc",
               data_path / "calibration_beads_47_nocomp.rtdc",
               ]
+
+
+def test_resource_name_characters():
+    assert re.match(job.VALID_RESOURCE_REGEXP, job.VALID_RESOURCE_CHARS)
+    assert re.match(job.VALID_RESOURCE_REGEXP, job.VALID_RESOURCE_CHARS)
+    assert re.match(job.VALID_RESOURCE_REGEXP, job.VALID_RESOURCE_CHARS + "0")
+    assert not re.match(job.VALID_RESOURCE_REGEXP,
+                        job.VALID_RESOURCE_CHARS + "?")
+    assert not re.match(job.VALID_RESOURCE_REGEXP,
+                        "ä" + job.VALID_RESOURCE_CHARS)
+    assert not re.match(job.VALID_RESOURCE_REGEXP,
+                        job.VALID_RESOURCE_CHARS + " ")
 
 
 def test_initialize():

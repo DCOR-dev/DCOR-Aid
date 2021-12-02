@@ -32,6 +32,8 @@ VALID_RESOURCE_CHARS = "abcdefghijklmnopqrstuvwxyz" \
                        + "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
                        + "0123456789" \
                        + ".,-_+()[]"
+#: same as `VALID_RESOURCE_CHARS` only as regexp
+VALID_RESOURCE_REGEXP = r"^[a-zA-Z0-9\.,\-_\+\(\)\[\]]+$"
 
 
 class UploadJob(object):

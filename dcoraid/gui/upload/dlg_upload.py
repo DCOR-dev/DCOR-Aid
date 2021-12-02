@@ -6,6 +6,7 @@ from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
 
 from ...api import dataset_create
+from ...upload import job
 
 from ..tools import ShowWaitCursor
 from ..api import get_ckan_api
@@ -95,6 +96,11 @@ class UploadDialog(QtWidgets.QDialog):
         # Presets for user convenience
         self.presets = PersistentResourceSchemaPresets()
         self.comboBox_preset.addItems(sorted(self.presets.keys()))
+
+        # Restrict characters for line edit
+        regex = QtCore.QRegExp(job.VALID_RESOURCE_REGEXP)
+        validator = QtGui.QRegExpValidator(regex)
+        self.lineEdit_res_filename.setValidator(validator)
 
         # Signals and slots
         # general buttons
