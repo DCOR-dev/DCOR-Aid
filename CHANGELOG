@@ -1,3 +1,5 @@
+0.8.6:
+ - tests: did not run on Windows
 0.8.5
  - enh: introduce APIOutdatedError (server response)
  - enh: inform the user to upgrade DCOR-Aid, if the server does not
