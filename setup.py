@@ -33,7 +33,10 @@ setup(
         "GUI": ["pyqt5"],
         },
     python_requires='>=3.8, <4',
-    entry_points={"gui_scripts": ['dcoraid = dcoraid.__main__:main']},
+    entry_points={
+        "gui_scripts": ['dcoraid = dcoraid.__main__:main'],
+        "console_scripts": ["dcoraid-upload-task = dcoraid.cli:upload_task"],
+        },
     keywords=["RT-DC", "deformability", "cytometry", "zellmechanik"],
     classifiers=['Operating System :: OS Independent',
                  'Programming Language :: Python :: 3',

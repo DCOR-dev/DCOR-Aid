@@ -1,3 +1,6 @@
+0.9.0
+ - feat: add CLI command dcoraid-upload-task for uploading individual
+   tasks from the command line, bypassing the GUI (#37)
 0.8.6:
  - tests: did not run on Windows
 0.8.5
