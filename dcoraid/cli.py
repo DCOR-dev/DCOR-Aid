@@ -8,12 +8,16 @@ from .upload import task
 
 
 def monitor_upload_progress(upload_job):
+    newline = False
     while upload_job.state == "parcel":
         time.sleep(1)
     while upload_job.state == "transfer":
         print(upload_job.get_progress_string(), end="\r", flush=True)
+        newline = True
         time.sleep(1)
-    print("")
+    if newline:
+        # Only print new line if we printed something before.
+        print("")
 
 
 def upload_task(path_task=None, server=None, api_key=None):
@@ -46,6 +50,7 @@ def upload_task(path_task=None, server=None, api_key=None):
     print("Verifying upload.")
     uj.task_verify_resources()
     print("Done.")
+    return uj
 
 
 def upload_task_parser():

@@ -4,6 +4,7 @@ import os
 import pathlib
 import shutil
 import tempfile
+import uuid
 import warnings
 
 import time
@@ -66,7 +67,7 @@ def make_dataset_for_download(seed=0):
     return api.get("package_show", id=data["id"])
 
 
-def make_upload_task(task_id="123456789",
+def make_upload_task(task_id=None,
                      dataset_id=None,
                      dataset_dict=True,
                      resource_paths=[dpath],
@@ -74,6 +75,8 @@ def make_upload_task(task_id="123456789",
                      resource_supplements=None,
                      ):
     """Return path to example task file"""
+    if task_id is None:
+        task_id = str(uuid.uuid4())
     if dataset_dict and not isinstance(dataset_dict, dict):
         dataset_dict = make_dataset_dict(hint="task_test")
     if dataset_dict and dataset_id is None:
