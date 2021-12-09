@@ -43,7 +43,8 @@ def upload_task(path_task=None, server=None, api_key=None, ret_job=False):
     # thread that prints the upload progress
     monitor_thread = threading.Thread(target=monitor_upload_progress,
                                       name="Upload Monitor",
-                                      args=(uj,))
+                                      args=(uj,),
+                                      daemon=True)
     monitor_thread.start()
     uj.task_upload_resources()
     monitor_thread.join()
