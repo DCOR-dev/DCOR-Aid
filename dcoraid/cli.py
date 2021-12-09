@@ -20,7 +20,7 @@ def monitor_upload_progress(upload_job):
         print("")
 
 
-def upload_task(path_task=None, server=None, api_key=None):
+def upload_task(path_task=None, server=None, api_key=None, ret_job=False):
     """Upload a .dcoraid-task file to a DCOR instance"""
     if path_task is None or server is None or api_key is None:
         parser = upload_task_parser()
@@ -50,7 +50,8 @@ def upload_task(path_task=None, server=None, api_key=None):
     print("Verifying upload.")
     uj.task_verify_resources()
     print("Done.")
-    return uj
+    if ret_job:
+        return uj
 
 
 def upload_task_parser():

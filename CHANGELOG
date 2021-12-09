@@ -1,3 +1,5 @@
+0.9.1
+ - fix: don't print upload job when upload is completed in CLI
 0.9.0
  - feat: add CLI command dcoraid-upload-task for uploading individual
    tasks from the command line, bypassing the GUI (#37)

@@ -12,7 +12,7 @@ from common import get_api, make_upload_task
 def test_cli_basic():
     path_task = make_upload_task(resource_names=["cli_upload.rtdc"])
     api = get_api()
-    uj = cli.upload_task(path_task, api.server, api.api_key)
+    uj = cli.upload_task(path_task, api.server, api.api_key, ret_job=True)
     pkg_dict = api.get("package_show", id=uj.dataset_id)
     assert pkg_dict["resources"][0]["name"] == "cli_upload.rtdc"
 
