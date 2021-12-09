@@ -67,7 +67,7 @@ def make_dataset_for_download(seed=0):
     return api.get("package_show", id=data["id"])
 
 
-def make_upload_task(task_id=None,
+def make_upload_task(task_id=True,  # tester may pass `None` to disable
                      dataset_id=None,
                      dataset_dict=True,
                      resource_paths=[dpath],
@@ -75,7 +75,7 @@ def make_upload_task(task_id=None,
                      resource_supplements=None,
                      ):
     """Return path to example task file"""
-    if task_id is None:
+    if task_id is True:
         task_id = str(uuid.uuid4())
     if dataset_dict and not isinstance(dataset_dict, dict):
         dataset_dict = make_dataset_dict(hint="task_test")
