@@ -1,6 +1,7 @@
 0.9.1
  - fix: don't print upload job when upload is completed in CLI
  - fix: daemonize background thread in CLI dcoraid-upload-task
+ - setup: bump dclab from 0.38.2 to 0.39.3
 0.9.0
  - feat: add CLI command dcoraid-upload-task for uploading individual
    tasks from the command line, bypassing the GUI (#37)

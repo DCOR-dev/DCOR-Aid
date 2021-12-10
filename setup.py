@@ -25,7 +25,7 @@ setup(
     description=description,
     long_description=open('README.rst').read() if exists('README.rst') else '',
     install_requires=[
-        "dclab[dcor]==0.38.2",  # pin for triage
+        "dclab[dcor]==0.39.3",  # pin for triage
         "requests>=2.13",
         "requests_toolbelt",  # multipart uploads with progress
         ],
