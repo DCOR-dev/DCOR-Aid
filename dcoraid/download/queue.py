@@ -1,4 +1,5 @@
 import pathlib
+import time
 import warnings
 
 from ..worker import Daemon
@@ -96,6 +97,13 @@ class DownloadQueue:
 
     def __contains__(self, download_job):
         return download_job in self.jobs
+
+    def __del__(self):
+        self.daemon_download.shutdown_flag.set()
+        self.daemon_verify.shutdown_flag.set()
+        time.sleep(.2)
+        self.daemon_download.terminate()
+        self.daemon_verify.terminate()
 
     def __getitem__(self, index):
         return self.jobs[index]

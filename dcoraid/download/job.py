@@ -23,7 +23,7 @@ JOB_STATES = [
 ]
 
 
-class DownloadJob(object):
+class DownloadJob:
     def __init__(self, api, resource_id, download_path):
         """Wrapper for resource downloads
 
@@ -78,15 +78,19 @@ class DownloadJob(object):
         }
         return dj_state
 
-    @property
-    def file_size(self):
-        return self.get_resource_dict()["size"]
-
     @staticmethod
     def from_download_job_state(dj_state, api):
         """Reinstantiate a job from an `DownloadJob.__getstate__` dict
         """
         return DownloadJob(api=api, **dj_state)
+
+    @property
+    def file_size(self):
+        return self.get_resource_dict()["size"]
+
+    @property
+    def id(self):
+        return self.resource_id
 
     @functools.lru_cache(maxsize=100)
     def get_resource_dict(self):
@@ -223,7 +227,7 @@ class DownloadJob(object):
         """Start the download
 
         The progress of the download is monitored and written
-        to attributes. The current status can be retrieved
+        to the attributes. The current status can be retrieved
         via :func:`DownloadJob.get_status`.
         """
         if self.state in ["init", "wait-disk"]:
@@ -247,7 +251,7 @@ class DownloadJob(object):
                 if shutil.disk_usage(self.path_temp.parent).free < size:
                     # there is not enough space on disk for the download
                     self.set_state("wait-disk")
-                    time.sleep(.2)
+                    time.sleep(1)
                 else:
                     # proceed with download
                     # reset everything

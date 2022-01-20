@@ -1,18 +1,20 @@
 """https://github.com/munshigroup/kthread"""
+import atexit
 import ctypes
-import inspect
-import threading
 import time
+import threading
+
+
+class KThreadExit(BaseException):
+    pass
 
 
 def _async_raise(tid, exctype):
     """Raises the exception, causing the thread to exit"""
-    if not inspect.isclass(exctype):
-        raise TypeError("Only types can be raised (not instances)")
     res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
         ctypes.c_long(tid), ctypes.py_object(exctype))
     if res == 0:
-        raise ValueError("Invalid thread ID")
+        pass  # ignore
     elif res != 1:
         # """if it returns a number greater than one, you're in trouble,
         # and you should call it again with exc=NULL to revert the effect"""
@@ -23,16 +25,20 @@ def _async_raise(tid, exctype):
 class KThread(threading.Thread):
     """Killable thread. See terminate() for details."""
 
+    def __init__(self, *args, **kwargs):
+        super(KThread, self).__init__(*args, **kwargs)
+        atexit.register(self.terminate)
+
     def _get_my_tid(self):
         """Determines the instance's thread ID"""
         if not self.is_alive():
-            raise threading.ThreadError("Thread is not active")
+            return None  # Thread is not active
 
         # do we have it cached?
         if hasattr(self, "_thread_id"):
             return self._thread_id
 
-        # no, look for it in the _active dict
+        # look for it in the _active dict
         for tid, tobj in threading._active.items():
             if tobj is self:
                 self._thread_id = tid
@@ -42,7 +48,9 @@ class KThread(threading.Thread):
 
     def raise_exc(self, exctype):
         """raises the given exception type in the context of this thread"""
-        _async_raise(self._get_my_tid(), exctype)
+        thread_id = self._get_my_tid()
+        if thread_id:
+            _async_raise(thread_id, exctype)
 
     def terminate(self):
         """raises SystemExit in the context of the given thread, which should
@@ -50,6 +58,7 @@ class KThread(threading.Thread):
         # WARNING: using terminate() can introduce instability in your
         # programs. It is worth noting that terminate() will NOT work if the
         # thread in question is blocked by a syscall (accept(), recv(), etc.).
+        atexit.unregister(self.terminate)
         while self.is_alive():
-            self.raise_exc(SystemExit)
-            time.sleep(0.01)
+            self.raise_exc(KThreadExit)
+            time.sleep(.05)

@@ -1,4 +1,5 @@
 import pathlib
+import time
 import warnings
 
 from ..api import APINotFoundError
@@ -143,6 +144,15 @@ class UploadQueue:
     def __contains__(self, upload_job):
         return upload_job in self.jobs
 
+    def __del__(self):
+        self.daemon_upload.shutdown_flag.set()
+        self.daemon_verify.shutdown_flag.set()
+        self.daemon_compress.shutdown_flag.set()
+        time.sleep(.2)
+        self.daemon_upload.terminate()
+        self.daemon_verify.terminate()
+        self.daemon_compress.terminate()
+
     def __getitem__(self, index):
         return self.jobs[index]
 
@@ -180,6 +190,7 @@ class UploadQueue:
         elif job.state == "compress":
             job.set_state("abort")
             self.daemon_compress.terminate()
+            self.daemon_compress.shutdown_flag.set()
             self.daemon_compress = CompressDaemon(self.jobs)
 
     def add_job(self, upload_job):

@@ -140,14 +140,6 @@ class DCORAid(QtWidgets.QMainWindow):
             self.timer.stop()
         if self.panel_upload.widget_jobs.timer is not None:
             self.panel_upload.widget_jobs.timer.stop()
-        self.panel_upload.jobs.daemon_compress.join()
-        self.panel_upload.jobs.daemon_upload.join()
-        self.panel_upload.jobs.daemon_verify.join()
-        self.panel_upload.jobs.daemon_compress.terminate()
-        self.panel_upload.jobs.daemon_upload.terminate()
-        self.panel_upload.jobs.daemon_verify.terminate()
-        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                             3000)
         super(DCORAid, self).close()
 
     @QtCore.pyqtSlot()
@@ -258,10 +250,14 @@ class DCORAid(QtWidgets.QMainWindow):
                 text = "{}".format(fullname)
                 tip = "user '{}'".format(name)
                 icon = "user-lock"
-        self.status_widget.set_status(text=text,
-                                      tooltip=tip,
-                                      icon=icon,
-                                      server=api.server)
+        try:
+            self.status_widget.set_status(text=text,
+                                          tooltip=tip,
+                                          icon=icon,
+                                          server=api.server)
+        except BaseException:
+            # Probably application killed
+            pass
 
 
 class StatusWidget(QtWidgets.QWidget):

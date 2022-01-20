@@ -1,40 +1,35 @@
+import atexit
 import logging
+import threading
 import traceback
 
 import time
 
 from ..common import ConnectionTimeoutErrors
 
-from .kthread import KThread
+from .kthread import KThread, KThreadExit
 
 
 class Daemon(KThread):
     def __init__(self, queue, job_trigger_state, job_function_name):
         """Daemon base class for running uploads/downloads in the background"""
         self.queue = queue
-        self.state = "running"
         self.job_trigger_state = job_trigger_state
         self.job_function_name = job_function_name
         super(Daemon, self).__init__()
         self.daemon = True  # We don't have to worry about ending this thread
+
+        # The shutdown_flag is a threading.Event object that
+        # indicates whether the thread should be terminated.
+        self.shutdown_flag = threading.Event()
+
+        atexit.register(self.shutdown_flag.set)
+
         self.start()
 
-    def join(self, *args, **kwargs):
-        """Join thread by breaking the while loop"""
-        self.state = "exiting"
-        super(Daemon, self).join(*args, **kwargs)
-        assert self.state == "exited"
-
     def run(self):
-        while True:
-            if self.state == "exiting":
-                self.state = "exited"
-                break
-            elif self.state != "running":
-                # Don't do anything
-                time.sleep(.1)
-                continue
-            else:
+        try:
+            while not self.shutdown_flag.is_set():
                 # Get the first job that is in the trigger state
                 for job in self.queue:
                     if job.state == self.job_trigger_state:
@@ -56,16 +51,26 @@ class Daemon(KThread):
                     job.traceback = traceback.format_exc(limit=1) \
                         + "\nDCOR-Aid will retry in 10s!"
                     logger.error(
-                        f"(dataset {job.dataset_id}) {traceback.format_exc()}")
+                        f"(dataset {job.id}) {traceback.format_exc()}")
                     time.sleep(10)
                     job.set_state(self.job_trigger_state)
-                except SystemExit:
+                except KThreadExit:
                     job.set_state("abort")
-                    logger.error(f"(dataset {job.dataset_id}) Aborted!")
+                    logger.error(f"{job.__class__.__name__} {job.id} Aborted!")
+                except SystemExit:
+                    # nothing to do
+                    self.terminate()
                 except BaseException:
-                    # Set job to error state and let the user figure
-                    # out what to do next.
-                    job.set_state("error")
-                    job.traceback = traceback.format_exc()
-                    logger.error(
-                        f"(dataset {job.dataset_id}) {traceback.format_exc()}")
+                    if not self.shutdown_flag.is_set():
+                        # Only log if the thread is supposed to be running.
+                        # Set job to error state and let the user figure
+                        # out what to do next.
+                        job.set_state("error")
+                        job.traceback = traceback.format_exc()
+                        logger.error(
+                            f"(dataset {job.id}) {traceback.format_exc()}")
+        except KThreadExit:
+            # killed by KThread
+            pass
+        except SystemExit:
+            self.terminate()

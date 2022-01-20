@@ -11,7 +11,7 @@ from dcoraid.gui.upload.dlg_upload import UploadDialog
 from dcoraid.gui.upload import widget_upload
 
 import pytest
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtTest
 from PyQt5.QtWidgets import QInputDialog, QMessageBox
 
 from . import common
@@ -24,8 +24,7 @@ def run_around_tests():
     # Run test
     yield
     # Make sure that all daemons are gone
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                         3000)
+    QtTest.QTest.qWait(1000)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
                                          3000)
 
@@ -52,6 +51,8 @@ def test_anonymous(qtbot):
         ]))
     try:
         mw = DCORAid()
+        qtbot.addWidget(mw)
+        QtWidgets.QApplication.setActiveWindow(mw)
         QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 3000)
         # sanity check
         assert mw.settings.value("user scenario") == "anonymous"
@@ -73,6 +74,8 @@ def test_mydata_dataset_add_to_collection(qtbot, monkeypatch):
     task_id = str(uuid.uuid4())
     tpath = pathlib.Path(common.make_upload_task(task_id=task_id))
     mw = DCORAid()
+    qtbot.addWidget(mw)
+    QtWidgets.QApplication.setActiveWindow(mw)
     # monkeypatch success message box
     monkeypatch.setattr(QMessageBox, "information",
                         lambda *args: None)
@@ -121,6 +124,8 @@ def test_mydata_dataset_add_to_collection(qtbot, monkeypatch):
 def test_upload_simple(qtbot, monkeypatch):
     """Upload a test dataset"""
     mw = DCORAid()
+    qtbot.addWidget(mw)
+    QtWidgets.QApplication.setActiveWindow(mw)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
 
     dlg = UploadDialog(mw.panel_upload)
@@ -143,6 +148,8 @@ def test_upload_task(qtbot, monkeypatch):
     task_id = str(uuid.uuid4())
     tpath = common.make_upload_task(task_id=task_id)
     mw = DCORAid()
+    qtbot.addWidget(mw)
+    QtWidgets.QApplication.setActiveWindow(mw)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
     monkeypatch.setattr(QtWidgets.QFileDialog, "getOpenFileNames",
                         lambda *args: ([tpath], None))
@@ -165,6 +172,8 @@ def test_upload_task_bad_dataset_id_no(qtbot, monkeypatch):
                                     dataset_id="wrong_id",
                                     dataset_dict=dataset_dict)
     mw = DCORAid()
+    qtbot.addWidget(mw)
+    QtWidgets.QApplication.setActiveWindow(mw)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
     # monkeypatch file selection dialog
     monkeypatch.setattr(QtWidgets.QFileDialog, "getOpenFileNames",
@@ -192,6 +201,8 @@ def test_upload_task_bad_dataset_id_yes(qtbot, monkeypatch):
                                     dataset_id="wrong_id",
                                     dataset_dict=dataset_dict)
     mw = DCORAid()
+    qtbot.addWidget(mw)
+    QtWidgets.QApplication.setActiveWindow(mw)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
     # monkeypatch file selection dialog
     monkeypatch.setattr(QtWidgets.QFileDialog, "getOpenFileNames",
@@ -207,6 +218,8 @@ def test_upload_task_bad_dataset_id_yes(qtbot, monkeypatch):
     mw.panel_upload.on_upload_task(action=act)
     uj = mw.panel_upload.jobs[-1]
     assert uj.task_id == task_id
+    mw.panel_upload.jobs.daemon_compress.shutdown_flag.set()
+    mw.panel_upload.jobs.daemon_compress.join()
     mw.close()
 
 
@@ -218,6 +231,8 @@ def test_upload_task_missing_circle(qtbot, monkeypatch):
     tpath = common.make_upload_task(task_id=task_id,
                                     dataset_dict=dataset_dict)
     mw = DCORAid()
+    qtbot.addWidget(mw)
+    QtWidgets.QApplication.setActiveWindow(mw)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
     monkeypatch.setattr(QtWidgets.QFileDialog, "getOpenFileNames",
                         lambda *args: ([tpath], None))
@@ -258,6 +273,8 @@ def test_upload_task_missing_circle_multiple(qtbot, monkeypatch):
     shutil.copytree(tpath2.parent, tdir / tpath2.parent.name)
 
     mw = DCORAid()
+    qtbot.addWidget(mw)
+    QtWidgets.QApplication.setActiveWindow(mw)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
     monkeypatch.setattr(QtWidgets.QFileDialog, "getExistingDirectory",
                         lambda *args: str(tdir))
@@ -286,6 +303,8 @@ def test_upload_task_missing_circle_multiple(qtbot, monkeypatch):
 def test_upload_private(qtbot, monkeypatch):
     """Upload a private test dataset"""
     mw = DCORAid()
+    qtbot.addWidget(mw)
+    QtWidgets.QApplication.setActiveWindow(mw)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
 
     dlg = UploadDialog(mw.panel_upload)
@@ -306,8 +325,12 @@ def test_upload_private(qtbot, monkeypatch):
     assert dataset_id is not None
 
     common.wait_for_job(upload_queue=mw.panel_upload.jobs,
-                        dataset_id=mw.panel_upload.jobs[0].dataset_id)
+                        dataset_id=dataset_id)
     mw.close()
+    QtTest.QTest.qWait(1000)
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
+                                         3000)
+
     # make sure the dataset is private
     api = common.get_api()
     dataset_dict = api.get(api_call="package_show", id=dataset_id)

@@ -52,7 +52,7 @@ def pytest_configure(config):
     settings.value("user scenario", "dcor-dev")
     settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
     settings.setValue("auth/api key", common.get_api_key())
-    settings.setValue("debug/without timers", 1)
+    settings.setValue("debug/without timers", "1")
     settings.sync()
     # cleanup
     cleanup_dcoraid_tasks()

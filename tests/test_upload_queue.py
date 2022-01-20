@@ -1,5 +1,6 @@
 import pathlib
 import tempfile
+import time
 import uuid
 
 import pytest
@@ -63,9 +64,10 @@ def test_queue_find_zombie_caches():
     realcache = pathlib.Path(cache_dir) / f"compress-{data['id']}"
     joblist = UploadQueue(api=api, cache_dir=cache_dir)
     # disable all daemons, so no uploading happens
-    joblist.daemon_compress.join()
-    joblist.daemon_upload.join()
-    joblist.daemon_verify.join()
+    joblist.daemon_compress.shutdown_flag.set()
+    joblist.daemon_upload.shutdown_flag.set()
+    joblist.daemon_verify.shutdown_flag.set()
+    time.sleep(.2)
     uj = joblist.new_job(
         dataset_id=data["id"],
         paths=[data_path / "calibration_beads_47_nocomp.rtdc"])
@@ -88,11 +90,11 @@ def test_queue_remove_job():
     joblist = UploadQueue(api=api,
                           path_persistent_job_list=pujl_path)
     # disable all daemons, so no uploading happens
-    joblist.daemon_compress.join()
-    joblist.daemon_upload.join()
-    joblist.daemon_verify.join()
-    uj = joblist.new_job(dataset_id=data["id"],
-                         paths=[dpath])
+    joblist.daemon_compress.shutdown_flag.set()
+    joblist.daemon_upload.shutdown_flag.set()
+    joblist.daemon_verify.shutdown_flag.set()
+    time.sleep(.2)
+    uj = joblist.new_job(dataset_id=data["id"], paths=[dpath])
     assert uj.state == "init"
     joblist.remove_job(uj.dataset_id)
     assert uj not in joblist
@@ -145,9 +147,10 @@ def test_persistent_upload_joblist_job_added_in_queue():
     uj = load_task(task_path, api=api)
 
     uq = UploadQueue(api=api, path_persistent_job_list=pujl_path)
-    uq.daemon_compress.join()
-    uq.daemon_upload.join()
-    uq.daemon_verify.join()
+    uq.daemon_compress.shutdown_flag.set()
+    uq.daemon_upload.shutdown_flag.set()
+    uq.daemon_verify.shutdown_flag.set()
+    time.sleep(.2)
 
     assert pujl.num_queued == 0
     uq.add_job(uj)
@@ -253,9 +256,10 @@ def test_persistent_upload_joblist_skip_missing_resources():
     assert not task_dir.exists()
     with pytest.warns(DCORAidQueueWarning, match="resources are missing"):
         uq = UploadQueue(api=api, path_persistent_job_list=pujl_path)
-    uq.daemon_compress.join()
-    uq.daemon_upload.join()
-    uq.daemon_verify.join()
+    uq.daemon_compress.shutdown_flag.set()
+    uq.daemon_upload.shutdown_flag.set()
+    uq.daemon_verify.shutdown_flag.set()
+    time.sleep(.2)
     # sanity checks
     assert len(uq) == 0
     assert uq.jobs_eternal.num_queued == 1
@@ -280,9 +284,10 @@ def test_persistent_upload_joblist_skip_queued_resources():
     pujl.immortalize_job(uj)
 
     uq = UploadQueue(api=api, path_persistent_job_list=pujl_path)
-    uq.daemon_compress.join()
-    uq.daemon_upload.join()
-    uq.daemon_verify.join()
+    uq.daemon_compress.shutdown_flag.set()
+    uq.daemon_upload.shutdown_flag.set()
+    uq.daemon_verify.shutdown_flag.set()
+    time.sleep(.2)
 
     assert len(uq) == 1
     assert uq.jobs_eternal.num_queued == 1

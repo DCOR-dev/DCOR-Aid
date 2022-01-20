@@ -1,5 +1,6 @@
 import pathlib
 import tempfile
+import time
 
 import pytest
 
@@ -45,8 +46,9 @@ def test_queue_remove_job():
     joblist = DownloadQueue(api=api,
                             path_persistent_job_list=pdjl_path)
     # disable all daemons, so no downloading happens
-    joblist.daemon_download.join()
-    joblist.daemon_verify.join()
+    joblist.daemon_download.shutdown_flag.set()
+    joblist.daemon_verify.shutdown_flag.set()
+    time.sleep(.2)
     resource_id = ds_dict["resources"][0]["id"]
     dj = joblist.new_job(resource_id=resource_id,
                          download_path=td)
@@ -109,8 +111,9 @@ def test_persistent_download_joblist_job_added_in_queue():
     pdjl = PersistentDownloadJobList(pdjl_path)
 
     uq = DownloadQueue(api=api, path_persistent_job_list=pdjl_path)
-    uq.daemon_download.join()
-    uq.daemon_verify.join()
+    uq.daemon_download.shutdown_flag.set()
+    uq.daemon_verify.shutdown_flag.set()
+    time.sleep(.2)
 
     assert pdjl.num_queued == 0
     uq.add_job(dj)
@@ -145,8 +148,9 @@ def test_persistent_download_joblist_skip_queued_resources():
     pdjl.immortalize_job(dj)
 
     dq = DownloadQueue(api=api, path_persistent_job_list=pdjl_path)
-    dq.daemon_download.join()
-    dq.daemon_verify.join()
+    dq.daemon_download.shutdown_flag.set()
+    dq.daemon_verify.shutdown_flag.set()
+    time.sleep(.2)
 
     assert len(dq) == 1
     assert dq.jobs_eternal.num_queued == 1

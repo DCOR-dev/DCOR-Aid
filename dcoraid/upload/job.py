@@ -144,6 +144,10 @@ class UploadJob(object):
         """
         return UploadJob(api=api, cache_dir=cache_dir, **uj_state)
 
+    @property
+    def id(self):
+        return self.dataset_id
+
     def cleanup(self):
         """cleanup temporary files in the user's cache directory"""
         shutil.rmtree(self.cache_dir, ignore_errors=True)
@@ -362,7 +366,7 @@ class UploadJob(object):
                             # As long as there is less space free than the
                             # input file size, we stall here.
                             self.set_state("wait-disk")
-                            time.sleep(0.2)
+                            time.sleep(1)
                         self.set_state("compress")
                         compress(path_out=path_out, path_in=path)
                     # replace current path_out with compressed path
