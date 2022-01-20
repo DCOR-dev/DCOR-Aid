@@ -6,7 +6,7 @@ import pytest
 from dcoraid import cli
 from dcoraid.api import errors
 
-from common import get_api, make_upload_task
+from .common import get_api, make_upload_task
 
 
 def test_cli_basic():

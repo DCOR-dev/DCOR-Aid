@@ -5,7 +5,7 @@ import pytest
 from dcoraid.api import (APIConflictError, APINotFoundError, dataset_create,
                          dataset_draft_remove, resource_add, resource_exists)
 
-import common
+from . import common
 
 
 dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"

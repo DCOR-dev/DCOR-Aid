@@ -62,6 +62,7 @@ class SetupWizard(QtWidgets.QWizard):
         self.button(QtWidgets.QWizard.FinishButton).clicked.connect(
             self._finalize)
 
+    @QtCore.pyqtSlot()
     def _finalize(self):
         """Update settings"""
         user_scenario = self.get_user_scenario()

@@ -6,7 +6,7 @@ import pytest
 from dcoraid.api import CKANAPI, errors, dataset_create
 from dcoraid.dbmodel import db_api
 
-import common
+from . import common
 
 dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
 

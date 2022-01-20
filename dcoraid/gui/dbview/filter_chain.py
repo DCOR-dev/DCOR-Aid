@@ -83,6 +83,7 @@ class FilterChain(QtWidgets.QWidget):
         # datasets
         self.update_datasets()
 
+    @QtCore.pyqtSlot()
     def update_collections(self):
         self.fw_collections.blockSignals(True)
         self.fw_collections.set_entries(

@@ -6,7 +6,7 @@ import pytest
 from dcoraid.download import DownloadJob, DownloadQueue
 from dcoraid.download.queue import PersistentDownloadJobList
 
-import common
+from . import common
 
 
 data_path = pathlib.Path(__file__).parent / "data"

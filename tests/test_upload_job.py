@@ -10,7 +10,7 @@ import dclab.cli
 from dcoraid.api import dataset_create
 from dcoraid.upload import job
 
-import common
+from . import common
 
 
 data_path = pathlib.Path(__file__).parent / "data"

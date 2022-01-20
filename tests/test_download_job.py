@@ -3,7 +3,7 @@ from unittest import mock
 
 from dcoraid.download import job
 
-import common
+from . import common
 
 
 def test_initialize():

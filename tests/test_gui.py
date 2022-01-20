@@ -14,7 +14,7 @@ import pytest
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QInputDialog, QMessageBox
 
-import common
+from . import common
 
 
 @pytest.fixture(autouse=True)

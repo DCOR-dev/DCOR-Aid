@@ -10,7 +10,7 @@ import pytest
 
 from dcoraid.api import APIConflictError
 
-import common
+from . import common
 
 
 TMPDIR = tempfile.mkdtemp(prefix=time.strftime(

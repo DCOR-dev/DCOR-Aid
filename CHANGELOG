@@ -1,3 +1,6 @@
+0.9.2
+ - ci: turn tests into a submodule
+ - ref: add pyqtSlot decorators where misssing
 0.9.1
  - fix: don't print upload job when upload is completed in CLI
  - fix: daemonize background thread in CLI dcoraid-upload-task

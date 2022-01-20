@@ -141,6 +141,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         utwdid = int(self.checkBox_upload_write_task_id.isChecked())
         self.settings.setValue("uploads/update task with dataset id", utwdid)
 
+    @QtCore.pyqtSlot()
     def on_uploads_init(self):
         utwdid = int(self.settings.value("uploads/update task with dataset id",
                                          "1"))

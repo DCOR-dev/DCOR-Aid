@@ -11,7 +11,7 @@ import dcoraid.api
 from dcoraid.api import dataset_create
 from dcoraid.upload import job, task
 
-import common
+from . import common
 
 
 dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"

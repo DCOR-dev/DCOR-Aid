@@ -9,7 +9,7 @@ from dcoraid.upload import UploadQueue
 from dcoraid.upload.queue import DCORAidQueueWarning, PersistentUploadJobList
 from dcoraid.upload.task import load_task
 
-import common
+from . import common
 
 
 data_path = pathlib.Path(__file__).parent / "data"
