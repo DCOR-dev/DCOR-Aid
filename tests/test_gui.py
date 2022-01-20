@@ -24,14 +24,14 @@ def mw(qtbot):
     mw = DCORAid()
     qtbot.addWidget(mw)
     QtWidgets.QApplication.setActiveWindow(mw)
-    QtTest.QTest.qWait(500)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 500)
+    QtTest.QTest.qWait(2000)
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
     # Run test
     yield mw
     # Make sure that all daemons are gone
     mw.close()
-    QtTest.QTest.qWait(500)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 500)
+    QtTest.QTest.qWait(2000)
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
     time.sleep(1)
 
 
