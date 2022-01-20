@@ -17,13 +17,17 @@ from PyQt5.QtWidgets import QInputDialog, QMessageBox
 from . import common
 
 
-@pytest.fixture(autouse=True)
-def run_around_tests():
-    # Code that will run before your test, for example:
-    pass
+@pytest.fixture
+def mw(qtbot):
+    # Code that will run before your test
+    mw = DCORAid()
+    qtbot.addWidget(mw)
+    QtWidgets.QApplication.setActiveWindow(mw)
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
     # Run test
-    yield
+    yield mw
     # Make sure that all daemons are gone
+    mw.close()
     QtTest.QTest.qWait(1000)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
                                          3000)
@@ -48,6 +52,8 @@ def test_anonymous(qtbot):
         "[auth]",
         "api%20key =",
         "server = dcor.mpl.mpg.de",
+        "[debug]",
+        "without timers = 1",
         ]))
     try:
         mw = DCORAid()
@@ -65,21 +71,17 @@ def test_anonymous(qtbot):
     else:
         spath.unlink()
         shutil.copy2(stmp, spath)
-    mw.close()
 
 
-def test_mydata_dataset_add_to_collection(qtbot, monkeypatch):
+def test_mydata_dataset_add_to_collection(mw, qtbot):
     """Upload a dataset and add it to a collection"""
     # upload via task
     task_id = str(uuid.uuid4())
     tpath = pathlib.Path(common.make_upload_task(task_id=task_id))
-    mw = DCORAid()
-    qtbot.addWidget(mw)
-    QtWidgets.QApplication.setActiveWindow(mw)
     # monkeypatch success message box
-    monkeypatch.setattr(QMessageBox, "information",
-                        lambda *args: None)
-    mw.panel_upload.on_upload_task(action=tpath)
+    with mock.patch.object(QMessageBox, "information",
+                           return_value=None):
+        mw.panel_upload.on_upload_task(action=tpath)
     # get the dataset ID
     uj = mw.panel_upload.jobs[-1]
     ds_id = uj.dataset_id
@@ -109,11 +111,11 @@ def test_mydata_dataset_add_to_collection(qtbot, monkeypatch):
             break
     else:
         assert False, "could not find dcoraid-collection"
-    monkeypatch.setattr(QInputDialog,
-                        "getItem",
-                        lambda *args: (f"{ii}: {item['display_name']}", True))
-    qtbot.mouseClick(mw.user_filter_chain.fw_datasets.toolButton_custom,
-                     QtCore.Qt.MouseButton.LeftButton)
+    with mock.patch.object(
+            QInputDialog, "getItem",
+            return_value=(f"{ii}: {item['display_name']}", True)):
+        qtbot.mouseClick(mw.user_filter_chain.fw_datasets.toolButton_custom,
+                         QtCore.Qt.MouseButton.LeftButton)
     # Now check whether that worked
     ds_dict = api.get("package_show", id=ds_id)
     assert "groups" in ds_dict
@@ -121,138 +123,105 @@ def test_mydata_dataset_add_to_collection(qtbot, monkeypatch):
     assert ds_dict["groups"][0]["name"] == "dcoraid-collection"
 
 
-def test_upload_simple(qtbot, monkeypatch):
+def test_upload_simple(mw, qtbot):
     """Upload a test dataset"""
-    mw = DCORAid()
-    qtbot.addWidget(mw)
-    QtWidgets.QApplication.setActiveWindow(mw)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
-
     dlg = UploadDialog(mw.panel_upload)
     mw.panel_upload._dlg_manual = dlg
     dlg.finished.connect(mw.panel_upload.on_upload_manual_ready)
     # Fill data for testing
     dlg._autofill_for_testing()
     # Avoid message boxes
-    monkeypatch.setattr(QMessageBox, "question", lambda *args: QMessageBox.Yes)
-    # Commence upload
-    dlg.on_proceed()
+    with mock.patch.object(QMessageBox,
+                           "question",
+                           return_value=QMessageBox.Yes):
+        # Commence upload
+        dlg.on_proceed()
     assert dlg.dataset_id is not None
 
     common.wait_for_job(upload_queue=mw.panel_upload.jobs,
-                        dataset_id=mw.panel_upload.jobs[0].dataset_id)
-    mw.close()
+                        dataset_id=dlg.dataset_id)
 
 
-def test_upload_task(qtbot, monkeypatch):
+def test_upload_task(mw, qtbot):
     task_id = str(uuid.uuid4())
     tpath = common.make_upload_task(task_id=task_id)
-    mw = DCORAid()
-    qtbot.addWidget(mw)
-    QtWidgets.QApplication.setActiveWindow(mw)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
-    monkeypatch.setattr(QtWidgets.QFileDialog, "getOpenFileNames",
-                        lambda *args: ([tpath], None))
-    # monkeypatch success message box
-    monkeypatch.setattr(QMessageBox, "information",
-                        lambda *args: None)
-    act = QtWidgets.QAction("some unimportant text")
-    act.setData("single")
-    mw.panel_upload.on_upload_task(action=act)
+    with mock.patch.object(QtWidgets.QFileDialog, "getOpenFileNames",
+                           return_value=([tpath], None)):
+        with mock.patch.object(QMessageBox, "information",
+                               return_value=None):
+            act = QtWidgets.QAction("some unimportant text")
+            act.setData("single")
+            mw.panel_upload.on_upload_task(action=act)
     uj = mw.panel_upload.jobs[-1]
     assert uj.task_id == task_id
-    mw.close()
 
 
-def test_upload_task_bad_dataset_id_no(qtbot, monkeypatch):
+def test_upload_task_bad_dataset_id_no(mw, qtbot):
     """When the dataset ID does not exist, DCOR-Aid should ask what to do"""
     task_id = str(uuid.uuid4())
     dataset_dict = common.make_dataset_dict(hint="task_upload_no_org_")
     tpath = common.make_upload_task(task_id=task_id,
                                     dataset_id="wrong_id",
                                     dataset_dict=dataset_dict)
-    mw = DCORAid()
-    qtbot.addWidget(mw)
-    QtWidgets.QApplication.setActiveWindow(mw)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
     # monkeypatch file selection dialog
-    monkeypatch.setattr(QtWidgets.QFileDialog, "getOpenFileNames",
-                        lambda *args: ([tpath], None))
-    # monkeypatch yes-no dialog
-    monkeypatch.setattr(QMessageBox, "question",
-                        lambda *args: QMessageBox.No)
-    # monkeypatch success message box
-    monkeypatch.setattr(QMessageBox, "information",
-                        lambda *args: None)
-    act = QtWidgets.QAction("some unimportant text")
-    act.setData("single")
-    mw.panel_upload.on_upload_task(action=act)
+    with mock.patch.object(
+            QtWidgets.QFileDialog, "getOpenFileNames",
+            return_value=([tpath], None)), \
+         mock.patch.object(QMessageBox, "question",
+                           return_value=QMessageBox.No), \
+         mock.patch.object(QMessageBox, "information", return_value=None):
+        act = QtWidgets.QAction("some unimportant text")
+        act.setData("single")
+        mw.panel_upload.on_upload_task(action=act)
     if len(mw.panel_upload.jobs):
         # there might be upload jobs from previous tests here
         assert mw.panel_upload.jobs[-1].task_id != task_id
-    mw.close()
 
 
-def test_upload_task_bad_dataset_id_yes(qtbot, monkeypatch):
+def test_upload_task_bad_dataset_id_yes(mw, qtbot):
     """When the dataset ID does not exist, DCOR-Aid should ask what to do"""
     task_id = str(uuid.uuid4())
     dataset_dict = common.make_dataset_dict(hint="task_upload_no_org_")
     tpath = common.make_upload_task(task_id=task_id,
                                     dataset_id="wrong_id",
                                     dataset_dict=dataset_dict)
-    mw = DCORAid()
-    qtbot.addWidget(mw)
-    QtWidgets.QApplication.setActiveWindow(mw)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
-    # monkeypatch file selection dialog
-    monkeypatch.setattr(QtWidgets.QFileDialog, "getOpenFileNames",
-                        lambda *args: ([tpath], None))
-    # monkeypatch yes-no dialog
-    monkeypatch.setattr(QMessageBox, "question",
-                        lambda *args: QMessageBox.Yes)
-    # monkeypatch success message box
-    monkeypatch.setattr(QMessageBox, "information",
-                        lambda *args: None)
-    act = QtWidgets.QAction("some unimportant text")
-    act.setData("single")
-    mw.panel_upload.on_upload_task(action=act)
+    with mock.patch.object(
+            QtWidgets.QFileDialog, "getOpenFileNames",
+            return_value=([tpath], None)), \
+         mock.patch.object(QMessageBox, "question",
+                           return_value=QMessageBox.Yes), \
+         mock.patch.object(QMessageBox, "information", return_value=None):
+        act = QtWidgets.QAction("some unimportant text")
+        act.setData("single")
+        mw.panel_upload.on_upload_task(action=act)
     uj = mw.panel_upload.jobs[-1]
     assert uj.task_id == task_id
     mw.panel_upload.jobs.daemon_compress.shutdown_flag.set()
     mw.panel_upload.jobs.daemon_compress.join()
-    mw.close()
 
 
-def test_upload_task_missing_circle(qtbot, monkeypatch):
+def test_upload_task_missing_circle(mw, qtbot):
     """When the organization is missing, DCOR-Aid should ask for it"""
     task_id = str(uuid.uuid4())
     dataset_dict = common.make_dataset_dict(hint="task_upload_no_org_")
     dataset_dict.pop("owner_org")
     tpath = common.make_upload_task(task_id=task_id,
                                     dataset_dict=dataset_dict)
-    mw = DCORAid()
-    qtbot.addWidget(mw)
-    QtWidgets.QApplication.setActiveWindow(mw)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
-    monkeypatch.setattr(QtWidgets.QFileDialog, "getOpenFileNames",
-                        lambda *args: ([tpath], None))
-    # We actually only need this monkeypatch if there is more than
-    # one circle for the present user.
-    monkeypatch.setattr(QtWidgets.QInputDialog, "getItem",
-                        # return the first item in the circle list
-                        lambda *args: (args[3][0], True))
-    # monkeypatch success message box
-    monkeypatch.setattr(QMessageBox, "information",
-                        lambda *args: None)
-    act = QtWidgets.QAction("some unimportant text")
-    act.setData("single")
-    mw.panel_upload.on_upload_task(action=act)
+    with mock.patch.object(
+            QtWidgets.QFileDialog, "getOpenFileNames",
+            return_value=([tpath], None)), \
+         mock.patch.object(QtWidgets.QInputDialog, "getItem",
+                           return_value=(common.CIRCLE, True)), \
+         mock.patch.object(QMessageBox, "information", return_value=None):
+        act = QtWidgets.QAction("some unimportant text")
+        act.setData("single")
+        mw.panel_upload.on_upload_task(action=act)
     uj = mw.panel_upload.jobs[-1]
     assert uj.task_id == task_id
-    mw.close()
 
 
-def test_upload_task_missing_circle_multiple(qtbot, monkeypatch):
+def test_upload_task_missing_circle_multiple(mw, qtbot):
     """DCOR-Aid should only ask *once* for the circle (not for every task)"""
     task_id1 = str(uuid.uuid4())
     dataset_dict1 = common.make_dataset_dict(hint="task_upload_no_org_")
@@ -271,42 +240,27 @@ def test_upload_task_missing_circle_multiple(qtbot, monkeypatch):
     tdir = pathlib.Path(tempfile.mkdtemp(prefix="recursive_task_"))
     shutil.copytree(tpath1.parent, tdir / tpath1.parent.name)
     shutil.copytree(tpath2.parent, tdir / tpath2.parent.name)
-
-    mw = DCORAid()
-    qtbot.addWidget(mw)
-    QtWidgets.QApplication.setActiveWindow(mw)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
-    monkeypatch.setattr(QtWidgets.QFileDialog, "getExistingDirectory",
-                        lambda *args: str(tdir))
-    # We actually only need this monkeypatch if there is more than
-    # one circle for the present user.
-    monkeypatch.setattr(QtWidgets.QInputDialog, "getItem",
-                        # return the first item in the circle list
-                        lambda *args: (args[3][0], True))
-    # monkeypatch success message box
-    monkeypatch.setattr(QMessageBox, "information",
-                        lambda *args: None)
-    act = QtWidgets.QAction("some unimportant text")
-    act.setData("bulk")
-    request_circle = widget_upload.circle_mgr.request_circle
-    with mock.patch.object(widget_upload.circle_mgr,
-                           "request_circle",
-                           wraps=request_circle) as rw:
-        mw.panel_upload.on_upload_task(action=act)
-        uj1 = mw.panel_upload.jobs[-2]
-        uj2 = mw.panel_upload.jobs[-1]
-        assert {uj1.task_id, uj2.task_id} == {task_id1, task_id2}
-        assert rw.call_count == 1
-    mw.close()
+    with mock.patch.object(
+            QtWidgets.QFileDialog, "getExistingDirectory",
+            return_value=str(tdir)), \
+         mock.patch.object(QtWidgets.QInputDialog, "getItem",
+                           return_value=(common.CIRCLE, True)), \
+         mock.patch.object(QMessageBox, "information", return_value=None):
+        act = QtWidgets.QAction("some unimportant text")
+        act.setData("bulk")
+        request_circle = widget_upload.circle_mgr.request_circle
+        with mock.patch.object(widget_upload.circle_mgr,
+                               "request_circle",
+                               wraps=request_circle) as rw:
+            mw.panel_upload.on_upload_task(action=act)
+            uj1 = mw.panel_upload.jobs[-2]
+            uj2 = mw.panel_upload.jobs[-1]
+            assert {uj1.task_id, uj2.task_id} == {task_id1, task_id2}
+            assert rw.call_count == 1
 
 
-def test_upload_private(qtbot, monkeypatch):
+def test_upload_private(mw, qtbot):
     """Upload a private test dataset"""
-    mw = DCORAid()
-    qtbot.addWidget(mw)
-    QtWidgets.QApplication.setActiveWindow(mw)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
-
     dlg = UploadDialog(mw.panel_upload)
     mw.panel_upload._dlg_manual = dlg
     dlg.finished.connect(mw.panel_upload.on_upload_manual_ready)
@@ -315,21 +269,16 @@ def test_upload_private(qtbot, monkeypatch):
     # set visibility to private
     dlg.comboBox_vis.setCurrentIndex(dlg.comboBox_vis.findData("private"))
     # Avoid message boxes
-    monkeypatch.setattr(QMessageBox, "question", lambda *args: QMessageBox.Yes)
-    # monkeypatch success message box
-    monkeypatch.setattr(QMessageBox, "information",
-                        lambda *args: None)
-    # Commence upload
-    dlg.on_proceed()
+    with mock.patch.object(QMessageBox, "question",
+                           return_value=QMessageBox.Yes), \
+         mock.patch.object(QMessageBox, "information", return_value=None):
+        # Commence upload
+        dlg.on_proceed()
     dataset_id = dlg.dataset_id
     assert dataset_id is not None
 
     common.wait_for_job(upload_queue=mw.panel_upload.jobs,
                         dataset_id=dataset_id)
-    mw.close()
-    QtTest.QTest.qWait(1000)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                         3000)
 
     # make sure the dataset is private
     api = common.get_api()
