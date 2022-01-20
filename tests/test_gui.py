@@ -1,6 +1,7 @@
 import pathlib
 import shutil
 import tempfile
+import time
 from unittest import mock
 
 import uuid
@@ -23,14 +24,15 @@ def mw(qtbot):
     mw = DCORAid()
     qtbot.addWidget(mw)
     QtWidgets.QApplication.setActiveWindow(mw)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+    QtTest.QTest.qWait(500)
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 500)
     # Run test
     yield mw
     # Make sure that all daemons are gone
     mw.close()
-    QtTest.QTest.qWait(1000)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                         3000)
+    QtTest.QTest.qWait(500)
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 500)
+    time.sleep(1)
 
 
 @pytest.mark.filterwarnings("ignore::UserWarning", match="No API key is set!")
@@ -71,6 +73,10 @@ def test_anonymous(qtbot):
     else:
         spath.unlink()
         shutil.copy2(stmp, spath)
+    mw.close()
+    QtTest.QTest.qWait(500)
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 500)
+    time.sleep(1)
 
 
 def test_mydata_dataset_add_to_collection(mw, qtbot):
