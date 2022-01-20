@@ -38,7 +38,8 @@ jobs:
       run: |
         # prerequisites
         python -m pip install --upgrade pip wheel
-        python -m pip install codecov coverage flake8 pytest pytest-qt
+        python -m pip install codecov coverage flake8
+        python -m pip install -r tests/requirements.txt
         # install dependencies
         pip install -e .[GUI]
         # show installed packages
