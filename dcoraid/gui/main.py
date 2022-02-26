@@ -40,15 +40,6 @@ class DCORAid(QtWidgets.QMainWindow):
         application will print the version after initialization
         and exit.
         """
-        super(DCORAid, self).__init__(*args, **kwargs)
-
-        # if "--version" was specified, print the version and exit
-        if "--version" in sys.argv:
-            print(__version__)
-            QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                                 300)
-            sys.exit(0)
-
         # Settings are stored in the .ini file format. Even though
         # `self.settings` may return integer/bool in the same session,
         # in the next session, it will reliably return strings. Lists
@@ -59,6 +50,15 @@ class DCORAid(QtWidgets.QMainWindow):
         QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
         QtCore.QCoreApplication.setApplicationName("dcoraid")
         QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+
+        super(DCORAid, self).__init__(*args, **kwargs)
+
+        # if "--version" was specified, print the version and exit
+        if "--version" in sys.argv:
+            print(__version__)
+            QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
+                                                 300)
+            sys.exit(0)
 
         # setup logging
         log_dir = pathlib.Path(
@@ -101,8 +101,10 @@ class DCORAid(QtWidgets.QMainWindow):
         self.status_widget = StatusWidget(self)
         self.tabWidget.setCornerWidget(self.status_widget)
         self.status_widget.clicked.connect(self.dlg_pref.on_show_server)
+        self.status_widget.clicked.connect(self.refresh_login_status)
         # Call refresh_login status regularly
         self.refresh_login_status()  # runs asynchronously
+        # Recheck login status every 5 minutes
         if bool(int(self.settings.value("debug/without timers", "0"))):
             self.timer = None
         else:
@@ -232,6 +234,7 @@ class DCORAid(QtWidgets.QMainWindow):
             tip = "Click here to enter your API key."
             icon = "user"
         else:
+
             try:
                 user_data = api.get_user_dict()
             except NoAPIKeyError:

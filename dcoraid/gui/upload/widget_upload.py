@@ -8,7 +8,6 @@ from PyQt5 import uic, QtCore, QtWidgets
 from PyQt5.QtCore import QStandardPaths
 
 from ...api import APINotFoundError
-from ...common import ConnectionTimeoutErrors
 from ...upload import queue, task
 
 from ..api import get_ckan_api
@@ -47,23 +46,36 @@ class UploadWidget(QtWidgets.QWidget):
         menu.triggered.connect(self.on_upload_task)
         self.toolButton_load_upload_tasks.setMenu(menu)
 
-        # Underlying upload class
-        # use a persistent shelf to be able to resume uploads on startup
-        shelf_path = os_path.join(
+        #: path to persistent shelf to be able to resume uploads on startup
+        self.shelf_path = os_path.join(
             QStandardPaths.writableLocation(
                 QStandardPaths.AppLocalDataLocation),
             "persistent_upload_jobs")
+        #: path to cache directory (compression)
         self.cache_dir = QtCore.QStandardPaths.writableLocation(
             QtCore.QStandardPaths.CacheLocation)
 
-        try:
+        #: UploadQueue instance
+        self.jobs = None
+
+        self.init_timer = QtCore.QTimer(self)
+        self.init_timer.setSingleShot(True)
+        self.init_timer.setInterval(2000)
+        self.init_timer.timeout.connect(self.initialize)
+        self.init_timer.start()
+
+    @QtCore.pyqtSlot()
+    def initialize(self):
+        api = get_ckan_api()
+        if api.is_available():
+            self.setEnabled(True)
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter(
                     "always",
                     category=queue.DCORAidQueueMissingResourceWarning)
                 self.jobs = queue.UploadQueue(
                     api=get_ckan_api(),
-                    path_persistent_job_list=shelf_path,
+                    path_persistent_job_list=self.shelf_path,
                     cache_dir=self.cache_dir)
                 if w:
                     msg = QtWidgets.QMessageBox()
@@ -83,14 +95,13 @@ class UploadWidget(QtWidgets.QWidget):
                         "\n\n".join([str(wi.message) for wi in w]))
                     msg.setWindowTitle("Resources for uploads missing")
                     msg.exec_()
-        except ConnectionTimeoutErrors:
-            # TODO: allow user to re-enable without restarting DCOR-Aid
-            self.jobs = None
-            self.setEnabled(False)
-        else:
             self.widget_jobs.set_job_list(self.jobs)
             # upload finished signal
             self.widget_jobs.upload_finished.connect(self.upload_finished)
+        else:
+            # try again
+            self.setEnabled(False)
+            self.init_timer.start()
 
     @QtCore.pyqtSlot()
     def on_upload_manual(self):

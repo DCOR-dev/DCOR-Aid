@@ -87,7 +87,7 @@ class CKANAPI:
         return url
 
     @staticmethod
-    @functools.lru_cache(maxsize=10)
+    @functools.cache
     def check_ckan_version(server, ssl_verify):
         api = CKANAPI(server=server, ssl_verify=ssl_verify,
                       check_ckan_version=False)

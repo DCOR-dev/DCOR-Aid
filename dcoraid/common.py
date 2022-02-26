@@ -6,7 +6,6 @@ from functools import lru_cache
 
 import requests
 
-
 ConnectionTimeoutErrors = (ConnectionError,
                            requests.exceptions.ConnectionError,
                            requests.exceptions.Timeout)

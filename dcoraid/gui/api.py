@@ -20,7 +20,8 @@ def get_ckan_api(public=False):
         api_key = settings.value("auth/api key", "")
     server = settings.value("auth/server", "dcor.mpl.mpg.de")
     ssl_verify = setup_certificate_file()
-    api = CKANAPI(server=server, api_key=api_key, ssl_verify=ssl_verify)
+    api = CKANAPI(server=server, api_key=api_key, ssl_verify=ssl_verify,
+                  check_ckan_version=False)
     return api
 
 

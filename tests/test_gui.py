@@ -20,6 +20,15 @@ from . import common
 
 @pytest.fixture
 def mw(qtbot):
+    # Always set server correctly, because there is a test that
+    # makes sure DCOR-Aid starts with a wrong server.
+    QtCore.QCoreApplication.setOrganizationName("DCOR")
+    QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+    QtCore.QCoreApplication.setApplicationName("dcoraid")
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+    settings = QtCore.QSettings()
+    settings.setIniCodec("utf-8")
+    settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
     # Code that will run before your test
     mw = DCORAid()
     qtbot.addWidget(mw)
@@ -36,7 +45,7 @@ def mw(qtbot):
 
 
 @pytest.mark.filterwarnings("ignore::UserWarning", match="No API key is set!")
-def test_anonymous(qtbot):
+def test_gui_anonymous(qtbot):
     """Start DCOR-Aid in anonymous mode"""
     QtCore.QCoreApplication.setOrganizationName("DCOR")
     QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
@@ -79,7 +88,7 @@ def test_anonymous(qtbot):
     time.sleep(1)
 
 
-def test_mydata_dataset_add_to_collection(mw, qtbot):
+def test_gui_mydata_dataset_add_to_collection(mw, qtbot):
     """Upload a dataset and add it to a collection"""
     # upload via task
     task_id = str(uuid.uuid4())
@@ -129,7 +138,30 @@ def test_mydata_dataset_add_to_collection(mw, qtbot):
     assert ds_dict["groups"][0]["name"] == "dcoraid-collection"
 
 
-def test_upload_simple(mw, qtbot):
+def test_gui_start_with_bad_server(qtbot):
+    QtCore.QCoreApplication.setOrganizationName("DCOR")
+    QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+    QtCore.QCoreApplication.setApplicationName("dcoraid")
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+    settings = QtCore.QSettings()
+    settings.setIniCodec("utf-8")
+    settings.setValue("auth/server", "WRONG-dcor-dev.mpl.mpg.de")
+    mw = DCORAid()
+    qtbot.addWidget(mw)
+    QtWidgets.QApplication.setActiveWindow(mw)
+    QtTest.QTest.qWait(2000)
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
+    # just make sure that DCOR-Aid thinks it is offline
+    assert not mw.panel_upload.isEnabled()
+    assert not mw.panel_download.isEnabled()
+    mw.close()
+    QtTest.QTest.qWait(2000)
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
+    # reset to testing defaults
+    settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
+
+
+def test_gui_upload_simple(mw, qtbot):
     """Upload a test dataset"""
     dlg = UploadDialog(mw.panel_upload)
     mw.panel_upload._dlg_manual = dlg
@@ -148,7 +180,7 @@ def test_upload_simple(mw, qtbot):
                         dataset_id=dlg.dataset_id)
 
 
-def test_upload_task(mw, qtbot):
+def test_gui_upload_task(mw, qtbot):
     task_id = str(uuid.uuid4())
     tpath = common.make_upload_task(task_id=task_id)
     with mock.patch.object(QtWidgets.QFileDialog, "getOpenFileNames",
@@ -162,7 +194,7 @@ def test_upload_task(mw, qtbot):
     assert uj.task_id == task_id
 
 
-def test_upload_task_bad_dataset_id_no(mw, qtbot):
+def test_gui_upload_task_bad_dataset_id_no(mw, qtbot):
     """When the dataset ID does not exist, DCOR-Aid should ask what to do"""
     task_id = str(uuid.uuid4())
     dataset_dict = common.make_dataset_dict(hint="task_upload_no_org_")
@@ -184,7 +216,7 @@ def test_upload_task_bad_dataset_id_no(mw, qtbot):
         assert mw.panel_upload.jobs[-1].task_id != task_id
 
 
-def test_upload_task_bad_dataset_id_yes(mw, qtbot):
+def test_gui_upload_task_bad_dataset_id_yes(mw, qtbot):
     """When the dataset ID does not exist, DCOR-Aid should ask what to do"""
     task_id = str(uuid.uuid4())
     dataset_dict = common.make_dataset_dict(hint="task_upload_no_org_")
@@ -206,7 +238,7 @@ def test_upload_task_bad_dataset_id_yes(mw, qtbot):
     mw.panel_upload.jobs.daemon_compress.join()
 
 
-def test_upload_task_missing_circle(mw, qtbot):
+def test_gui_upload_task_missing_circle(mw, qtbot):
     """When the organization is missing, DCOR-Aid should ask for it"""
     task_id = str(uuid.uuid4())
     dataset_dict = common.make_dataset_dict(hint="task_upload_no_org_")
@@ -227,7 +259,7 @@ def test_upload_task_missing_circle(mw, qtbot):
     assert uj.task_id == task_id
 
 
-def test_upload_task_missing_circle_multiple(mw, qtbot):
+def test_gui_upload_task_missing_circle_multiple(mw, qtbot):
     """DCOR-Aid should only ask *once* for the circle (not for every task)"""
     task_id1 = str(uuid.uuid4())
     dataset_dict1 = common.make_dataset_dict(hint="task_upload_no_org_")
@@ -265,7 +297,7 @@ def test_upload_task_missing_circle_multiple(mw, qtbot):
             assert rw.call_count == 1
 
 
-def test_upload_private(mw, qtbot):
+def test_gui_upload_private(mw, qtbot):
     """Upload a private test dataset"""
     dlg = UploadDialog(mw.panel_upload)
     mw.panel_upload._dlg_manual = dlg

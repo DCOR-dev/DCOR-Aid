@@ -25,15 +25,33 @@ class DownloadWidget(QtWidgets.QWidget):
             "dcoraid.gui.download", "widget_download.ui")
         uic.loadUi(path_ui, self)
 
-        # use a persistent shelf to be able to resume uploads on startup
-        shelf_path = os_path.join(
+        #: path to persistent shelf to be able to resume uploads on startup
+        self.shelf_path = os_path.join(
             QStandardPaths.writableLocation(
                 QStandardPaths.AppLocalDataLocation),
             "persistent_download_jobs")
 
-        self.jobs = DownloadQueue(api=get_ckan_api(),
-                                  path_persistent_job_list=shelf_path)
-        self.widget_jobs.set_job_list(self.jobs)
+        #: DownloadQueue instance
+        self.jobs = None
+
+        self.init_timer = QtCore.QTimer(self)
+        self.init_timer.setSingleShot(True)
+        self.init_timer.setInterval(2000)
+        self.init_timer.timeout.connect(self.initialize)
+        self.init_timer.start()
+
+    @QtCore.pyqtSlot()
+    def initialize(self):
+        api = get_ckan_api()
+        if api.is_available():
+            self.setEnabled(True)
+            self.jobs = DownloadQueue(api=api,
+                                      path_persistent_job_list=self.shelf_path)
+            self.widget_jobs.set_job_list(self.jobs)
+        else:
+            # try again
+            self.setEnabled(False)
+            self.init_timer.start()
 
     @QtCore.pyqtSlot(str)
     def download_resource(self, resource_id):
