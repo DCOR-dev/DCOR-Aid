@@ -43,7 +43,7 @@ class DownloadWidget(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def initialize(self):
         api = get_ckan_api()
-        if api.is_available():
+        if api.is_available(with_correct_version=True):
             self.setEnabled(True)
             self.jobs = DownloadQueue(api=api,
                                       path_persistent_job_list=self.shelf_path)

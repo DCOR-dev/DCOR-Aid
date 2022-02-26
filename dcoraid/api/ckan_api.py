@@ -13,7 +13,7 @@ from .errors import (APIConflictError, APINotFoundError, NoAPIKeyError,
                      APIAuthorizationError, APIOutdatedError)
 
 #: Minimum required CKAN version on the server side
-MIN_CKAN_VERSION = "2.9.3"
+MIN_CKAN_VERSION = "2.9.4"
 
 #: List of license lists for each DCOR server
 SERVER_LICENCES = {}
@@ -144,14 +144,30 @@ class CKANAPI:
         return CKANAPI(server=self.server, api_key=self.api_key,
                        ssl_verify=self.verify)
 
-    def is_available(self):
+    def is_available(self, with_api_key=False, with_correct_version=False):
         """Check whether server and API are reachable"""
+        # simply check whether we can access the site
         try:
             self.get("site_read")
         except BaseException:
             status = False
         else:
             status = True
+        # check whether we are using the correct ckan version
+        if status and with_correct_version:
+            try:
+                CKANAPI.check_ckan_version(server=self.server,
+                                           ssl_verify=self.verify)
+            except ValueError:
+                status = False
+        # Do something only logged-in users can do
+        if status and with_api_key:
+            try:
+                self.get_user_dict()
+            except BaseException:
+                status = False
+            else:
+                status = True
         return status
 
     def get(self, api_call, **kwargs):
@@ -216,25 +232,29 @@ class CKANAPI:
 
     def get_user_dict(self):
         """Return the current user data dictionary
-
-        The user name is inferred from the user list.
         """
         try:
             userdata = self.get("user_show")
-            warnings.warn("This function is now obsolete, because CKAN "
-                          "now implements `user_show` without id argument!",
+            warnings.warn("Yay, #6338 has made it into a release! This "
+                          + "function can now be rewritten as a one-liner! "
+                          + "also make sure to increment MIN_CKAN_VERSION "
+                          + "to 2.10!",
                           DeprecationWarning)
         except APINotFoundError:
             # Workaround for https://github.com/ckan/ckan/issues/5490
             # Get the user for which the email field is visible.
-            data = self.get("user_list")
-            for user in data:
-                if user.get("email", ""):
-                    userdata = user
-                    break
+            try:
+                data = self.get("user_list")
+            except APIAuthorizationError as e:
+                raise NoAPIKeyError("API key probably invalid!") from e
             else:
-                raise NoAPIKeyError(
-                    "Could not determine user data. Please check API key.")
+                for user in data:
+                    if user.get("email", ""):
+                        userdata = user
+                        break
+                else:
+                    raise NoAPIKeyError(
+                        "Could not determine user data. Please check API key.")
         return userdata
 
     def post(self, api_call, data, dump_json=True, headers=None):

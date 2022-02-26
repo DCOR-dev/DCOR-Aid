@@ -146,19 +146,53 @@ def test_gui_start_with_bad_server(qtbot):
     settings = QtCore.QSettings()
     settings.setIniCodec("utf-8")
     settings.setValue("auth/server", "WRONG-dcor-dev.mpl.mpg.de")
-    mw = DCORAid()
-    qtbot.addWidget(mw)
-    QtWidgets.QApplication.setActiveWindow(mw)
-    QtTest.QTest.qWait(2000)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
-    # just make sure that DCOR-Aid thinks it is offline
-    assert not mw.panel_upload.isEnabled()
-    assert not mw.panel_download.isEnabled()
-    mw.close()
-    QtTest.QTest.qWait(2000)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
-    # reset to testing defaults
-    settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
+    try:
+        mw = DCORAid()
+        qtbot.addWidget(mw)
+        QtWidgets.QApplication.setActiveWindow(mw)
+        QtTest.QTest.qWait(2000)
+        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
+        # just make sure that DCOR-Aid thinks it is offline
+        assert not mw.panel_upload.isEnabled()
+        assert not mw.panel_download.isEnabled()
+        mw.close()
+        QtTest.QTest.qWait(2000)
+        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
+    except BaseException:
+        raise
+    finally:
+        # reset to testing defaults
+        settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
+
+
+def test_gui_start_with_bad_api_key(qtbot):
+    QtCore.QCoreApplication.setOrganizationName("DCOR")
+    QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+    QtCore.QCoreApplication.setApplicationName("dcoraid")
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+    settings = QtCore.QSettings()
+    settings.setIniCodec("utf-8")
+    good_key = settings.value("auth/api key")
+    bad_key = good_key[:-2] + "00"
+    settings.setValue("auth/api key", bad_key)
+    try:
+        mw = DCORAid()
+        qtbot.addWidget(mw)
+        QtWidgets.QApplication.setActiveWindow(mw)
+        QtTest.QTest.qWait(2000)
+        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
+        # just make sure that DCOR-Aid thinks it is offline
+        assert not mw.panel_upload.isEnabled()
+        # downloads should still be possible
+        assert mw.panel_download.isEnabled()
+        mw.close()
+        QtTest.QTest.qWait(2000)
+        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
+    except BaseException:
+        raise
+    finally:
+        # reset to testing defaults
+        settings.setValue("auth/api key", good_key)
 
 
 def test_gui_upload_simple(mw, qtbot):

@@ -13,14 +13,13 @@ import requests_toolbelt
 
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
-from ..api import APIOutdatedError, NoAPIKeyError
+from ..api import APIOutdatedError
 from ..common import ConnectionTimeoutErrors
 from ..dbmodel import APIInterrogator, DBExtract
 from .._version import version as __version__
 
 from .api import get_ckan_api
 from .preferences import PreferencesDialog
-from .tools import run_async
 from .wizard import SetupWizard
 
 # set Qt icon theme search path
@@ -34,7 +33,7 @@ class DCORAid(QtWidgets.QMainWindow):
     plots_changed = QtCore.pyqtSignal()
 
     def __init__(self, *args, **kwargs):
-        """Initialize DCOR_Manager
+        """Initialize DCOR-Aid
 
         If you pass the "--version" command line argument, the
         application will print the version after initialization
@@ -102,15 +101,20 @@ class DCORAid(QtWidgets.QMainWindow):
         self.tabWidget.setCornerWidget(self.status_widget)
         self.status_widget.clicked.connect(self.dlg_pref.on_show_server)
         self.status_widget.clicked.connect(self.refresh_login_status)
-        # Call refresh_login status regularly
-        self.refresh_login_status()  # runs asynchronously
-        # Recheck login status every 5 minutes
         if bool(int(self.settings.value("debug/without timers", "0"))):
+            # Only do it once during init (init takes longer)
+            self.refresh_login_status()
             self.timer = None
         else:
-            self.timer = QtCore.QTimer()
+            # Call refresh_login status regularly
+            self.timer = QtCore.QTimer(self)
             self.timer.timeout.connect(self.refresh_login_status)
             self.timer.start(300000)
+            # Refresh login status with background timer once
+            self.single_shot_timer = QtCore.QTimer(self)
+            self.single_shot_timer.setSingleShot(True)
+            self.single_shot_timer.timeout.connect(self.refresh_login_status)
+            self.single_shot_timer.start(1000)
 
         # Signals for user datasets (my data)
         self.pushButton_user_refresh.clicked.connect(
@@ -225,25 +229,32 @@ class DCORAid(QtWidgets.QMainWindow):
         self.wizard = SetupWizard(self)
         self.wizard.exec_()
 
-    @run_async
     @QtCore.pyqtSlot()
     def refresh_login_status(self):
         api = get_ckan_api()
-        if not api.api_key:
+
+        if not api.is_available():
+            text = "No connection"
+            tip = f"Can you access {api.server} via a browser?"
+            icon = "hourglass"
+        elif not api.is_available(with_correct_version=True):
+            text = "Server out of date"
+            tip = "Please downgrade DCOR-Aid"
+            icon = "ban"
+        elif not api.api_key:
             text = "Anonymous"
             tip = "Click here to enter your API key."
             icon = "user"
+        elif not api.is_available(with_api_key=True):
+            text = "API token incorrect"
+            tip = "Click here to update your API key."
+            icon = "user-times"
         else:
-
             try:
                 user_data = api.get_user_dict()
-            except NoAPIKeyError:
-                text = "Login failed"
-                tip = "Click here to update your API key."
-                icon = "user-times"
             except ConnectionTimeoutErrors:
-                text = "No connection"
-                tip = "Can you access {} via a browser?".format(api.server)
+                text = "Connection timeout"
+                tip = f"Can you access {api.server} via a browser?"
                 icon = "hourglass"
             else:
                 fullname = user_data["fullname"]

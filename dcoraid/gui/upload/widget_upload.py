@@ -67,7 +67,7 @@ class UploadWidget(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def initialize(self):
         api = get_ckan_api()
-        if api.is_available():
+        if api.is_available(with_api_key=True, with_correct_version=True):
             self.setEnabled(True)
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter(
