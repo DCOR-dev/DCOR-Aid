@@ -38,7 +38,7 @@ class DownloadWidget(QtWidgets.QWidget):
         self.setEnabled(False)
         self.init_timer = QtCore.QTimer(self)
         self.init_timer.setSingleShot(True)
-        self.init_timer.setInterval(0)
+        self.init_timer.setInterval(100)
         self.init_timer.timeout.connect(self.initialize)
         self.init_timer.start()
 
