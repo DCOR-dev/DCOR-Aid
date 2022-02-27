@@ -12,6 +12,7 @@ from PyQt5.QtCore import QStandardPaths
 from ...download import DownloadQueue
 
 from ..api import get_ckan_api
+from ..tools import show_wait_cursor
 
 
 class DownloadWidget(QtWidgets.QWidget):
@@ -34,12 +35,14 @@ class DownloadWidget(QtWidgets.QWidget):
         #: DownloadQueue instance
         self.jobs = None
 
+        self.setEnabled(False)
         self.init_timer = QtCore.QTimer(self)
         self.init_timer.setSingleShot(True)
-        self.init_timer.setInterval(2000)
+        self.init_timer.setInterval(0)
         self.init_timer.timeout.connect(self.initialize)
         self.init_timer.start()
 
+    @show_wait_cursor
     @QtCore.pyqtSlot()
     def initialize(self):
         api = get_ckan_api()
@@ -50,7 +53,7 @@ class DownloadWidget(QtWidgets.QWidget):
             self.widget_jobs.set_job_list(self.jobs)
         else:
             # try again
-            self.setEnabled(False)
+            self.init_timer.setInterval(3000)
             self.init_timer.start()
 
     @QtCore.pyqtSlot(str)

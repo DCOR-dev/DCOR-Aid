@@ -11,7 +11,7 @@ from ...api import APINotFoundError
 from ...upload import queue, task
 
 from ..api import get_ckan_api
-from ..tools import ShowWaitCursor
+from ..tools import ShowWaitCursor, show_wait_cursor
 
 from . import circle_mgr
 from .dlg_upload import NoCircleSelectedError, UploadDialog
@@ -58,12 +58,14 @@ class UploadWidget(QtWidgets.QWidget):
         #: UploadQueue instance
         self.jobs = None
 
+        self.setEnabled(False)
         self.init_timer = QtCore.QTimer(self)
         self.init_timer.setSingleShot(True)
-        self.init_timer.setInterval(2000)
+        self.init_timer.setInterval(0)
         self.init_timer.timeout.connect(self.initialize)
         self.init_timer.start()
 
+    @show_wait_cursor
     @QtCore.pyqtSlot()
     def initialize(self):
         api = get_ckan_api()
@@ -100,7 +102,7 @@ class UploadWidget(QtWidgets.QWidget):
             self.widget_jobs.upload_finished.connect(self.upload_finished)
         else:
             # try again
-            self.setEnabled(False)
+            self.init_timer.setInterval(3000)
             self.init_timer.start()
 
     @QtCore.pyqtSlot()

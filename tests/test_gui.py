@@ -33,15 +33,14 @@ def mw(qtbot):
     mw = DCORAid()
     qtbot.addWidget(mw)
     QtWidgets.QApplication.setActiveWindow(mw)
-    QtTest.QTest.qWait(2000)
+    QtTest.QTest.qWait(200)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
     # Run test
     yield mw
     # Make sure that all daemons are gone
     mw.close()
-    QtTest.QTest.qWait(2000)
+    QtTest.QTest.qWait(500)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
-    time.sleep(1)
 
 
 @pytest.mark.filterwarnings("ignore::UserWarning", match="No API key is set!")
@@ -150,13 +149,13 @@ def test_gui_start_with_bad_server(qtbot):
         mw = DCORAid()
         qtbot.addWidget(mw)
         QtWidgets.QApplication.setActiveWindow(mw)
-        QtTest.QTest.qWait(2000)
+        QtTest.QTest.qWait(200)
         QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
         # just make sure that DCOR-Aid thinks it is offline
         assert not mw.panel_upload.isEnabled()
         assert not mw.panel_download.isEnabled()
         mw.close()
-        QtTest.QTest.qWait(2000)
+        QtTest.QTest.qWait(500)
         QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
     except BaseException:
         raise
@@ -179,14 +178,14 @@ def test_gui_start_with_bad_api_key(qtbot):
         mw = DCORAid()
         qtbot.addWidget(mw)
         QtWidgets.QApplication.setActiveWindow(mw)
-        QtTest.QTest.qWait(2000)
+        QtTest.QTest.qWait(200)
         QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
         # just make sure that DCOR-Aid thinks it is offline
         assert not mw.panel_upload.isEnabled()
         # downloads should still be possible
         assert mw.panel_download.isEnabled()
         mw.close()
-        QtTest.QTest.qWait(2000)
+        QtTest.QTest.qWait(500)
         QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
     except BaseException:
         raise
