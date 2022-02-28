@@ -246,6 +246,17 @@ class UploadQueue:
         """Return the status of an UploadJob"""
         self.get_job(dataset_id).get_status()
 
+    def index(self, dataset_id_or_job):
+        if isinstance(dataset_id_or_job, UploadJob):
+            dataset_id = dataset_id_or_job.dataset_id
+        else:
+            dataset_id = dataset_id_or_job
+        for ii, job in enumerate(self.jobs):
+            if job.dataset_id == dataset_id:
+                return ii
+        else:
+            raise KeyError("Job '{}' not found!".format(dataset_id))
+
     def new_job(self, dataset_id, paths, resource_names=None,
                 supplements=None):
         """Create an UploadJob and add it to the upload queue

@@ -38,6 +38,9 @@ def test_queue_basic_functionalities():
     samejob2 = joblist[0]
     assert samejob2 is uj
 
+    assert joblist.index(uj) == 0
+    assert joblist.index(uj.dataset_id) == 0
+
 
 def test_queue_create_dataset_with_resource():
     api = common.get_api()

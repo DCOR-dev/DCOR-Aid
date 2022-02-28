@@ -29,6 +29,9 @@ class UploadWidget(QtWidgets.QWidget):
             "dcoraid.gui.upload", "widget_upload.ui")
         uic.loadUi(path_ui, self)
 
+        # hide side panel at beginning
+        self.widget_info.setVisible(False)
+
         self._dlg_manual = None
 
         # button for adding new dataset manually
@@ -64,6 +67,9 @@ class UploadWidget(QtWidgets.QWidget):
         self.init_timer.setInterval(100)
         self.init_timer.timeout.connect(self.initialize)
         self.init_timer.start()
+
+        # signals
+        self.widget_jobs.job_selected.connect(self.on_show_job)
 
     @show_wait_cursor
     @QtCore.pyqtSlot()
@@ -104,6 +110,22 @@ class UploadWidget(QtWidgets.QWidget):
             # try again
             self.init_timer.setInterval(3000)
             self.init_timer.start()
+
+    @QtCore.pyqtSlot(object)
+    def on_show_job(self, job):
+        self.widget_info.setVisible(True)
+        self.label_index.setText(f"{self.jobs.index(job) + 1}")
+        self.lineEdit_id.setText(job.dataset_id)
+        self.lineEdit_id.setCursorPosition(0)
+        self.label_title.setText(self.widget_jobs.get_dataset_title(job))
+        size = sum(job.file_sizes)/1024**3
+        if size <= 0.01:
+            size_str = f"{size*1024:.2f} MB"
+        else:
+            size_str = f"{size:.2f} GB"
+        self.label_size.setText(size_str)
+        paths = [f"{p}" for p in job.paths]
+        self.plainTextEdit_paths.setPlainText("\n".join(paths))
 
     @QtCore.pyqtSlot()
     def on_upload_manual(self):
@@ -272,9 +294,13 @@ class UploadWidget(QtWidgets.QWidget):
 
 class UploadTableWidget(QtWidgets.QTableWidget):
     upload_finished = QtCore.pyqtSignal()
+    job_selected = QtCore.pyqtSignal(object)
 
     def __init__(self, *args, **kwargs):
         super(UploadTableWidget, self).__init__(*args, **kwargs)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+
         self.jobs = []  # Will become UploadQueue with self.set_job_list
 
         settings = QtCore.QSettings()
@@ -285,6 +311,18 @@ class UploadTableWidget(QtWidgets.QTableWidget):
             self.timer.timeout.connect(self.update_job_status)
             self.timer.start(1000)
         self._finished_uploads = []
+
+        # signals
+        self.itemSelectionChanged.connect(self.on_selection)
+        self.itemClicked.connect(self.on_selection)
+
+    def get_dataset_title(self, job):
+        try:
+            title = get_dataset_title(job.dataset_id)
+        except BaseException:
+            # Probably a connection error
+            title = "-- error getting dataset title --"
+        return title
 
     def set_job_list(self, jobs):
         """Set the current job list
@@ -302,6 +340,12 @@ class UploadTableWidget(QtWidgets.QTableWidget):
     @QtCore.pyqtSlot(str)
     def on_job_delete(self, dataset_id):
         self.jobs.remove_job(dataset_id)
+
+    @QtCore.pyqtSlot()
+    def on_selection(self):
+        row = self.currentRow()
+        job = self.jobs[row]
+        self.job_selected.emit(job)
 
     @QtCore.pyqtSlot(str)
     def on_upload_finished(self, dataset_id):
@@ -323,12 +367,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         for row, job in enumerate(self.jobs):
             status = job.get_status()
             self.set_label_item(row, 0, job.dataset_id[:5])
-            try:
-                title = get_dataset_title(job.dataset_id)
-            except BaseException:
-                # Probably a connection error
-                title = "-- error getting dataset title --"
-            self.set_label_item(row, 1, title)
+            self.set_label_item(row, 1, self.get_dataset_title(job))
             self.set_label_item(row, 2, status["state"])
             self.set_label_item(row, 3, job.get_progress_string())
             self.set_label_item(row, 4, job.get_rate_string())

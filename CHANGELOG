@@ -1,4 +1,5 @@
 0.10.0
+ - feat: fisplay paths to resources in Upload tab (#56)
  - fix: make sure DCOR-Aid starts when the server is not reachable (#57)
  - fix: make sure DCOR-Aid starts when the API token is wrong (#57)
  - enh: add with_api_key and with_correct_version keyword arguments to
