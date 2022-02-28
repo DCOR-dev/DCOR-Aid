@@ -318,7 +318,7 @@ class UploadJob(object):
                     # perform a sanity check
                     insane = [c.msg for c in ic.sanity_check()]
                     if insane:
-                        # The user is responsible of cleaning up the mess.
+                        # The user is responsible for cleaning up the mess.
                         # We just make sure no dirty data gets uploaded to
                         # DCOR.
                         raise IOError(f"Sanity check failed for {path}!\n"
