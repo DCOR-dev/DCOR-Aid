@@ -1,5 +1,6 @@
 # Use large clone depth so that a tag is included for versioning
 clone_depth: 256
+image: Visual Studio 2019
 
 notifications:
   - provider: Email
@@ -9,7 +10,7 @@ notifications:
 
 environment:
   matrix:
-    - PYTHON: "C:\\Python38-x64"
+    - PYTHON: "C:\Python10-x64"
   DCOR_API_KEY:
     secure: fZWCZrKoGp2a/bNqd+quJRsVcRI5Jx774LLx3BX3jDuFAqHEAkGR3M/Wq7IwxXua
 
