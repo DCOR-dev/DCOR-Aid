@@ -104,7 +104,6 @@ def test_persistent_download_joblist_basic():
     # add a job
     pdjl.immortalize_job(dj)
     assert dj in pdjl
-    assert dj.resource_id in pdjl
 
     # find that job
     cur_jobs = pdjl.get_queued_jobs(api)
@@ -113,11 +112,11 @@ def test_persistent_download_joblist_basic():
     assert dj_same.__getstate__() == dj.__getstate__(), "same data"
 
     # remove a job
-    assert pdjl.job_exists(dj.resource_id)
-    assert pdjl.is_job_queued(dj.resource_id)
-    pdjl.obliterate_job(dj.resource_id)
+    assert pdjl.job_exists(dj)
+    assert pdjl.is_job_queued(dj)
+    pdjl.obliterate_job(dj)
     assert dj not in pdjl
-    assert not pdjl.job_exists(dj.resource_id)
+    assert not pdjl.job_exists(dj)
 
 
 def test_persistent_download_joblist_job_added_in_queue():
