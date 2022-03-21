@@ -152,14 +152,18 @@ class FilterResources(filter_base.FilterBase):
              "tooltip": f"download resource {entry['name']}",
              "function": partial(self.download_resource.emit,
                                  entry["id"], False)},
-            {"icon": "angles-down",
-             "tooltip": f"download condensed resource {entry['name']}",
-             "function": partial(self.download_resource.emit,
-                                 entry["id"], True)},
             {"icon": "eye",
              "tooltip": f"view resource {entry['name']} online",
              "function": partial(webbrowser.open, url)},
         ]
+        if entry["mimetype"] == "RT-DC":
+            # only show condensed-download-button for .rtdc files
+            actions.insert(
+                1,
+                {"icon": "angles-down",
+                 "tooltip": f"download condensed resource {entry['name']}",
+                 "function": partial(self.download_resource.emit,
+                                     entry["id"], True)},)
         return actions
 
     def set_entry_label(self, row, entry):
