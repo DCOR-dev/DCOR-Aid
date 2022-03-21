@@ -31,7 +31,7 @@ install:
   # install build requirements (pinned versions of some packages)
   - python -m pip install -r build-recipes\\win_build_requirements.txt
   # Install package
-  - appveyor-retry pip install -e .
+  - appveyor-retry pip install -e .[GUI]
   # Show the installed packages
   - pip freeze
 
