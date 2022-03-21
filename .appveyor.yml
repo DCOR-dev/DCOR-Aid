@@ -29,6 +29,7 @@ install:
   # Install dcoraid and its dependencies
   - appveyor-retry python -m pip install --upgrade pip wheel
   # install build requirements (pinned versions of some packages)
+  - python -m pip install -r tests\\requirements.txt
   - python -m pip install -r build-recipes\\win_build_requirements.txt
   # Install package
   - appveyor-retry pip install -e .[GUI]
