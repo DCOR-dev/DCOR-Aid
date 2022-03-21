@@ -1,4 +1,5 @@
 import logging
+import pathlib
 import pkg_resources
 import random
 import socket
@@ -6,6 +7,7 @@ import string
 import traceback as tb
 
 from PyQt5 import uic, QtCore, QtWidgets
+from PyQt5.QtCore import QStandardPaths
 
 from ...api import NoAPIKeyError, CKANAPI
 from ..tools import show_wait_cursor
@@ -26,20 +28,29 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         uic.loadUi(path_ui, self)
 
         self.setWindowTitle("DCOR-Aid Preferences")
+        # server
         self.show_server.connect(self.on_show_server)
         self.show_user.connect(self.on_show_user)
-        self.tabWidget.currentChanged.connect(self.on_tab_changed)
-        self.toolButton_uploads_apply.clicked.connect(self.on_uploads_apply)
-        self.toolButton_user_update.clicked.connect(self.on_update_user)
         self.toolButton_server_update.clicked.connect(self.on_update_server)
+        self.tabWidget.currentChanged.connect(self.on_tab_changed)
         self.toolButton_api_token_renew.clicked.connect(
             self.on_api_token_renew)
         self.toolButton_api_token_revoke.clicked.connect(
             self.on_api_token_revoke)
         self.toolButton_eye.clicked.connect(self.on_toggle_api_password_view)
+        # uploads
+        self.toolButton_uploads_apply.clicked.connect(self.on_uploads_apply)
+        # downloads
+        self.toolButton_downloads_browse.clicked.connect(
+            self.on_downloads_browse)
+        self.toolButton_downloads_apply.clicked.connect(
+            self.on_downloads_apply)
+        # account
+        self.toolButton_user_update.clicked.connect(self.on_update_user)
 
         self.settings = QtCore.QSettings()
         self.on_uploads_init()
+        self.on_downloads_init()
 
         self.logger = logging.getLogger(__name__)
 
@@ -135,6 +146,26 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             self.settings.remove("auth/api key")
             self.logger.info("Exiting, because user revoked API token.")
             QtWidgets.QApplication.quit()
+
+    def on_downloads_apply(self):
+        path = self.lineEdit_downloads_path.text()
+        self.settings.setValue("downloads/default path", path)
+
+    def on_downloads_browse(self):
+        default = self.settings.value("downloads/default path", ".")
+        path = QtWidgets.QFileDialog.getExistingDirectory(
+            self,
+            "Choose download location",
+            default,
+        )
+        if path and pathlib.Path(path).exists():
+            self.lineEdit_downloads_path.setText(path)
+
+    def on_downloads_init(self):
+        fallback = QStandardPaths.writableLocation(
+                      QStandardPaths.DownloadLocation)
+        dl_path = self.settings.value("downloads/default path", fallback)
+        self.lineEdit_downloads_path.setText(dl_path)
 
     @QtCore.pyqtSlot()
     def on_uploads_apply(self):

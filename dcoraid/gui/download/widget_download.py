@@ -26,6 +26,8 @@ class DownloadWidget(QtWidgets.QWidget):
             "dcoraid.gui.download", "widget_download.ui")
         uic.loadUi(path_ui, self)
 
+        self.settings = QtCore.QSettings()
+
         #: path to persistent shelf to be able to resume uploads on startup
         self.shelf_path = os_path.join(
             QStandardPaths.writableLocation(
@@ -58,8 +60,9 @@ class DownloadWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(str, bool)
     def download_resource(self, resource_id, condensed=False):
-        dl_path = QStandardPaths.writableLocation(
+        fallback = QStandardPaths.writableLocation(
                       QStandardPaths.DownloadLocation)
+        dl_path = self.settings.value("downloads/default path", fallback)
         self.widget_jobs.jobs.new_job(resource_id, dl_path, condensed)
 
 
