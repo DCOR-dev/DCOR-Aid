@@ -53,7 +53,7 @@ def test_queue_condensed():
     assert dj2.condensed
     dpath1 = dj1.get_download_path()
     dpath2 = dj2.get_download_path()
-    assert dpath1.parent.samefile(dpath2.parent)
+    assert str(dpath1.parent) == str(dpath2.parent)
     assert dpath1.stem + "_condensed" == dpath2.stem
     assert dpath1.suffix == dpath2.suffix
     assert dj1 in joblist
