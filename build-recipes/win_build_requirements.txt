@@ -1,9 +1,5 @@
 # Any additional requirements for building the application
-# https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut2/issues/64
-numpy<1.19.4
 # https://github.com/pyinstaller/pyinstaller/issues/5004
-pyinstaller>=4.2
-# pyinstaller is missing a hook for the latest release of scipy
-scipy<1.5.0
+pyinstaller>=4.7
 # https://github.com/pyinstaller/pyinstaller/issues/5631
 pyqt5==5.15.3
