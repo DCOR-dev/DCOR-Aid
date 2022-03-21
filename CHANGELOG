@@ -1,4 +1,7 @@
 0.11.0
+ - feat: support downloading condensed .rtdc files
+ - ref: download jobs no longer are identified via `resource_id`, but
+   via `job_id`, because we now have condensed resources
  - setup: bump dclab from 0.39.15 to 0.40.0
 0.10.0
  - feat: display paths to resources in Upload tab (#56)

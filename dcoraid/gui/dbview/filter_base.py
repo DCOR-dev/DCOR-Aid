@@ -7,7 +7,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 class FilterBase(QtWidgets.QWidget):
     #: The user selection has changed
     selection_changed = QtCore.pyqtSignal(list)
-    download_resource = QtCore.pyqtSignal(str)
+    download_resource = QtCore.pyqtSignal(str, bool)
 
     def __init__(self, *args, **kwargs):
         """Filter view widget with title, edit, checkbox, and table

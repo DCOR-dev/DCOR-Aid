@@ -9,7 +9,6 @@ import requests
 
 from ..common import sha256sum
 
-
 #: Valid job states (in more or less chronological order)
 JOB_STATES = [
     "init",  # initial
@@ -24,7 +23,7 @@ JOB_STATES = [
 
 
 class DownloadJob:
-    def __init__(self, api, resource_id, download_path):
+    def __init__(self, api, resource_id, download_path, condensed=False):
         """Wrapper for resource downloads
 
         The function `task_download_resource` performs the actual
@@ -43,10 +42,14 @@ class DownloadJob:
             If a directory is specified, that directory must exist.
             If the path to the local target is specified, its
             parent directory must exist.
+        condensed: bool
+            Whether to download the condensed dataset
         """
         self.api = api.copy()  # create a copy of the API
         self.resource_id = resource_id
+        self.job_id = resource_id + ("_cond" if condensed else "")
         self.path = pathlib.Path(download_path)
+        self.condensed = condensed
         self.path_temp = None
         self.state = None
         self.set_state("init")
@@ -75,6 +78,7 @@ class DownloadJob:
         dj_state = {
             "resource_id": self.resource_id,
             "download_path": str(self.path),
+            "condensed": self.condensed,
         }
         return dj_state
 
@@ -103,11 +107,32 @@ class DownloadJob:
         ds_dict = self.api.get("package_show", id=res_dict["package_id"])
         return ds_dict
 
+    def get_download_path(self):
+        """Return the final location to which the file will be downloaded"""
+        rsdict = self.get_resource_dict()
+        ds_name = self.get_dataset_dict()["name"]
+        if self.condensed and rsdict["mimetype"] == "RT-DC":
+            stem, suffix = rsdict["name"].rsplit(".", 1)
+            res_name = stem + "_condensed." + suffix
+        else:
+            res_name = rsdict["name"]
+        ds_dir = self.path / ds_name
+        ds_dir.mkdir(exist_ok=True, parents=True)
+        return ds_dir / res_name
+
     def get_resource_url(self):
         """Return a link to the resource on DCOR"""
-        ddict = self.get_resource_dict()
-        return f"{self.api.server}/dataset/{ddict['package_id']}" \
-               + f"/resource/{self.resource_id}/download/{ddict['name']}"
+        res_dict = self.get_resource_dict()
+        # If we have an .rtdc dataset and want the condensed version,
+        # we have a different download path.
+        if res_dict["mimetype"] == "RT-DC" and self.condensed:
+            dl_path = f"{self.api.server}/dataset/{res_dict['package_id']}" \
+                      + f"/resource/{self.resource_id}/condensed.rtdc"
+        else:
+            dl_path = f"{self.api.server}/dataset/{res_dict['package_id']}" \
+                      + f"/resource/{self.resource_id}/download/" \
+                      + f"{res_dict['name']}"
+        return dl_path
 
     def get_progress_string(self):
         """Return a nice string representation of the progress"""
@@ -116,7 +141,7 @@ class DownloadJob:
 
         if state in ["init", "transfer", "wait-disk"]:
             progress = "{:.0f}%".format(
-                status["bytes local"]/status["bytes total"]*100)
+                status["bytes local"] / status["bytes total"] * 100)
         elif state in ["downloaded", "verify", "done"]:
             progress = "100%"
         elif state in ["abort", "error"]:
@@ -136,9 +161,9 @@ class DownloadJob:
             rate_label = "-- kB/s"
         else:
             if rate > 1e6:
-                rate_label = "{:.1f} MB/s".format(rate/1e6)
+                rate_label = "{:.1f} MB/s".format(rate / 1e6)
             else:
-                rate_label = "{:.0f} kB/s".format(rate/1e3)
+                rate_label = "{:.0f} kB/s".format(rate / 1e3)
             if state != "transfer":
                 rate_label = "⌀ " + rate_label
         return rate_label
@@ -234,11 +259,7 @@ class DownloadJob:
             # set-up temporary path
             if self.path.is_dir():
                 # if a directory is given, we prepend the dataset name
-                ds_name = self.get_dataset_dict()["name"]
-                res_name = self.get_resource_dict()["name"]
-                ds_dir = self.path / ds_name
-                ds_dir.mkdir(exist_ok=True, parents=True)
-                self.path = ds_dir / res_name
+                self.path = self.get_download_path()
             if self.path.exists():
                 self.start_time = None
                 self.end_time = None
@@ -247,7 +268,18 @@ class DownloadJob:
             else:
                 self.path_temp = self.path.with_name(self.path.name + "~")
                 # check for disk space
-                size = self.get_resource_dict()["size"]
+                if self.condensed:
+                    # get the size from the server
+                    url = self.get_resource_url()
+                    req = requests.get(url,
+                                       stream=True,
+                                       headers=self.api.headers,
+                                       verify=self.api.verify,
+                                       timeout=29.9,
+                                       )
+                    size = int(req.headers["Content-length"])
+                else:
+                    size = self.get_resource_dict()["size"]
                 if shutil.disk_usage(self.path_temp.parent).free < size:
                     # there is not enough space on disk for the download
                     self.set_state("wait-disk")
@@ -274,7 +306,7 @@ class DownloadJob:
                     with requests.get(url, stream=True, headers=headers) as r:
                         r.raise_for_status()
                         with self.path_temp.open('ab') as f:
-                            chunk_size = 1024*1024
+                            chunk_size = 1024 * 1024
                             for chunk in r.iter_content(chunk_size=chunk_size):
                                 # If you have chunk encoded response uncomment
                                 # if and set chunk_size parameter to None.
@@ -297,15 +329,23 @@ class DownloadJob:
                 self.set_state("done")
             else:  # only verify if we have self.temp_path
                 self.set_state("verify")
-                # First check whether all SHA256 sums are already available
-                # online
-                if (self.get_resource_dict()["sha256"]
-                        != sha256sum(self.path_temp)):
-                    self.set_state("error")
-                    self.traceback = "SHA256 sum check failed!"
-                else:
+                if self.condensed:
+                    # do not perform SHA256 check
+                    # TODO:
+                    #  - Check whether the condensed file can be opened
+                    #    with dclab?
                     self.path_temp.rename(self.path)
                     self.set_state("done")
+                else:
+                    # First check whether all SHA256 sums are already available
+                    # online
+                    if (self.get_resource_dict()["sha256"]
+                            != sha256sum(self.path_temp)):
+                        self.set_state("error")
+                        self.traceback = "SHA256 sum check failed!"
+                    else:
+                        self.path_temp.rename(self.path)
+                        self.set_state("done")
         elif self.state != "done":  # ignore state "done" [sic!]
             # Only issue this warning if the download is not already done.
             warnings.warn("Resource verification is only possible when state "

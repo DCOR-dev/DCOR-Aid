@@ -9,7 +9,7 @@ from ..api import get_ckan_api
 
 
 class FilterChain(QtWidgets.QWidget):
-    download_resource = QtCore.pyqtSignal(str)
+    download_resource = QtCore.pyqtSignal(str, bool)
 
     def __init__(self, *args, **kwargs):
         """Filter chain widget with multiple filter views

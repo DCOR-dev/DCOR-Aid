@@ -20,51 +20,48 @@ class PersistentDownloadJobList:
         self.path_queued.mkdir(parents=True, exist_ok=True)
 
     def __contains__(self, item):
-        if isinstance(item, DownloadJob):
-            resource_id = item.resource_id
-        else:
-            resource_id = item
-        return self.job_exists(resource_id)
+        assert isinstance(item, DownloadJob)
+        return self.job_exists(item)
 
     @property
     def num_queued(self):
         """Return number of queued tasks"""
         return len(list(self.path_queued.glob("*.json")))
 
-    def get_queued_resource_ids(self):
-        """Return list of DCOR resource IDs corresponding to queued jobs"""
-        return sorted([pp.stem for pp in self.path_queued.glob("*.json")])
+    def _get_job_path(self, download_job):
+        name = download_job.job_id + ".json"
+        return self.path_queued / name
 
-    def is_job_queued(self, resource_id):
-        jp = self.path_queued / (resource_id + ".json")
-        return jp.exists()
+    def get_queued_jobs(self, api):
+        """Return list of DCOR resource IDs corresponding to queued jobs"""
+        jobs = []
+        for pp in self.path_queued.glob("*.json"):
+            dj = load_task(path=pp, api=api)
+            jobs.append(dj)
+        return jobs
+
+    def is_job_queued(self, download_job):
+        return self._get_job_path(download_job).exists()
 
     def immortalize_job(self, download_job):
         """Put this job in the persistent queue list"""
-        pout = self.path_queued / (download_job.resource_id + ".json")
-        if self.is_job_queued(download_job.resource_id):
-            raise FileExistsError(f"The job '{download_job.resource_id}' is "
+        pout = self._get_job_path(download_job)
+        if self.is_job_queued(download_job):
+            raise FileExistsError(f"The job '{download_job.job_id}' is "
                                   f"already present at '{pout}'!")
         save_task(download_job=download_job, path=pout)
 
-    def job_exists(self, resource_id):
-        return self.is_job_queued(resource_id)
+    def job_exists(self, download_job):
+        return self.is_job_queued(download_job)
 
-    def obliterate_job(self, resource_id):
+    def obliterate_job(self, download_job):
         """Remove a job from the persistent queue list"""
-        pdel = self.path_queued / (resource_id + ".json")
+        pdel = self._get_job_path(download_job)
         pdel.unlink()
 
-    def set_job_done(self, resource_id):
+    def set_job_done(self, download_job):
         """Remove a job from the persistent queue list"""
-        self.obliterate_job(resource_id)
-
-    def summon_job(self, resource_id, api, cache_dir=None):
-        """Instantiate job from the persistent queue list"""
-        pin = self.path_queued / (resource_id + ".json")
-        download_job = load_task(path=pin, api=api)
-        assert download_job.resource_id == resource_id
-        return download_job
+        self.obliterate_job(download_job)
 
 
 class DownloadQueue:
@@ -87,8 +84,7 @@ class DownloadQueue:
             self.jobs_eternal = PersistentDownloadJobList(
                 path_persistent_job_list)
             # add any previously queued jobs
-            for resource_id in self.jobs_eternal.get_queued_resource_ids():
-                dj = self.jobs_eternal.summon_job(resource_id, api=self.api)
+            for dj in self.jobs_eternal.get_queued_jobs(self.api):
                 self.jobs.append(dj)
         else:
             self.jobs_eternal = None
@@ -111,9 +107,9 @@ class DownloadQueue:
     def __len__(self):
         return len(self.jobs)
 
-    def abort_job(self, resource_id):
+    def abort_job(self, job_id):
         """Abort a running job but don't remove it from the queue"""
-        job = self.get_job(resource_id)
+        job = self.get_job(job_id)
         if job.state == "transfer":
             job.set_state("abort")
             # https://github.com/requests/toolbelt/issues/297
@@ -124,27 +120,27 @@ class DownloadQueue:
         """Add a DownloadJob to the queue"""
         if self.jobs_eternal is not None:
             if download_job in self.jobs_eternal:
-                self.jobs_eternal.obliterate_job(download_job.resource_id)
+                self.jobs_eternal.obliterate_job(download_job)
             # Add to eternal jobs for persistence
             self.jobs_eternal.immortalize_job(download_job)
         try:
-            self.get_job(download_job.resource_id)
+            self.get_job(download_job.job_id)
         except KeyError:
             self.jobs.append(download_job)
 
-    def get_job(self, resource_id):
+    def get_job(self, job_id):
         """Return the queued DownloadJob belonging to the resource ID"""
         for job in self.jobs:
-            if job.resource_id == resource_id:
+            if job.job_id == job_id:
                 return job
         else:
-            raise KeyError("Job '{}' not found!".format(resource_id))
+            raise KeyError("Job '{}' not found!".format(job_id))
 
-    def get_status(self, resource_id):
+    def get_status(self, job_id):
         """Return the status of an downloadJob"""
-        self.get_job(resource_id).get_status()
+        self.get_job(job_id).get_status()
 
-    def new_job(self, resource_id, download_path):
+    def new_job(self, resource_id, download_path, condensed=False):
         """Create an downloadJob and add it to the download queue
 
         Parameters
@@ -153,6 +149,8 @@ class DownloadQueue:
             The CKAN/DCOR dataset ID
         download_path: str or pathlib.Path
             Download path
+        condensed: bool
+            Whether to download the condensed version.
 
         Returns
         -------
@@ -163,30 +161,31 @@ class DownloadQueue:
             api=self.api,
             resource_id=resource_id,
             download_path=download_path,
+            condensed=condensed,
         )
         self.add_job(download_job)
         return download_job
 
-    def remove_job(self, resource_id):
+    def remove_job(self, job_id):
         """Remove a DownloadJob from the queue and perform cleanup
 
         Running jobs are aborted before they are removed.
         """
-        self.abort_job(resource_id)
+        dj = self.get_job(job_id)
+        self.abort_job(job_id)
         for ii, job in enumerate(list(self.jobs)):
-            if job.resource_id == resource_id:
+            if job.job_id == job_id:
                 self.jobs.pop(ii)
                 # cleanup temp files
                 try:
                     job.path_temp.unlink()
                 except BaseException:
                     pass
-            elif job.state == "abort":
-                job.set_state("init")
+                break
         # also remove from eternal jobs
         if (self.jobs_eternal is not None
-                and self.jobs_eternal.is_job_queued(resource_id)):
-            self.jobs_eternal.obliterate_job(resource_id)
+                and self.jobs_eternal.is_job_queued(dj)):
+            self.jobs_eternal.obliterate_job(dj)
 
 
 class DownloadDaemon(Daemon):

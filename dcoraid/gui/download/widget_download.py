@@ -56,11 +56,11 @@ class DownloadWidget(QtWidgets.QWidget):
             self.init_timer.setInterval(3000)
             self.init_timer.start()
 
-    @QtCore.pyqtSlot(str)
-    def download_resource(self, resource_id):
+    @QtCore.pyqtSlot(str, bool)
+    def download_resource(self, resource_id, condensed=False):
         dl_path = QStandardPaths.writableLocation(
                       QStandardPaths.DownloadLocation)
-        self.widget_jobs.jobs.new_job(resource_id, dl_path)
+        self.widget_jobs.jobs.new_job(resource_id, dl_path, condensed)
 
 
 class DownloadTableWidget(QtWidgets.QTableWidget):
@@ -89,21 +89,22 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
         self.jobs = jobs
 
     @QtCore.pyqtSlot(str)
-    def on_job_abort(self, resource_id):
-        self.jobs.abort_job(resource_id)
+    def on_job_abort(self, job_id):
+        self.jobs.abort_job(job_id)
 
     @QtCore.pyqtSlot(str)
-    def on_job_delete(self, resource_id):
-        self.jobs.remove_job(resource_id)
+    def on_job_delete(self, job_id):
+        self.jobs.remove_job(job_id)
         self.clearContents()
         self.update_job_status()
 
     @QtCore.pyqtSlot(str)
-    def on_download_finished(self, resource_id):
+    def on_download_finished(self, job_id):
         """Triggers download_finished whenever a download is finished"""
-        if resource_id not in self._finished_downloads:
-            self._finished_downloads.append(resource_id)
-            self.jobs.jobs_eternal.set_job_done(resource_id)
+        if job_id not in self._finished_downloads:
+            self._finished_downloads.append(job_id)
+            dj = self.jobs.get_job(job_id)
+            self.jobs.jobs_eternal.set_job_done(dj)
             self.download_finished.emit()
 
     @QtCore.pyqtSlot()
@@ -117,7 +118,7 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
 
         for row, job in enumerate(self.jobs):
             status = job.get_status()
-            self.set_label_item(row, 0, job.resource_id[:5])
+            self.set_label_item(row, 0, job.job_id[:5])
             try:
                 title = get_download_title(job)
             except BaseException:
@@ -128,7 +129,7 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
             self.set_label_item(row, 3, job.get_progress_string())
             self.set_label_item(row, 4, job.get_rate_string())
             if status["state"] == "done":
-                self.on_download_finished(job.resource_id)
+                self.on_download_finished(job.job_id)
             self.set_actions_item(row, 5, job)
 
         # spacing (did not work in __init__)
@@ -188,7 +189,7 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
                  },
                 {"icon": "trash",
                  "tooltip": f"abort download {res_dict['name']}",
-                 "function": partial(self.on_job_delete, job.resource_id)
+                 "function": partial(self.on_job_delete, job.job_id)
                  },
             ]
             for action in actions:
@@ -207,6 +208,8 @@ def get_download_title(job):
     title = ds_dict.get("title")
     if not title:
         title = ds_dict.get("name")
+    if job.condensed:
+        title += " (condensed)"
     return f"{res_dict['name']} [{title}]"
 
 

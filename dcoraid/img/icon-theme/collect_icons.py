@@ -42,6 +42,8 @@ icons = {
         "preferences-activities",
     ],
     "fontawesome": [
+        "angle-down",
+        "angles-down",
         "ban",
         "book",
         "broom",
@@ -97,8 +99,9 @@ Type=Fixed
 local_root = pathlib.Path("/usr/share/icons")
 web_roots = {
     "fontawesome": collections.OrderedDict(
+        # SVG files are CC BY 4.0 License
         solid="https://raw.githubusercontent.com/FortAwesome/"
-              + "Font-Awesome/master/svgs/solid/"
+              + "Font-Awesome/6.x/svgs/solid/"
     )}
 
 

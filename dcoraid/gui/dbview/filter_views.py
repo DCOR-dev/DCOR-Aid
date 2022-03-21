@@ -37,7 +37,16 @@ class FilterCollections(filter_base.FilterBase):
         self.checkBox.setVisible(False)
         self.label_info.setVisible(False)
 
-    def download_collection(self, collection_name):
+    def download_collection(self, collection_name, condensed=False):
+        """Emit signals to download all resources of a collection
+
+        Parameters
+        ----------
+        collection_name: str
+            Name of the collection
+        condensed: bool
+            Whether to download condensed resources instead
+        """
         with ShowWaitCursor():
             api = get_ckan_api()
             search_dict = api.get("package_search",
@@ -53,7 +62,7 @@ class FilterCollections(filter_base.FilterBase):
                     f"There are too many datasets in '{collection_name}'!")
             for ii, ds_dict in enumerate(search_dict["results"]):
                 for res_dict in ds_dict["resources"]:
-                    self.download_resource.emit(res_dict["id"])
+                    self.download_resource.emit(res_dict["id"], condensed)
                     QtWidgets.QApplication.processEvents(
                         QtCore.QEventLoop.AllEvents,
                         300)
@@ -62,9 +71,13 @@ class FilterCollections(filter_base.FilterBase):
         api = get_ckan_api()
         url = f"{api.server}/group/{entry['name']}"
         actions = [
-            {"icon": "download",
+            {"icon": "angle-down",
              "tooltip": f"download collection {entry['name']}",
              "function": partial(self.download_collection, entry["name"])},
+            {"icon": "angles-down",
+             "tooltip": f"download condensed collection {entry['name']}",
+             "function": partial(self.download_collection, entry["name"],
+                                 condensed=True)},
             {"icon": "eye",
              "tooltip": f"view collection {entry['name']} online",
              "function": partial(webbrowser.open, url)}
@@ -80,19 +93,20 @@ class FilterDatasets(filter_base.FilterBase):
         self.checkBox.setVisible(False)
         self.label_info.setVisible(False)
 
-    @QtCore.pyqtSlot(str)
-    def download_dataset(self, dataset_id):
+    def download_dataset(self, dataset_id, condensed=False):
         """Emit signals to download all resources of a dataset
 
         Parameters
         ----------
         dataset_id: str
             dataset ID
+        condensed: bool
+            Whether to download condensed resources instead
         """
         api = get_ckan_api()
         ds_dict = api.get("package_show", id=dataset_id)
         for res_dict in ds_dict["resources"]:
-            self.download_resource.emit(res_dict["id"])
+            self.download_resource.emit(res_dict["id"], condensed)
             QtWidgets.QApplication.processEvents(
                 QtCore.QEventLoop.AllEvents,
                 300)
@@ -101,9 +115,13 @@ class FilterDatasets(filter_base.FilterBase):
         api = get_ckan_api()
         url = f"{api.server}/dataset/{entry['name']}"
         actions = [
-            {"icon": "download",
+            {"icon": "angle-down",
              "tooltip": f"download dataset {entry['name']}",
              "function": partial(self.download_dataset, entry["id"])},
+            {"icon": "angles-down",
+             "tooltip": f"download condensed dataset {entry['name']}",
+             "function": partial(self.download_dataset, entry["id"],
+                                 condensed=True)},
             {"icon": "eye",
              "tooltip": f"view dataset {entry['name']} online",
              "function": partial(webbrowser.open, url)},
@@ -130,9 +148,14 @@ class FilterResources(filter_base.FilterBase):
         url = f"{api.server}/dataset/{entry['package_id']}/" \
               + f"resource/{entry['id']}"
         actions = [
-            {"icon": "download",
+            {"icon": "angle-down",
              "tooltip": f"download resource {entry['name']}",
-             "function": partial(self.download_resource.emit, entry["id"])},
+             "function": partial(self.download_resource.emit,
+                                 entry["id"], False)},
+            {"icon": "angles-down",
+             "tooltip": f"download condensed resource {entry['name']}",
+             "function": partial(self.download_resource.emit,
+                                 entry["id"], True)},
             {"icon": "eye",
              "tooltip": f"view resource {entry['name']} online",
              "function": partial(webbrowser.open, url)},

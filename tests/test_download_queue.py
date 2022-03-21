@@ -36,6 +36,30 @@ def test_queue_basic_functionalities():
     assert samejob2 is dj
 
 
+def test_queue_condensed():
+    api = common.get_api()
+    td = tempfile.mkdtemp(prefix="test-download")
+    ds_dict = common.make_dataset_for_download()
+    joblist = DownloadQueue(api=api)
+    resource_id = ds_dict["resources"][0]["id"]
+    dj1 = joblist.new_job(resource_id=resource_id,
+                          download_path=td,
+                          condensed=False)
+    dj2 = joblist.new_job(resource_id=resource_id,
+                          download_path=td,
+                          condensed=True)
+    assert dj1.job_id != dj2.job_id
+    assert not dj1.condensed
+    assert dj2.condensed
+    dpath1 = dj1.get_download_path()
+    dpath2 = dj2.get_download_path()
+    assert dpath1.parent.samefile(dpath2.parent)
+    assert dpath1.stem + "_condensed" == dpath2.stem
+    assert dpath1.suffix == dpath2.suffix
+    assert dj1 in joblist
+    assert dj2 in joblist
+
+
 def test_queue_remove_job():
     """Remove a job from the queue and from the persistent list"""
     api = common.get_api()
@@ -55,7 +79,7 @@ def test_queue_remove_job():
     assert dj.state == "init"
     joblist.remove_job(resource_id)
     assert dj not in joblist
-    assert not joblist.jobs_eternal.job_exists(resource_id)
+    assert not joblist.jobs_eternal.job_exists(dj)
 
     # adding it again should work
     dj2 = joblist.new_job(resource_id=resource_id,
@@ -83,11 +107,10 @@ def test_persistent_download_joblist_basic():
     assert dj.resource_id in pdjl
 
     # find that job
-    dj_same = pdjl.summon_job(resource_id, api=api)
+    cur_jobs = pdjl.get_queued_jobs(api)
+    dj_same = cur_jobs[0]
     assert dj_same is not dj, "not same instance"
     assert dj_same.__getstate__() == dj.__getstate__(), "same data"
-    ids = pdjl.get_queued_resource_ids()
-    assert dj.resource_id in ids
 
     # remove a job
     assert pdjl.job_exists(dj.resource_id)
@@ -156,7 +179,7 @@ def test_persistent_download_joblist_skip_queued_resources():
     assert dq.jobs_eternal.num_queued == 1
 
     # sanity check
-    assert pdjl.is_job_queued(resource_id)
+    assert pdjl.is_job_queued(dj)
 
     same_job = DownloadJob.from_download_job_state(dj.__getstate__(), api=api)
     dq.add_job(same_job)
