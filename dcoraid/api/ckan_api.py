@@ -1,9 +1,9 @@
 import copy
-from distutils.version import LooseVersion
 import functools
 import json
 import warnings
 
+from dclab.external.packaging import parse as parse_version
 import requests
 
 from .._version import version
@@ -92,7 +92,7 @@ class CKANAPI:
         api = CKANAPI(server=server, ssl_verify=ssl_verify,
                       check_ckan_version=False)
         version_act = api.get("status_show")["ckan_version"]
-        if LooseVersion(version_act) < LooseVersion(MIN_CKAN_VERSION):
+        if parse_version(version_act) < parse_version(MIN_CKAN_VERSION):
             raise ValueError(
                 f"DCOR-Aid requires CKAN version {MIN_CKAN_VERSION}, but "
                 + f"the server {api.server} is running CKAN {version_act}. "

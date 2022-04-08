@@ -1,5 +1,7 @@
 0.11.1
  - fix: CLI did not verify individual upload steps (#59)
+ - enh: add additional step "wait-dcor" during verification task (#54)
+ - ref: get rid of distutils dependency
 0.11.0
  - feat: support downloading condensed .rtdc files
  - enh: allow user to choose download location via preferences (#43)

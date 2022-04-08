@@ -20,6 +20,7 @@ JOB_STATES = [
     "parcel",  # ready for upload
     "transfer",  # upload in progress
     "online",  # dataset has been transferred
+    "wait-dcor",  # resources are processed by DCOR
     "verify",  # perform SHA256 sum verification
     "finalize",  # CKAN dataset is being activated
     "done",  # job finished
@@ -180,7 +181,7 @@ class UploadJob(object):
                 status["bytes uploaded"]/status["bytes total"]*100,
                 status["files uploaded"]+1,
                 status["files total"])
-        elif state in ["finalize", "online", "verify", "done"]:
+        elif state in ["finalize", "online", "wait-dcor", "verify", "done"]:
             progress = "100% ({} file{})".format(status["files total"],
                                                  plural)
         elif state in ["abort", "error"]:
@@ -188,7 +189,7 @@ class UploadJob(object):
                                                   status["files total"],
                                                   plural)
         elif state in JOB_STATES:
-            # seems like you missed to update a case here?
+            # seems like you missed updating a case here?
             warnings.warn(f"Please add state '{state}' to these cases!")
             progress = "undefined"
         return progress
@@ -432,14 +433,28 @@ class UploadJob(object):
     def task_verify_resources(self):
         """Perform SHA256 verification"""
         if self.state == "online":
-            # First check whether all SHA256 sums are already available online
-            sha256dict = resource_sha256_sums(
-                dataset_id=self.dataset_id,
-                api=self.api)
-            if sum([sha256dict[name] is None for name in sha256dict]) != 0:
-                # only start verification if all SHA256 sums are available
-                pass
+            # Make sure that all SHA256 sums are already available online.
+            for ii in range(500):
+                sha256dict = resource_sha256_sums(
+                    dataset_id=self.dataset_id,
+                    api=self.api)
+                missing = [n for n in sha256dict if sha256dict[n] is None]
+                if missing:
+                    self.set_state("wait-dcor")
+                    time.sleep(1)
+                    continue
+                else:
+                    # all SHA256 sums are available
+                    break
             else:
+                # things are taking too long
+                self.set_state("error")
+                msg_parts = ["SHA256 sums not computed by DCOR:"]
+                msg_parts += [f" - {name}" for name in missing]
+                self.traceback = "\n".join(msg_parts)
+
+            # Only start verification if all SHA256 sums are available.
+            if not missing:
                 self.set_state("verify")
                 bad_sha256 = []
                 for ii, path in enumerate(self.paths):
