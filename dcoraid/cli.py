@@ -20,6 +20,20 @@ def monitor_upload_progress(upload_job):
         print("")
 
 
+def ascertain_state_or_bust(upload_job, state):
+    """If `upload_job.state != `state`, raise an exception"""
+    if upload_job.state != state:
+        if upload_job.state == "error":
+            print(f"Job {upload_job} encountered an error:")
+            print(upload_job.traceback)
+            raise ValueError("See message above!")
+        else:
+            raise ValueError(
+                f"The upload job {upload_job} should be in the state "
+                + f"'{state}', but it's state is '{upload_job.state}'!"
+            )
+
+
 def upload_task(path_task=None, server=None, api_key=None, ret_job=False):
     """Upload a .dcoraid-task file to a DCOR instance"""
     if path_task is None or server is None or api_key is None:
@@ -39,6 +53,8 @@ def upload_task(path_task=None, server=None, api_key=None, ret_job=False):
     print(f"Dataset ID is {uj.dataset_id}.")
     print("Compressing resources.")
     uj.task_compress_resources()
+    ascertain_state_or_bust(uj, "parcel")
+
     print("Uploading resources.")
     # thread that prints the upload progress
     monitor_thread = threading.Thread(target=monitor_upload_progress,
@@ -48,8 +64,10 @@ def upload_task(path_task=None, server=None, api_key=None, ret_job=False):
     monitor_thread.start()
     uj.task_upload_resources()
     monitor_thread.join()
+    ascertain_state_or_bust(uj, "online")
     print("Verifying upload.")
     uj.task_verify_resources()
+    ascertain_state_or_bust(uj, "done")
     print("Done.")
     if ret_job:
         return uj

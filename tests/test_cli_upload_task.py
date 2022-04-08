@@ -1,5 +1,7 @@
+import io
 import json
 import pathlib
+from unittest import mock
 
 import pytest
 
@@ -15,6 +17,7 @@ def test_cli_basic():
     uj = cli.upload_task(path_task, api.server, api.api_key, ret_job=True)
     pkg_dict = api.get("package_show", id=uj.dataset_id)
     assert pkg_dict["resources"][0]["name"] == "cli_upload.rtdc"
+    assert pkg_dict["state"] == "active"
 
 
 @pytest.mark.parametrize("entry,emsg",
@@ -31,3 +34,16 @@ def test_cli_fail_if_no_entries_missing(entry, emsg):
     api = get_api()
     with pytest.raises(errors.APIConflictError, match=emsg):
         cli.upload_task(path_task, api.server, api.api_key)
+
+
+@mock.patch("dcoraid.upload.job.sha256sum",
+            side_effect=["BAD SHA", "BAD SHA2", "BAD SHA3"])
+@mock.patch('sys.stdout', new_callable=io.StringIO)
+def test_cli_fail_upload(mock_stdout, mock_sha256sum):
+    path_task = make_upload_task(resource_names=["cli_upload.rtdc"])
+    api = get_api()
+    with pytest.raises(ValueError, match="See message above!"):
+        cli.upload_task(path_task, api.server, api.api_key, ret_job=True)
+    stdout_printed = mock_stdout.getvalue()
+    assert "SHA256 sum failed for resources" in stdout_printed
+    assert "'cli_upload.rtdc' (BAD SHA vs." in stdout_printed
