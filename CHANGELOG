@@ -1,6 +1,7 @@
 0.11.2
  - fix: make sure self-signed SSL certificates of DCOR-med instances
    are used everywhere (#61)
+ - fix: raise error when an .rtdc file contains undefined features (#55)
  - ref: move dcor access token code to dclab
  - setup: bump dclab from 0.40.0 to 0.41.0
 0.11.1

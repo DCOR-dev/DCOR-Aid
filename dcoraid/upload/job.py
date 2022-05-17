@@ -316,12 +316,18 @@ class UploadJob(object):
                 with IntegrityChecker(path) as ic:
                     # check for compression
                     cdata = ic.check_compression()[0].data
-                    # perform a sanity check
+                    # perform a sanity check for messy data
                     insane = [c.msg for c in ic.sanity_check()]
+                    # check for features not defined in dclab
+                    insane += [c.msg for c in ic.check_features_unknown_hdf5()]
                     if insane:
                         # The user is responsible for cleaning up the mess.
                         # We just make sure no dirty data gets uploaded to
                         # DCOR.
+                        # The check_features_unknown_hdf5 cues are not messy,
+                        # but the dclab-compressed file would not contain such
+                        # features. So we just fail and let the user remove
+                        # the features knowingly (e.g. via DCKit).
                         raise IOError(f"Sanity check failed for {path}!\n"
                                       + "\n".join(insane))
                 if cdata["uncompressed"]:  # (partially) not compressed?
