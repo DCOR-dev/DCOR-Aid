@@ -1,3 +1,6 @@
+0.11.2
+ - setup: bump dclab from 0.40.0 to 0.41.0
+ - ref: move dcor access token code to dclab
 0.11.1
  - fix: CLI did not verify individual upload steps (#59)
  - enh: add additional step "wait-dcor" during verification task (#54)

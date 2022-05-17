@@ -2,11 +2,10 @@ import pkg_resources
 import sys
 import uuid
 
+from dclab.rtdc_dataset.fmt_dcor import access_token
 from PyQt5 import uic, QtCore, QtWidgets
 
 from ...api import NoAPIKeyError, CKANAPI
-
-from .import access_token
 
 
 def get_dcor_dev_api_key():
