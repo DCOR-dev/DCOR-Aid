@@ -303,7 +303,11 @@ class DownloadJob:
                         # resume previous download
                         bytes_present = self.path_temp.stat().st_size
                         headers["Range"] = f"bytes={bytes_present}-"
-                    with requests.get(url, stream=True, headers=headers) as r:
+                    with requests.get(url,
+                                      stream=True,
+                                      headers=headers,
+                                      verify=self.api.verify,
+                                      timeout=29.9) as r:
                         r.raise_for_status()
                         with self.path_temp.open('ab') as f:
                             chunk_size = 1024 * 1024

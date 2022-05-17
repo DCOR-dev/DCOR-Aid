@@ -5,7 +5,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ..common import ConnectionTimeoutErrors
 
-from .api import get_ckan_api
+from .api import get_ckan_api, setup_certificate_file
 
 
 class StatusWidget(QtWidgets.QWidget):
@@ -59,7 +59,9 @@ class StatusWidget(QtWidgets.QWidget):
         favname = dldir / (server.split("://")[1] + "_favicon.ico")
         if not favname.exists():
             try:
-                r = requests.get(server + "/favicon.ico", timeout=3.05)
+                r = requests.get(server + "/favicon.ico",
+                                 verify=setup_certificate_file(),
+                                 timeout=3.05)
                 if r.ok:
                     with favname.open("wb") as fd:
                         fd.write(r.content)
