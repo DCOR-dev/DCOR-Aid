@@ -1,3 +1,6 @@
+0.11.3
+ - setup: bump dclab from 0.42.0 to 0.43.0 (improved compression)
+ - setup: include zstandard library in distribution installer
 0.11.2
  - fix: make sure self-signed SSL certificates of DCOR-med instances
    are used everywhere (#61)

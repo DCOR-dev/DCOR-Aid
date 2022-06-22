@@ -14,4 +14,7 @@ from PyInstaller.utils.hooks import collect_data_files
 datas = collect_data_files("dcoraid", include_py_files=True)
 datas += collect_data_files("dcoraid", subdir="img")
 
+# Add the Zstandard library used by dclab
+datas += collect_data_files("hdf5plugin", includes=["plugins/libh5zstd.*"])
+
 hiddenimports = ["dclab.cli", "requests_toolbelt"]
