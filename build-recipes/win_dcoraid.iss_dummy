@@ -23,7 +23,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={localappdata}\{#MyAppPublisher}\{#MyAppName}
+DefaultDirName={autopf}\{#MyAppName}
 DisableDirPage=yes
 UsePreviousAppDir=false
 DefaultGroupName={#MyAppName}
@@ -33,6 +33,8 @@ Compression=lzma
 SolidCompression=yes
 ChangesAssociations=yes
 PrivilegesRequired=lowest
+PrivilegesRequiredOverridesAllowed=dialog
+WizardStyle=modern
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

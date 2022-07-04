@@ -1,7 +1,10 @@
 import argparse
 from argparse import RawTextHelpFormatter
+import pathlib
 import threading
 import time
+import traceback
+import sys
 
 from .api import CKANAPI
 from .upload import task
@@ -36,41 +39,61 @@ def ascertain_state_or_bust(upload_job, state):
 
 def upload_task(path_task=None, server=None, api_key=None, ret_job=False):
     """Upload a .dcoraid-task file to a DCOR instance"""
-    if path_task is None or server is None or api_key is None:
-        parser = upload_task_parser()
-        args = parser.parse_args()
-        path_task = args.path_task
-        server = args.server
-        api_key = args.api_key
+    # Initialize with None, otherwise we might get issues if parsing
+    # of the arguments fails or in `finally`.
+    path_error = None
+    uj = None
+    exit_status = 1  # fails by default if there is no success
+    try:
+        if path_task is None or server is None or api_key is None:
+            parser = upload_task_parser()
+            args = parser.parse_args()
+            path_task = args.path_task
+            server = args.server
+            api_key = args.api_key
+        path_task = pathlib.Path(path_task)
+        path_error = path_task.parent / (path_task.name + "_error.txt")
 
-    print("Initializing.")
-    # set up the api
-    api = CKANAPI(server, api_key=api_key)
-    # load the .dcoraid-task file
-    uj = task.load_task(path_task,
-                        api=api,
-                        update_dataset_id=True)
-    print(f"Dataset ID is {uj.dataset_id}.")
-    print("Compressing resources.")
-    uj.task_compress_resources()
-    ascertain_state_or_bust(uj, "parcel")
+        print("Initializing.")
+        # set up the api
+        api = CKANAPI(server, api_key=api_key)
+        # load the .dcoraid-task file
+        uj = task.load_task(path_task,
+                            api=api,
+                            update_dataset_id=True)
+        print(f"Dataset ID is {uj.dataset_id}.")
+        print("Compressing resources.")
+        uj.task_compress_resources()
+        ascertain_state_or_bust(uj, "parcel")
 
-    print("Uploading resources.")
-    # thread that prints the upload progress
-    monitor_thread = threading.Thread(target=monitor_upload_progress,
-                                      name="Upload Monitor",
-                                      args=(uj,),
-                                      daemon=True)
-    monitor_thread.start()
-    uj.task_upload_resources()
-    monitor_thread.join()
-    ascertain_state_or_bust(uj, "online")
-    print("Verifying upload.")
-    uj.task_verify_resources()
-    ascertain_state_or_bust(uj, "done")
-    print("Done.")
-    if ret_job:
-        return uj
+        print("Uploading resources.")
+        # thread that prints the upload progress
+        monitor_thread = threading.Thread(target=monitor_upload_progress,
+                                          name="Upload Monitor",
+                                          args=(uj,),
+                                          daemon=True)
+        monitor_thread.start()
+        uj.task_upload_resources()
+        monitor_thread.join()
+        ascertain_state_or_bust(uj, "online")
+        print("Verifying upload.")
+        uj.task_verify_resources()
+        ascertain_state_or_bust(uj, "done")
+        print("Done.")
+    except BaseException:
+        # Write errors to errors file
+        print(traceback.format_exc())
+        if path_error is not None:
+            path_error.write_text(traceback.format_exc())
+    else:
+        if path_error.exists():
+            path_error.unlink(missing_ok=True)
+        exit_status = 0
+    finally:
+        if ret_job and not exit_status:
+            return uj
+        # return sys.exit for testing (monkeypatched)
+        return sys.exit(exit_status)
 
 
 def upload_task_parser():
