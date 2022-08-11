@@ -2,6 +2,7 @@
 from os.path import exists
 import warnings
 
+import dcoraid
 
 NAME = "DCOR-Aid"
 
@@ -27,7 +28,7 @@ exe = EXE(pyz,
           strip=False,
           upx=False,
           icon=NAME + ".ico",
-          console=False)
+          console=bool(dcoraid.__version__.count("post")),)
 
 coll = COLLECT(exe,
                a.binaries,

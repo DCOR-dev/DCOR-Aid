@@ -77,6 +77,9 @@ class DCORAid(QtWidgets.QMainWindow):
         for pp in log_entries[10:]:
             pp.unlink()
 
+        self.logger = logging.getLogger(__name__)
+        self.logger.info(f"DCOR-Aid {__version__}")
+
         #: DCOR-Aid settings
         self.settings = QtCore.QSettings()
         path_ui = pkg_resources.resource_filename(

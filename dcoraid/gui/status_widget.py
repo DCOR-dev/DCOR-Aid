@@ -1,5 +1,7 @@
+import logging
 import pathlib
 import requests
+import traceback
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -94,6 +96,7 @@ class StatusWidetUpdateWorker(QtCore.QRunnable):
     def __init__(self):
         super(StatusWidetUpdateWorker, self).__init__()
         self.signal = StatusWidetUpdateWorkerSignals()
+        self.logger = logging.getLogger(__name__)
 
     @QtCore.pyqtSlot()
     def run(self):
@@ -120,6 +123,7 @@ class StatusWidetUpdateWorker(QtCore.QRunnable):
             try:
                 user_data = api.get_user_dict()
             except ConnectionTimeoutErrors:
+                self.logger.error(traceback.format_exc())
                 text = "Connection timeout"
                 tip = f"Can you access {api.server} via a browser?"
                 icon = "hourglass"
@@ -131,6 +135,7 @@ class StatusWidetUpdateWorker(QtCore.QRunnable):
                 text = "{}".format(fullname)
                 tip = "user '{}'".format(name)
                 icon = "user-lock"
+        self.logger.info(text)
         self.signal.state_signal.emit(text, tip, icon, api.server)
 
 

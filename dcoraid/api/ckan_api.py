@@ -1,6 +1,8 @@
 import copy
 import functools
 import json
+import logging
+import traceback
 import warnings
 
 from dclab.external.packaging import parse as parse_version
@@ -38,6 +40,8 @@ class CKANAPI:
             self.headers["X-CKAN-API-Key"] = self.api_key
 
         self.verify = ssl_verify
+
+        self.logger = logging.getLogger(__name__)
 
         self._user_dict = None
 
@@ -104,6 +108,7 @@ class CKANAPI:
         try:
             rdata = req.json()
         except BaseException:
+            self.logger.error(traceback.format_exc())
             rdata = {}
         if isinstance(rdata, str):
             raise ValueError(
@@ -150,6 +155,7 @@ class CKANAPI:
         try:
             self.get("site_read")
         except BaseException:
+            self.logger.error(traceback.format_exc())
             status = False
         else:
             status = True
@@ -159,12 +165,14 @@ class CKANAPI:
                 CKANAPI.check_ckan_version(server=self.server,
                                            ssl_verify=self.verify)
             except ValueError:
+                self.logger.error(traceback.format_exc())
                 status = False
         # Do something only logged-in users can do
         if status and with_api_key:
             try:
                 self.get_user_dict()
             except BaseException:
+                self.logger.error(traceback.format_exc())
                 status = False
             else:
                 status = True
@@ -241,6 +249,7 @@ class CKANAPI:
                           + "to 2.10!",
                           DeprecationWarning)
         except APINotFoundError:
+            self.logger.info("CKAN has not yet merged #6338")
             # Workaround for https://github.com/ckan/ckan/issues/5490
             # Get the user for which the email field is visible.
             try:
