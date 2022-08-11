@@ -62,6 +62,7 @@ class CKANAPI:
             try:
                 ud = self.get_user_dict()
             except (NoAPIKeyError, APIAuthorizationError):
+                self.logger.warning("Could not get CKAN user dict.")
                 # anonymous access
                 self._user_dict = {}
             else:

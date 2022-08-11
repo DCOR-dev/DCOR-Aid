@@ -1,6 +1,8 @@
 import logging
 import os
 import pathlib
+import traceback
+
 import pkg_resources
 import signal
 import sys
@@ -183,6 +185,7 @@ class DCORAid(QtWidgets.QMainWindow):
                 limit=self.spinBox_public_rows.value())
             self.public_filter_chain.set_db_extract(dbextract)
         except ConnectionTimeoutErrors:
+            self.logger.error(tb.format_exc())
             QtWidgets.QMessageBox.critical(
                 self,
                 f"Failed to connect to {api.server}",
@@ -205,6 +208,7 @@ class DCORAid(QtWidgets.QMainWindow):
                     data += ai.get_datasets_user_shared()
                 self.user_filter_chain.set_db_extract(data)
             except ConnectionTimeoutErrors:
+                self.logger.error(tb.format_exc())
                 QtWidgets.QMessageBox.critical(
                     self,
                     f"Failed to connect to {api.server}",

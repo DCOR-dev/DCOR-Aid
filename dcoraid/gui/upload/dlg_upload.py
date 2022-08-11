@@ -1,3 +1,4 @@
+import logging
 import pathlib
 import pkg_resources
 import traceback as tb
@@ -29,6 +30,7 @@ class UploadDialog(QtWidgets.QDialog):
         """Create a new window for setting up a file upload
         """
         super(UploadDialog, self).__init__(parent)
+        self.logger = logging.getLogger(__name__)
         path_ui = pkg_resources.resource_filename(
             "dcoraid.gui.upload", "dlg_upload.ui")
         uic.loadUi(path_ui, self)
@@ -335,6 +337,7 @@ class UploadDialog(QtWidgets.QDialog):
             data = dataset_create(dataset_dict=self.assemble_metadata(),
                                   api=self.api.copy())
         except BaseException:
+            self.logger.error(tb.format_exc())
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Critical)
             msg.setText("It was not possible to create a dataset draft. "

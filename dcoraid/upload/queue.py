@@ -1,5 +1,7 @@
+import logging
 import pathlib
 import time
+import traceback as tb
 import warnings
 
 from ..api import APINotFoundError
@@ -106,6 +108,7 @@ class UploadQueue:
             if not supplied, a temporary directory is created for
             each UploadJob
         """
+        self.logger = logging.getLogger(__name__)
         self.api = api.copy()
         if not api.api_key:
             warnings.warn("No API key is set! Upload will not work!")
@@ -128,6 +131,7 @@ class UploadQueue:
                                   f"file {pp}.",
                                   DCORAidQueueWarning)
                 except LocalTaskResourcesNotFoundError as e:
+                    self.logger.error(tb.format_exc())
                     resstr = ", ".join([str(pp) for pp in e.missing_resources])
                     warnings.warn(
                         "The following resources are missing for dataset "

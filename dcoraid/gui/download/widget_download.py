@@ -1,3 +1,5 @@
+import logging
+import traceback
 from functools import partial
 import os
 import os.path as os_path
@@ -71,6 +73,7 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
 
     def __init__(self, *args, **kwargs):
         super(DownloadTableWidget, self).__init__(*args, **kwargs)
+        self.logger = logging.getLogger(__name__)
         self.jobs = []  # Will become DownloadQueue with self.set_job_list
 
         settings = QtCore.QSettings()
@@ -125,6 +128,7 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
             try:
                 title = get_download_title(job)
             except BaseException:
+                self.logger.error(traceback.format_exc())
                 # Probably a connection error
                 title = "-- error getting dataset title --"
             self.set_label_item(row, 1, title)

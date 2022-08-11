@@ -1,8 +1,10 @@
+import logging
 import warnings
 from functools import lru_cache
 import os.path as os_path
 import pathlib
 import pkg_resources
+import traceback as tb
 
 from PyQt5 import uic, QtCore, QtWidgets
 from PyQt5.QtCore import QStandardPaths
@@ -298,6 +300,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
 
     def __init__(self, *args, **kwargs):
         super(UploadTableWidget, self).__init__(*args, **kwargs)
+        self.logger = logging.getLogger(__name__)
         self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 
@@ -320,6 +323,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         try:
             title = get_dataset_title(job.dataset_id)
         except BaseException:
+            self.logger.error(tb.format_exc())
             # Probably a connection error
             title = "-- error getting dataset title --"
         return title

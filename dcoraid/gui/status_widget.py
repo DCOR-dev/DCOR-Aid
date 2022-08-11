@@ -15,6 +15,7 @@ class StatusWidget(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(StatusWidget, self).__init__(*args, **kwargs)
+        self.logger = logging.getLogger(__name__)
         self.layout = QtWidgets.QHBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
@@ -71,6 +72,8 @@ class StatusWidget(QtWidgets.QWidget):
                     raise ValueError("No favicon!")
                 favicon = QtGui.QIcon(str(favname))
             except BaseException:
+                logger = logging.getLogger(__name__)
+                logger.error(traceback.format_exc())
                 favicon = QtGui.QIcon()
         else:
             favicon = QtGui.QIcon(str(favname))

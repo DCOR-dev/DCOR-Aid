@@ -202,6 +202,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         try:
             user_dict = api.get_user_dict()
         except (ConnectionError, NoAPIKeyError):
+            self.logger.error(tb.format_exc())
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Warning)
             msg.setText("No connection or wrong server or invalid API key!")
@@ -232,6 +233,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         try:
             user_dict = api.get_user_dict()
         except (ConnectionError, NoAPIKeyError):
+            self.logger.error(tb.format_exc())
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Warning)
             msg.setText("No connection or wrong server or invalid API key!")
@@ -270,6 +272,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
                           ssl_verify=cur_api.verify)
             api.get_user_dict()  # raises an exception if credentials are wrong
         except BaseException:
+            self.logger.error(tb.format_exc())
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Critical)
             msg.setText("Bad server / API key combination!")
