@@ -80,6 +80,9 @@ def upload_task(path_task=None, server=None, api_key=None, ret_job=False):
         uj.task_verify_resources()
         ascertain_state_or_bust(uj, "done")
         print("Done.")
+    except SystemExit:
+        # The user just passed --help
+        pass
     except BaseException:
         # Write errors to errors file
         print(traceback.format_exc())
