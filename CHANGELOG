@@ -1,3 +1,5 @@
+0.11.6
+ - fix: unselected license in upload dialog if CC-BY-SA-4.0 unavailable
 0.11.5
  - enh: increase logging verbosity
  - setup: bump dclab from 0.43.0 to 0.43.1

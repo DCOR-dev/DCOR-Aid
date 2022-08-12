@@ -141,9 +141,11 @@ class UploadDialog(QtWidgets.QDialog):
         self.plainTextEdit_notes.setPlainText(
             kwargs.get("notes", "A description"))
         self.lineEdit_tags.setText(kwargs.get("tags", "HL60, GFP"))
-        licen = "CC-BY-SA-4.0"
-        self.comboBox_license.setCurrentIndex(
-            self.comboBox_license.findData(licen))
+        lcn_index = self.comboBox_license.findData("CC-BY-SA-4.0")
+        if lcn_index < 0:
+            # this happens on DCOR-med when there is no CC license
+            lcn_index = 0
+        self.comboBox_license.setCurrentIndex(lcn_index)
         self.comboBox_circles.setCurrentIndex(0)
         self.comboBox_vis.setCurrentIndex(0)
         relpath = "../../../tests/data/calibration_beads_47.rtdc"
