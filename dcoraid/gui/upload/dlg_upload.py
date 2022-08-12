@@ -65,7 +65,7 @@ class UploadDialog(QtWidgets.QDialog):
             # Set license choices
             licenses = self.api.get_license_list()
             for lic in licenses:
-                if lic["domain_data"]:  # just a identifier to exclude "none"
+                if lic["domain_data"]:  # just an identifier to exclude "none"
                     self.comboBox_license.addItem(
                         "{} ({})".format(lic["title"], lic["id"]), lic["id"])
 
@@ -74,8 +74,9 @@ class UploadDialog(QtWidgets.QDialog):
             self.widget_schema.populate_schema(rss)
 
         # Set visibility choices
-        settings = QtCore.QSettings()
-        if settings.value("user scenario", "") == "medical":
+        # We can infer this from the license list
+        license_ids = [lic["id"] for lic in licenses]
+        if set(license_ids) == {"none", "patient"}:
             # only allow private datasets
             self.comboBox_vis.addItem("Private", "private")
         else:
