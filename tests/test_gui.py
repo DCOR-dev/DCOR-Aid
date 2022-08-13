@@ -1,7 +1,6 @@
 import pathlib
 import shutil
 import tempfile
-import time
 from unittest import mock
 
 import uuid
@@ -84,7 +83,6 @@ def test_gui_anonymous(qtbot):
     mw.close()
     QtTest.QTest.qWait(500)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 500)
-    time.sleep(1)
 
 
 def test_gui_mydata_dataset_add_to_collection(mw, qtbot):
