@@ -95,6 +95,7 @@ class UploadJob:
         self.index = 0
         self.start_time = None
         self.end_time = None
+        self.wait_time = 0
         self._last_time = 0
         self._last_bytes = 0
         self._last_rate = 0
@@ -251,7 +252,7 @@ class UploadJob:
                 rate = self._last_rate
         else:
             # finished
-            tdelt = (self.end_time - self.start_time)
+            tdelt = (self.end_time - self.start_time - self.wait_time)
             rate = cur_bytes / tdelt
         self._last_rate = rate
         return rate
@@ -393,14 +394,14 @@ class UploadJob:
             self.paths_uploaded_before.clear()
             self.file_bytes_uploaded = [0] * len(self.paths)
             self.index = 0
-            self.start_time = None
+            self.start_time = time.perf_counter()
             self.end_time = None
+            self.wait_time = 0
             self._last_time = 0
             self._last_bytes = 0
             self._last_rate = 0
             # begin transfer
             self.set_state("transfer")
-            self.start_time = time.perf_counter()
             # Do the things to do and watch self.state while doing so
             for ii, path in enumerate(self.paths):
                 self.index = ii
@@ -420,7 +421,7 @@ class UploadJob:
                     continue
                 else:
                     # Normal upload.
-                    resource_add(
+                    srv_time = resource_add(
                         dataset_id=self.dataset_id,
                         path=path,
                         resource_name=resource_name,
@@ -429,6 +430,7 @@ class UploadJob:
                         exist_ok=True,
                         monitor_callback=self.monitor_callback)
                     self.paths_uploaded.append(path)
+                    self.wait_time += srv_time
             self.end_time = time.perf_counter()
             self.set_state("online")
         else:

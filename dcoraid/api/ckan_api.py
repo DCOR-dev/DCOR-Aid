@@ -267,7 +267,8 @@ class CKANAPI:
                         "Could not determine user data. Please check API key.")
         return userdata
 
-    def post(self, api_call, data, dump_json=True, headers=None):
+    def post(self, api_call, data, dump_json=True, headers=None,
+             timeout=27.9):
         """POST request
 
         Parameters
@@ -284,6 +285,8 @@ class CKANAPI:
         headers: dict
             Additional headers (updates `self.headers`) for the
             POST request (used for multipart uploads).
+        timeout: float
+            Timeout for :func:`requests.request` [s]
 
         Returns
         -------
@@ -310,6 +313,6 @@ class CKANAPI:
                             data=data,
                             headers=new_headers,
                             verify=self.verify,
-                            timeout=27.9)
+                            timeout=timeout)
         resp = self.handle_response(req, api_call)
         return resp["result"]

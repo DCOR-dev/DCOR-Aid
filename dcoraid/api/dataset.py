@@ -153,6 +153,11 @@ def resource_add(dataset_id, path, api, resource_name=None,
         accept one argument: a
         `requests_toolbelt.MultipartEncoderMonitor` object.
 
+    Returns
+    -------
+    srv_time: float
+        Total time the server (nginx+uwsgi) needed to process the upload
+
     See Also
     --------
     dcoraid.upload.queue.UploadJob
@@ -164,7 +169,8 @@ def resource_add(dataset_id, path, api, resource_name=None,
     path = pathlib.Path(path)
     if resource_name is None:
         resource_name = path.name
-
+    dsrid = f"{dataset_id}/{resource_name}"  # human-readable resource id
+    srv_time = 0  # total time waited for the server to process the upload
     if not exist_ok or not resource_exists(dataset_id=dataset_id,
                                            resource_name=resource_name,
                                            api=api):
@@ -178,30 +184,34 @@ def resource_add(dataset_id, path, api, resource_name=None,
                 'update__resources__-1__upload': (resource_name, fd)})
             m = MultipartEncoderMonitor(e, monitor_callback)
             # perform upload
+            timeout = 27.9
             try:
                 api.post("package_revise",
                          data=m,
                          dump_json=False,
-                         headers={"Content-Type": m.content_type})
+                         headers={"Content-Type": m.content_type},
+                         timeout=timeout)
             except requests.exceptions.Timeout:
                 # This means that the server does not respond. This is ok,
                 # because we can just check whether the resource was
                 # processed correctly.
-                logger.info(f"Timeout for upload {dataset_id}/{resource_name}")
-                for ii in range(30):
+                logger.info(f"Timeout for upload {dsrid}")
+                start_wait_srv = time.monotonic()
+                for ii in range(60):
                     if resource_exists(dataset_id=dataset_id,
                                        resource_name=resource_name,
                                        api=api):
+                        srv_time = timeout + time.monotonic() - start_wait_srv
+                        logger.info(f"Waited {srv_time/60} min for {dsrid}")
                         break
                     else:
+                        logger.info(f"Waiting {ii+1} min for {dsrid}")
                         time.sleep(60)
-                        logger.info(f"Waiting {ii} min for "
-                                    + f"{dataset_id}/{resource_name}")
                 else:
                     raise ValueError(
-                        f"Upload {dataset_id}/{resource_name} timed-out!")
+                        f"Upload {dsrid} timed-out!")
     # If we are here, then the upload was successful
-    logger.info(f"Finished upload {dataset_id}/{resource_name}")
+    logger.info(f"Finished upload {dsrid}")
 
     if resource_dict:
         pkg_dict = api.get("package_show", id=dataset_id)
@@ -212,6 +222,8 @@ def resource_add(dataset_id, path, api, resource_name=None,
             "match__id": dataset_id,
             f"update__resources__{res_dict['id']}": resource_dict}
         api.post("package_revise", revise_dict)
+
+    return srv_time
 
 
 def resource_exists(dataset_id, resource_name, api, resource_dict=None):
