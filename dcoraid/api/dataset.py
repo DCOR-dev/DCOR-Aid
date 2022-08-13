@@ -4,6 +4,7 @@ import logging
 import pathlib
 import time
 
+import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
 
@@ -164,12 +165,9 @@ def resource_add(dataset_id, path, api, resource_name=None,
     if resource_name is None:
         resource_name = path.name
 
-    pkg_dict = api.get("package_show", id=dataset_id)
-    res_names = [r["name"] for r in pkg_dict["resources"]]
-    if resource_name in res_names and exist_ok:
-        # Resource already uploaded and user does not wish to re-upload
-        data = pkg_dict["resources"][res_names.index(resource_name)]
-    else:
+    if not exist_ok or not resource_exists(dataset_id=dataset_id,
+                                           resource_name=resource_name,
+                                           api=api):
         # Attempt upload
         with path.open("rb") as fd:
             # use package_revise to upload the resource
@@ -180,24 +178,39 @@ def resource_add(dataset_id, path, api, resource_name=None,
                 'update__resources__-1__upload': (resource_name, fd)})
             m = MultipartEncoderMonitor(e, monitor_callback)
             # perform upload
-            ret_data = api.post("package_revise",
-                                data=m,
-                                dump_json=False,
-                                headers={"Content-Type": m.content_type})
-            logger.info(f"Finished upload {dataset_id}/{resource_name}")
-            for ii in range(30):
-                data = ret_data["package"]["resources"][-1]
-                if data["name"] == resource_name:
-                    break
+            try:
+                api.post("package_revise",
+                         data=m,
+                         dump_json=False,
+                         headers={"Content-Type": m.content_type})
+            except requests.exceptions.Timeout:
+                # This means that the server does not respond. This is ok,
+                # because we can just check whether the resource was
+                # processed correctly.
+                logger.info(f"Timeout for upload {dataset_id}/{resource_name}")
+                for ii in range(30):
+                    if resource_exists(dataset_id=dataset_id,
+                                       resource_name=resource_name,
+                                       api=api):
+                        break
+                    else:
+                        time.sleep(60)
+                        logger.info(f"Waiting {ii} min for "
+                                    + f"{dataset_id}/{resource_name}")
                 else:
-                    time.sleep(60)
-                    logger.info(
-                        f"Waiting {ii} min for {dataset_id}/{resource_name}")
+                    raise ValueError(
+                        f"Upload {dataset_id}/{resource_name} timed-out!")
+    # If we are here, then the upload was successful
+    logger.info(f"Finished upload {dataset_id}/{resource_name}")
+
     if resource_dict:
+        pkg_dict = api.get("package_show", id=dataset_id)
+        res_names = [r["name"] for r in pkg_dict["resources"]]
+        res_dict = pkg_dict["resources"][res_names.index(resource_name)]
         # add resource_dict
         revise_dict = {
             "match__id": dataset_id,
-            f"update__resources__{data['id']}": resource_dict}
+            f"update__resources__{res_dict['id']}": resource_dict}
         api.post("package_revise", revise_dict)
 
 

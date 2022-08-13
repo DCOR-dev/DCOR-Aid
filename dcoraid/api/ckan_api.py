@@ -309,6 +309,7 @@ class CKANAPI:
         req = requests.post(url_call,
                             data=data,
                             headers=new_headers,
-                            verify=self.verify)
+                            verify=self.verify,
+                            timeout=27.9)
         resp = self.handle_response(req, api_call)
         return resp["result"]

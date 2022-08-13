@@ -1,6 +1,7 @@
 0.11.6
  - fix: set visibility to private based on available licenses
  - fix: calling the CLI 'dcoraid-upload-task --help' raised exception
+ - fix: add timeout to api.post
  - enh: unselected license in upload dialog for example data
  - enh: increase logging verbosity
 0.11.5
