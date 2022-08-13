@@ -37,7 +37,7 @@ VALID_RESOURCE_CHARS = "abcdefghijklmnopqrstuvwxyz" \
 VALID_RESOURCE_REGEXP = r"^[a-zA-Z0-9\.,\-_\+\(\)\[\]]+$"
 
 
-class UploadJob(object):
+class UploadJob:
     def __init__(self, api, dataset_id, resource_paths,
                  resource_names=None, resource_supplements=None,
                  task_id=None, cache_dir=None):

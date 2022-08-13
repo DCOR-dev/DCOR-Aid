@@ -61,4 +61,4 @@ class KThread(threading.Thread):
         atexit.unregister(self.terminate)
         while self.is_alive():
             self.raise_exc(KThreadExit)
-            time.sleep(.05)
+            time.sleep(.1)

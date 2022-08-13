@@ -36,7 +36,7 @@ class Daemon(KThread):
                         break
                 else:
                     # Nothing to do, sleep a little to avoid 100% CPU
-                    time.sleep(.1)
+                    time.sleep(.05)
                     continue
                 # Perform daemon task
                 task = getattr(job, self.job_function_name)

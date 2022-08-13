@@ -1,6 +1,7 @@
 import pathlib
 import shutil
 import tempfile
+import time
 from unittest import mock
 
 import uuid
@@ -38,6 +39,8 @@ def mw(qtbot):
     yield mw
     # Make sure that all daemons are gone
     mw.close()
+    # It is extremely weird, but this seems to be important to avoid segfaults!
+    time.sleep(1)
     QtTest.QTest.qWait(100)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
 
@@ -81,6 +84,7 @@ def test_gui_anonymous(qtbot):
         spath.unlink()
         shutil.copy2(stmp, spath)
     mw.close()
+    time.sleep(1)
     QtTest.QTest.qWait(500)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 500)
 
