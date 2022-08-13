@@ -1,5 +1,6 @@
 import argparse
 from argparse import RawTextHelpFormatter
+import logging
 import pathlib
 import threading
 import time
@@ -100,6 +101,12 @@ def upload_task(path_task=None, server=None, api_key=None, ret_job=False):
 
 
 def upload_task_parser():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(processName)s/%(threadName)s "
+               + "in %(name)s: %(message)s",
+        datefmt='%H:%M:%S')
+
     descr = (
         "Upload a .dcoraid-task file to a DCOR instance. Example usage::\n"
         + "\n    dcoraid-upload-task upload_job.dcoraid-task "

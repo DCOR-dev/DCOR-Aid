@@ -1,8 +1,15 @@
 def main(splash=True):
+    import logging
     import os
     import pkg_resources
     import platform
     import sys
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(processName)s/%(threadName)s "
+               + "in %(name)s: %(message)s",
+        datefmt='%H:%M:%S')
 
     from PyQt5.QtWidgets import QApplication
 
