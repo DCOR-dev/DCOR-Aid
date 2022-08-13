@@ -1,7 +1,8 @@
 """Convenience wrappers for commonly used API calls"""
-
 import copy
+import logging
 import pathlib
+import time
 
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
@@ -141,7 +142,7 @@ def resource_add(dataset_id, path, api, resource_name=None,
     resource_name: str
         Alternate resource name, if not set `path.name` is used
     resource_dict: dict
-        Dictionary of resource meta data (used for supplementary
+        Dictionary of resource metadata (used for supplementary
         resource schemas "sp:section:key")
     exist_ok: bool
         If the uploaded resource already exists, do not re-upload
@@ -156,6 +157,7 @@ def resource_add(dataset_id, path, api, resource_name=None,
     dcoraid.upload.queue.UploadJob
         An implementation of an upload job that monitors progress.
     """
+    logger = logging.getLogger(__name__ + ".resource_add")
     if resource_dict is None:
         resource_dict = {}
     path = pathlib.Path(path)
@@ -182,7 +184,15 @@ def resource_add(dataset_id, path, api, resource_name=None,
                                 data=m,
                                 dump_json=False,
                                 headers={"Content-Type": m.content_type})
-            data = ret_data["package"]["resources"][-1]
+            logger.info(f"Finished upload {dataset_id}/{resource_name}")
+            for ii in range(30):
+                data = ret_data["package"]["resources"][-1]
+                if data["name"] == resource_name:
+                    break
+                else:
+                    time.sleep(60)
+                    logger.info(
+                        f"Waiting {ii} min for {dataset_id}/{resource_name}")
     if resource_dict:
         # add resource_dict
         revise_dict = {
