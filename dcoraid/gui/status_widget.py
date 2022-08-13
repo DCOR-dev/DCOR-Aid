@@ -92,6 +92,10 @@ class StatusWidget(QtWidgets.QWidget):
         self.toolButton_user.setToolTip(tooltip)
         self.toolButton_user.setIcon(QtGui.QIcon.fromTheme(icon))
 
+    def stop_timers(self):
+        if self.timer is not None:
+            self.timer.stop()
+
 
 class StatusWidetUpdateWorker(QtCore.QRunnable):
     """Worker for updating the current API situation

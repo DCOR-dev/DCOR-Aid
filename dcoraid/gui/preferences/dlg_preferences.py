@@ -19,10 +19,10 @@ class PreferencesDialog(QtWidgets.QMainWindow):
     show_server = QtCore.pyqtSignal()
     show_user = QtCore.pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, *args, **kwargs):
         """Create a new window for preferences
         """
-        super(PreferencesDialog, self).__init__(parent)
+        super(PreferencesDialog, self).__init__(*args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "dcoraid.gui.preferences", "dlg_preferences.ui")
         uic.loadUi(path_ui, self)

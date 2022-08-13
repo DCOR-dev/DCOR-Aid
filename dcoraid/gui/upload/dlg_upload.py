@@ -26,10 +26,10 @@ class UploadDialog(QtWidgets.QDialog):
     finished = QtCore.pyqtSignal(object)
     instance_counter = 1
 
-    def __init__(self, parent=None):
+    def __init__(self, *args, **kwargs):
         """Create a new window for setting up a file upload
         """
-        super(UploadDialog, self).__init__(parent)
+        super(UploadDialog, self).__init__(*args, **kwargs)
         self.logger = logging.getLogger(__name__)
         path_ui = pkg_resources.resource_filename(
             "dcoraid.gui.upload", "dlg_upload.ui")

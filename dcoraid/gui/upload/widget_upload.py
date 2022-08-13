@@ -293,6 +293,12 @@ class UploadWidget(QtWidgets.QWidget):
             "\n\n".join(messages),
         )
 
+    def stop_timers(self):
+        """Should be called before the application quits"""
+        self.init_timer.stop()
+        if self.widget_jobs.timer is not None:
+            self.widget_jobs.timer.stop()
+
 
 class UploadTableWidget(QtWidgets.QTableWidget):
     upload_finished = QtCore.pyqtSignal()

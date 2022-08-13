@@ -132,10 +132,13 @@ class DCORAid(QtWidgets.QMainWindow):
         self.show()
         self.raise_()
 
-    def close(self):
-        if self.panel_upload.widget_jobs.timer is not None:
-            self.panel_upload.widget_jobs.timer.stop()
-        super(DCORAid, self).close()
+    def closeEvent(self, event):
+        self.panel_upload.stop_timers()
+        self.panel_download.stop_timers()
+        self.status_widget.stop_timers()
+        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
+                                             300)
+        event.accept()
 
     @QtCore.pyqtSlot()
     def on_action_about(self):
