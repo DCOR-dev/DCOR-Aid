@@ -197,7 +197,8 @@ def resource_add(dataset_id, path, api, resource_name=None,
                 # processed correctly.
                 logger.info(f"Timeout for upload {dsrid}")
                 start_wait_srv = time.monotonic()
-                for ii in range(60):
+                wait_time_minutes = 60
+                for ii in range(wait_time_minutes):
                     if resource_exists(dataset_id=dataset_id,
                                        resource_name=resource_name,
                                        api=api):
@@ -208,8 +209,8 @@ def resource_add(dataset_id, path, api, resource_name=None,
                         logger.info(f"Waiting {ii+1} min for {dsrid}")
                         time.sleep(60)
                 else:
-                    raise ValueError(
-                        f"Upload {dsrid} timed-out!")
+                    raise ValueError(f"Timeout or {dsrid} not processed after "
+                                     + f"{wait_time_minutes} minutes!")
     # If we are here, then the upload was successful
     logger.info(f"Finished upload {dsrid}")
 
