@@ -1,3 +1,5 @@
+0.11.7
+ - setup: bump dclab from 0.43.1 to 0.45.0 (scalar feature support)
 0.11.6
  - fix: set visibility to private based on available licenses
  - fix: calling the CLI 'dcoraid-upload-task --help' raised exception
