@@ -1,3 +1,2 @@
 # Any additional requirements for building the application
-# https://github.com/pyinstaller/pyinstaller/issues/5004
 pyinstaller>=4.7
