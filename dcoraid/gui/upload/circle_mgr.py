@@ -75,7 +75,7 @@ def request_circle(parent_widget):
         circle_texts = [c["title"] if c["title"] else c["name"] for c in circs]
         text, ok_pressed = QtWidgets.QInputDialog.getItem(
             parent_widget,
-            "Choose circe",
+            "Please choose a circle",
             "You have upload-permissions to multiple circles. Please\n"
             "choose the one where you wish to upload your datasets to.",
             circle_texts,

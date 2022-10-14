@@ -273,27 +273,6 @@ def test_gui_upload_task_bad_dataset_id_yes(mw, qtbot):
     mw.panel_upload.jobs.daemon_compress.join()
 
 
-def test_gui_upload_task_missing_circle(mw, qtbot):
-    """When the organization is missing, DCOR-Aid should ask for it"""
-    task_id = str(uuid.uuid4())
-    dataset_dict = common.make_dataset_dict(hint="task_upload_no_org_")
-    dataset_dict.pop("owner_org")
-    tpath = common.make_upload_task(task_id=task_id,
-                                    dataset_dict=dataset_dict)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
-    with mock.patch.object(
-            QtWidgets.QFileDialog, "getOpenFileNames",
-            return_value=([tpath], None)), \
-         mock.patch.object(QtWidgets.QInputDialog, "getItem",
-                           return_value=(common.CIRCLE, True)), \
-         mock.patch.object(QMessageBox, "information", return_value=None):
-        act = QtWidgets.QAction("some unimportant text")
-        act.setData("single")
-        mw.panel_upload.on_upload_task(action=act)
-    uj = mw.panel_upload.jobs[-1]
-    assert uj.task_id == task_id
-
-
 def test_gui_upload_task_missing_circle_multiple(mw, qtbot):
     """DCOR-Aid should only ask *once* for the circle (not for every task)"""
     task_id1 = str(uuid.uuid4())
@@ -358,3 +337,24 @@ def test_gui_upload_private(mw, qtbot):
     dataset_dict = api.get(api_call="package_show", id=dataset_id)
     assert dataset_dict["private"]
     assert isinstance(dataset_dict["private"], bool)
+
+
+def test_gui_upload_task_missing_circle(mw, qtbot):
+    """When the organization is missing, DCOR-Aid should ask for it"""
+    task_id = str(uuid.uuid4())
+    dataset_dict = common.make_dataset_dict(hint="task_upload_no_org_")
+    dataset_dict.pop("owner_org")
+    tpath = common.make_upload_task(task_id=task_id,
+                                    dataset_dict=dataset_dict)
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+    with mock.patch.object(
+            QtWidgets.QFileDialog, "getOpenFileNames",
+            return_value=([tpath], None)), \
+         mock.patch.object(QtWidgets.QInputDialog, "getItem",
+                           return_value=(common.CIRCLE, True)), \
+         mock.patch.object(QMessageBox, "information", return_value=None):
+        act = QtWidgets.QAction("some unimportant text")
+        act.setData("single")
+        mw.panel_upload.on_upload_task(action=act)
+    uj = mw.panel_upload.jobs[-1]
+    assert uj.task_id == task_id

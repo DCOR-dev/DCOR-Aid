@@ -1,3 +1,4 @@
+import atexit
 import os.path as os_path
 import pathlib
 import shutil
@@ -41,7 +42,7 @@ def cleanup_dcoraid_tasks():
 
 
 def pytest_configure(config):
-    """This is ran before all tests"""
+    """This is run before all tests"""
     # disable update checking
     QtCore.QCoreApplication.setOrganizationName("DCOR")
     QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
@@ -58,6 +59,7 @@ def pytest_configure(config):
     cleanup_dcoraid_tasks()
     # set global temp directory
     tempfile.tempdir = TMPDIR
+    atexit.register(shutil.rmtree, TMPDIR, ignore_errors=True)
 
 
 def pytest_unconfigure(config):
@@ -74,8 +76,6 @@ def pytest_unconfigure(config):
     settings.sync()
     # cleanup
     cleanup_dcoraid_tasks()
-    # clear global temp directory
-    shutil.rmtree(TMPDIR, ignore_errors=True)
 
 
 def pytest_sessionstart(session):

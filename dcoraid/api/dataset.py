@@ -54,7 +54,8 @@ def dataset_create(dataset_dict, api, resources=None,
     if resources is None:
         resources = []
     # Make sure we can access the desired circle.
-    usr_circles = [c["name"] for c in api.get("organization_list_for_user")]
+    usr_circles = [c["name"] for c in api.get("organization_list_for_user",
+                                              permission="create_dataset")]
     tgt_circle = dataset_dict.get("owner_org")
     if tgt_circle is None:
         raise APIConflictError(
@@ -68,8 +69,7 @@ def dataset_create(dataset_dict, api, resources=None,
         else:
             raise APINotFoundError(
                 f"The circle '{tgt_circle}' does not exist or the user "
-                f"{api.user_name} is not a member thereof. Cannot upload "
-                f"dataset.")
+                f"{api.user_name} is not allowed to upload datasets to it.")
     # Create the dataset.
     dataset_dict = copy.deepcopy(dataset_dict)
     dataset_dict["state"] = "draft"
