@@ -7,6 +7,8 @@ import time
 import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
+from .errors import APIConflictError, APINotFoundError
+
 
 def dataset_activate(dataset_id, api):
     """Change the state of a dataset to "active"
@@ -51,21 +53,35 @@ def dataset_create(dataset_dict, api, resources=None,
     """
     if resources is None:
         resources = []
-    if create_circle:
-        circles = [c["name"] for c in api.get("organization_list_for_user")]
-        if dataset_dict["owner_org"] not in circles:
+    # Make sure we can access the desired circle.
+    usr_circles = [c["name"] for c in api.get("organization_list_for_user")]
+    tgt_circle = dataset_dict.get("owner_org")
+    if tgt_circle is None:
+        raise APIConflictError(
+            "Datasets must always be uploaded to a Circle. Please specify "
+            "a circle via the 'owner_org' key in the CKAN dataset dictionary!")
+    elif tgt_circle not in usr_circles:
+        if create_circle:
             # Create the circle before creating the dataset
             api.post("organization_create",
-                     data={"name": dataset_dict["owner_org"]})
+                     data={"name": tgt_circle})
+        else:
+            raise APINotFoundError(
+                f"The circle '{tgt_circle}' does not exist or the user "
+                f"{api.user_name} is not a member thereof. Cannot upload "
+                f"dataset.")
+    # Create the dataset.
     dataset_dict = copy.deepcopy(dataset_dict)
     dataset_dict["state"] = "draft"
     data = api.post("package_create", dataset_dict)
     if resources:
+        # Upload resources
         for res in resources:
             resource_add(dataset_id=data["id"],
                          path=res,
                          api=api)
     if activate:
+        # Finalize.
         dataset_activate(dataset_id=data["id"], api=api)
         data["state"] = "active"
     return data

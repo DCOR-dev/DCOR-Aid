@@ -26,7 +26,7 @@ def test_cli_basic(monkeypatch):
 
 @pytest.mark.parametrize("entry,emsg",
                          [["license_id", "Please choose a license_id"],
-                          ["owner_org", "A circle must be provided"],
+                          ["owner_org", "must always be uploaded to a Circle"],
                           ["authors", r"authors: ['Missing value']"],
                           ])
 def test_cli_fail_if_no_entries_missing(entry, emsg, monkeypatch):

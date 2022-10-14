@@ -1,4 +1,5 @@
 import pathlib
+import random
 
 import pytest
 
@@ -80,6 +81,20 @@ def test_dataset_creation():
     with pytest.raises(APINotFoundError):
         # make sure it is gone
         api.get("package_show", id=data["id"])
+
+
+def test_dataset_creation_bad_circle():
+    """Just test whether we can create (and remove) a draft dataset"""
+    api = common.get_api()
+    # create some metadata
+    dataset_dict = common.make_dataset_dict(hint="basic_test")
+    dataset_dict["owner_org"] = f"{random.randint(100000, 200000)}"
+    # post dataset creation request
+    with pytest.raises(APINotFoundError):
+        dataset_create(dataset_dict=dataset_dict,
+                       api=api,
+                       create_circle=False
+                       )
 
 
 def test_dataset_creation_wrong_resource_supplement():
