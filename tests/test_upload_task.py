@@ -361,7 +361,7 @@ def test_missing_owner_org():
     task_path = common.make_upload_task(dataset_dict=dataset_dict)
     assert not task.task_has_circle(task_path)
     with pytest.raises(dcoraid.api.APIConflictError,
-                       match="A circle must be provided"):
+                       match="Datasets must always be uploaded to a Circle."):
         task.load_task(task_path, api=api)
 
 

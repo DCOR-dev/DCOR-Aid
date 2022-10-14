@@ -4,6 +4,7 @@ from functools import lru_cache
 import os.path as os_path
 import pathlib
 import pkg_resources
+import time
 import traceback as tb
 
 from PyQt5 import uic, QtCore, QtWidgets
@@ -60,8 +61,8 @@ class UploadWidget(QtWidgets.QWidget):
         self.cache_dir = QtCore.QStandardPaths.writableLocation(
             QtCore.QStandardPaths.CacheLocation)
 
-        #: UploadQueue instance
-        self.jobs = None
+        # UploadQueue instance
+        self._jobs = None
 
         self.setEnabled(False)
         self.init_timer = QtCore.QTimer(self)
@@ -73,9 +74,28 @@ class UploadWidget(QtWidgets.QWidget):
         # signals
         self.widget_jobs.job_selected.connect(self.on_show_job)
 
+    @property
+    def jobs(self):
+        for ii in range(50):
+            if self._jobs is None:
+                # force initialization
+                self.initialize(retry_if_fail=False)
+                time.sleep(.2)
+            else:
+                # This is the default route after initialization was complete.
+                break
+        else:
+            api = get_ckan_api()
+            raise ValueError("Could not initialize upload job list. Please "
+                             f"verify your connection to '{api.server}'!")
+        return self._jobs
+
     @show_wait_cursor
     @QtCore.pyqtSlot()
-    def initialize(self):
+    def initialize(self, retry_if_fail=True):
+        if self._jobs is not None:
+            # Nothing to do
+            return
         api = get_ckan_api()
         if api.is_available(with_api_key=True, with_correct_version=True):
             self.setEnabled(True)
@@ -83,7 +103,7 @@ class UploadWidget(QtWidgets.QWidget):
                 warnings.simplefilter(
                     "always",
                     category=queue.DCORAidQueueMissingResourceWarning)
-                self.jobs = queue.UploadQueue(
+                self._jobs = queue.UploadQueue(
                     api=get_ckan_api(),
                     path_persistent_job_list=self.shelf_path,
                     cache_dir=self.cache_dir)
@@ -108,9 +128,9 @@ class UploadWidget(QtWidgets.QWidget):
             self.widget_jobs.set_job_list(self.jobs)
             # upload finished signal
             self.widget_jobs.upload_finished.connect(self.upload_finished)
-        else:
+        elif retry_if_fail:
             # try again
-            self.init_timer.setInterval(3000)
+            self.init_timer.setInterval(1000)
             self.init_timer.start()
 
     @QtCore.pyqtSlot(object)
@@ -120,9 +140,9 @@ class UploadWidget(QtWidgets.QWidget):
         self.lineEdit_id.setText(job.dataset_id)
         self.lineEdit_id.setCursorPosition(0)
         self.label_title.setText(self.widget_jobs.get_dataset_title(job))
-        size = sum(job.file_sizes)/1024**3
+        size = sum(job.file_sizes) / 1024 ** 3
         if size <= 0.01:
-            size_str = f"{size*1024:.2f} MB"
+            size_str = f"{size * 1024:.2f} MB"
         else:
             size_str = f"{size:.2f} GB"
         self.label_size.setText(size_str)
@@ -253,7 +273,7 @@ class UploadWidget(QtWidgets.QWidget):
                     + "</ul>"
                     + "Would you like to create a new dataset for this "
                     + f"task file on {api.server} (select 'No' if in doubt)?"
-                    )
+                )
                 if ret == QtWidgets.QMessageBox.Yes:
                     # retry, this time forcing the creation of a new dataset
                     upload_job = task.load_task(force_dataset_creation=True,
@@ -310,7 +330,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 
-        self.jobs = []  # Will become UploadQueue with self.set_job_list
+        self._jobs = None
 
         settings = QtCore.QSettings()
         if bool(int(settings.value("debug/without timers", "0"))):
@@ -324,6 +344,19 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         # signals
         self.itemSelectionChanged.connect(self.on_selection)
         self.itemClicked.connect(self.on_selection)
+
+    @property
+    def jobs(self):
+        """Upload job list
+
+        Returns
+        -------
+        jobs: .UploadQueue
+            Object for managing upload jobs
+        """
+        if self._jobs is None:
+            raise ValueError("Job list not initialized!")
+        return self._jobs
 
     def get_dataset_title(self, job):
         try:
@@ -340,8 +373,8 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         The job list can be a `list`, but it is actually
         an `UploadQueue`.
         """
-        # This is the actual initialization
-        self.jobs = jobs
+        # This is the actual initialization of `self.jobs`
+        self._jobs = jobs
 
     @QtCore.pyqtSlot(str)
     def on_job_abort(self, dataset_id):
