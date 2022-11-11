@@ -1,3 +1,5 @@
+0.11.9
+ - setup: bump dclab from 0.45.0 to 0.46.4 (new features)
 0.11.8
  - fix: check the circle name before uploading (#64)
  - fix: force initialization of jobs in upload widget (#63)
