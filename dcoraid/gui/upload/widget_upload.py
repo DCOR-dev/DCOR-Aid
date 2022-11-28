@@ -326,7 +326,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
 
     def __init__(self, *args, **kwargs):
         super(UploadTableWidget, self).__init__(*args, **kwargs)
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger(__name__).getChild("UploadTableWidget")
         self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 
@@ -352,10 +352,10 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         Returns
         -------
         jobs: .UploadQueue
-            Object for managing upload jobs
+            Object for managing upload jobs. Returns None
+            if `set_job_list` has not been called before.
         """
-        if self._jobs is None:
-            raise ValueError("Job list not initialized!")
+        self.logger.warning("Job list not initialized!")
         return self._jobs
 
     def get_dataset_title(self, job):
@@ -404,25 +404,26 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         # disable updates
         self.setUpdatesEnabled(False)
         # make sure the length of the table is long enough
-        self.setRowCount(len(self.jobs))
-        self.setColumnCount(6)
+        if self.jobs:
+            self.setRowCount(len(self.jobs))
+            self.setColumnCount(6)
 
-        for row, job in enumerate(self.jobs):
-            status = job.get_status()
-            self.set_label_item(row, 0, job.dataset_id[:5])
-            self.set_label_item(row, 1, self.get_dataset_title(job))
-            self.set_label_item(row, 2, status["state"])
-            self.set_label_item(row, 3, job.get_progress_string())
-            self.set_label_item(row, 4, job.get_rate_string())
-            if status["state"] == "done":
-                self.on_upload_finished(job.dataset_id)
-            self.set_actions_item(row, 5, job)
+            for row, job in enumerate(self.jobs):
+                status = job.get_status()
+                self.set_label_item(row, 0, job.dataset_id[:5])
+                self.set_label_item(row, 1, self.get_dataset_title(job))
+                self.set_label_item(row, 2, status["state"])
+                self.set_label_item(row, 3, job.get_progress_string())
+                self.set_label_item(row, 4, job.get_rate_string())
+                if status["state"] == "done":
+                    self.on_upload_finished(job.dataset_id)
+                self.set_actions_item(row, 5, job)
 
-        # spacing (did not work in __init__)
-        header = self.horizontalHeader()
-        header.setSectionResizeMode(
-            0, QtWidgets.QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
+            # spacing (did not work in __init__)
+            header = self.horizontalHeader()
+            header.setSectionResizeMode(
+                0, QtWidgets.QHeaderView.ResizeToContents)
+            header.setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
         # enable updates again
         self.setUpdatesEnabled(True)
 

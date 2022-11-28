@@ -1,3 +1,6 @@
+0.11.11
+ - fix: refactor "Job list not initialized!" exception in GUI into a
+   logger warning (#65)
 0.11.10
  - setup: bump dclab from 0.46.4 to 0.47.0 (new feature)
 0.11.9
