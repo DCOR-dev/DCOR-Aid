@@ -1,8 +1,6 @@
 import logging
 import os
 import pathlib
-import traceback
-
 import pkg_resources
 import signal
 import sys

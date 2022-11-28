@@ -4,7 +4,7 @@ import pathlib
 from PyQt5.QtCore import QStandardPaths
 
 
-class PersistentResourceSchemaPresets(object):
+class PersistentResourceSchemaPresets:
     def __init__(self):
         """Dict-like interface for schema presets for resource uploads"""
         self._presets = {}
