@@ -1,3 +1,5 @@
+0.11.13
+ - maintenance release
 0.11.12
  - enh: retry on connection errors when using CLI for uploads (#66)
 0.11.11

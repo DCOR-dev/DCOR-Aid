@@ -1,6 +1,5 @@
 import argparse
 from argparse import RawTextHelpFormatter
-import copy
 import logging
 import pathlib
 import threading
