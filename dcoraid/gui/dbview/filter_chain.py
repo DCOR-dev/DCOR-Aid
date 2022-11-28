@@ -116,7 +116,7 @@ class FilterChain(QtWidgets.QWidget):
         rs_entries = []
         for dn in self.selected_datasets:
             ddict = self.db_extract.get_dataset_dict(dn)
-            for rs in ddict["resources"]:
+            for rs in ddict.get("resources", []):
                 if (self.fw_resources.checkBox.isChecked()
                     and ("mimetype" in rs
                          and rs["mimetype"] != "RT-DC")):

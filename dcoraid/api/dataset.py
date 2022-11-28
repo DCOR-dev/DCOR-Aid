@@ -232,8 +232,9 @@ def resource_add(dataset_id, path, api, resource_name=None,
 
     if resource_dict:
         pkg_dict = api.get("package_show", id=dataset_id)
-        res_names = [r["name"] for r in pkg_dict["resources"]]
-        res_dict = pkg_dict["resources"][res_names.index(resource_name)]
+        res_list = pkg_dict.get("resources", [])
+        res_names = [r["name"] for r in res_list]
+        res_dict = res_list[res_names.index(resource_name)]
         # add resource_dict
         revise_dict = {
             "match__id": dataset_id,
@@ -262,7 +263,7 @@ def resource_exists(dataset_id, resource_name, api, resource_dict=None):
     if resource_dict is None:
         resource_dict = {}
     pkg_dict = api.get("package_show", id=dataset_id)
-    for resource in pkg_dict["resources"]:
+    for resource in pkg_dict.get("resources", []):
         if resource["name"] == resource_name:
             # check that the resource dict matches
             for key in resource_dict:
@@ -279,6 +280,6 @@ def resource_sha256_sums(dataset_id, api):
     """Return a dictionary of resources with the SHA256 sums as values"""
     pkg_dict = api.get("package_show", id=dataset_id)
     sha256dict = {}
-    for resource in pkg_dict["resources"]:
+    for resource in pkg_dict.get("resources", []):
         sha256dict[resource["name"]] = resource.get("sha256", None)
     return sha256dict

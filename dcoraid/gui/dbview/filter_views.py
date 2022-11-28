@@ -61,7 +61,7 @@ class FilterCollections(filter_base.FilterBase):
                     # hit a number < 1000.
                     f"There are too many datasets in '{collection_name}'!")
             for ii, ds_dict in enumerate(search_dict["results"]):
-                for res_dict in ds_dict["resources"]:
+                for res_dict in ds_dict.get("resources", []):
                     self.download_resource.emit(res_dict["id"], condensed)
                     QtWidgets.QApplication.processEvents(
                         QtCore.QEventLoop.AllEvents,
@@ -105,7 +105,7 @@ class FilterDatasets(filter_base.FilterBase):
         """
         api = get_ckan_api()
         ds_dict = api.get("package_show", id=dataset_id)
-        for res_dict in ds_dict["resources"]:
+        for res_dict in ds_dict.get("resources", []):
             self.download_resource.emit(res_dict["id"], condensed)
             QtWidgets.QApplication.processEvents(
                 QtCore.QEventLoop.AllEvents,
