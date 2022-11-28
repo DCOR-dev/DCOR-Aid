@@ -57,7 +57,8 @@ jobs:
       # to threading issues. We always exit 0 here and check in the next
       # step whether any tests failed.
       run: |
-        coverage run --source=dcoraid -m pytest tests || exit 0
+        coverage run --source=dcoraid -m pytest tests --ignore tests/test_gui.py -x
+        coverage run --source=dcoraid -m pytest tests/test_gui.py -x || exit 0
     - name: Test whether test passed
         # check if pytest wrote failures to the "pytest-failures.txt" file
         # (exits 0 if the file does not exist)
