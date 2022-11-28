@@ -74,6 +74,9 @@ class UploadWidget(QtWidgets.QWidget):
         # signals
         self.widget_jobs.job_selected.connect(self.on_show_job)
 
+    def __del__(self):
+        del self._jobs
+
     @property
     def jobs(self):
         for ii in range(50):

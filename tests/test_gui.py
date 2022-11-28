@@ -29,6 +29,8 @@ def mw(qtbot):
     settings = QtCore.QSettings()
     settings.setIniCodec("utf-8")
     settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
+    QtTest.QTest.qWait(100)
+    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
     # Code that will run before your test
     mw = DCORAid()
     qtbot.addWidget(mw)
