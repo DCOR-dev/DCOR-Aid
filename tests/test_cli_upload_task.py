@@ -16,12 +16,15 @@ def test_cli_basic(monkeypatch):
         return status
     monkeypatch.setattr(sys, "exit", sys_exit)
 
-    path_task = make_upload_task(resource_names=["cli_upload.rtdc"])
+    path_task = pathlib.Path(
+        make_upload_task(resource_names=["cli_upload.rtdc"]))
     api = get_api()
     uj = cli.upload_task(path_task, api.server, api.api_key, ret_job=True)
     pkg_dict = api.get("package_show", id=uj.dataset_id)
     assert pkg_dict["resources"][0]["name"] == "cli_upload.rtdc"
     assert pkg_dict["state"] == "active"
+    path_error = path_task.parent / (path_task.name + "_error.txt")
+    assert not path_error.exists()
 
 
 @pytest.mark.parametrize("entry,emsg",
@@ -71,3 +74,37 @@ def test_cli_fail_upload(mock_stdout, mock_sha256sum, monkeypatch):
     stdout_printed = mock_stdout.getvalue()
     assert "SHA256 sum failed for resources" in stdout_printed
     assert "'cli_upload.rtdc' (BAD SHA vs." in stdout_printed
+
+
+@mock.patch('sys.stdout', new_callable=io.StringIO)
+def test_cli_fail_wrong_server_httperror(mock_stdout, monkeypatch):
+    def sys_exit(status):
+        return status
+    monkeypatch.setattr(sys, "exit", sys_exit)
+
+    path_task = pathlib.Path(
+        make_upload_task(resource_names=["cli_upload.rtdc"]))
+    api = get_api()
+    ret_val = cli.upload_task(path_task=path_task,
+                              server="does.not.exist.example.com",
+                              api_key=api.api_key,
+                              retries_wait=.01,
+                              ret_job=False)
+    assert ret_val != 0
+    path_error = path_task.parent / (path_task.name + "_error.txt")
+    assert path_error.exists()
+    err_text = path_error.read_text()
+    assert err_text.count("Failed to establish a new connection")
+    assert err_text.count("does.not.exist.example.com")
+
+    stdout_printed = mock_stdout.getvalue()
+    assert "Retrying 1..." in stdout_printed
+    assert "Retrying 2..." in stdout_printed
+    assert "Retrying 3..." in stdout_printed
+    assert "Retrying 4..." in stdout_printed
+    assert "Retrying 5..." in stdout_printed
+    assert "Retrying 6..." in stdout_printed
+    assert "Retrying 7..." in stdout_printed
+    assert "Retrying 8..." in stdout_printed
+    assert "Retrying 9..." in stdout_printed
+    assert "Retrying 10..." in stdout_printed
