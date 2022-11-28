@@ -355,7 +355,8 @@ class UploadTableWidget(QtWidgets.QTableWidget):
             Object for managing upload jobs. Returns None
             if `set_job_list` has not been called before.
         """
-        self.logger.warning("Job list not initialized!")
+        if self._jobs is None:
+            self.logger.warning("Job list not initialized!")
         return self._jobs
 
     def get_dataset_title(self, job):
