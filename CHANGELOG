@@ -1,3 +1,5 @@
+0.11.14
+ - setup: bump dclab from 0.47.0 to 0.47.1
 0.11.13
  - maintenance release
 0.11.12
