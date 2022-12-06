@@ -1,5 +1,6 @@
 0.11.14
  - fix: logs cluttered with warning messages when no API key is set
+ - enh: add --version flag to CLI
  - setup: bump dclab from 0.47.0 to 0.47.1
 0.11.13
  - maintenance release

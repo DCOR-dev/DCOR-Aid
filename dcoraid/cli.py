@@ -12,6 +12,7 @@ import requests.exceptions
 
 from .api import CKANAPI
 from .upload import task
+from ._version import version
 
 
 def monitor_upload_progress(upload_job):
@@ -143,4 +144,6 @@ def upload_task_parser():
                         help='DCOR instance to upload to')
     parser.add_argument('api_key', metavar="API_KEY", type=str,
                         help='Your DCOR API key or token')
+    parser.add_argument('--version', action='version',
+                        version=f'dcoraid-upload-task {version}')
     return parser

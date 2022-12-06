@@ -6,6 +6,7 @@ from unittest import mock
 
 import pytest
 
+import dcoraid
 from dcoraid import cli
 
 from .common import get_api, make_upload_task
@@ -108,3 +109,19 @@ def test_cli_fail_wrong_server_httperror(mock_stdout, monkeypatch):
     assert "Retrying 8..." in stdout_printed
     assert "Retrying 9..." in stdout_printed
     assert "Retrying 10..." in stdout_printed
+
+
+@mock.patch('sys.stdout', new_callable=io.StringIO)
+def test_version(mock_stdout, monkeypatch):
+    def sys_exit(status):
+        return status
+    monkeypatch.setattr(sys, "exit", sys_exit)
+
+    monkeypatch.setattr(sys, "argv", ["dcoraid-upload-task", "--version"])
+
+    parser = cli.upload_task_parser()
+    parser.parse_args()
+
+    stdout_printed = mock_stdout.getvalue()
+    assert stdout_printed.count("dcoraid-upload-task")
+    assert stdout_printed.count(dcoraid.__version__)
