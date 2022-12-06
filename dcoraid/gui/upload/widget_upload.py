@@ -103,13 +103,14 @@ class UploadWidget(QtWidgets.QWidget):
         if api.is_available(with_api_key=True, with_correct_version=True):
             self.setEnabled(True)
             with warnings.catch_warnings(record=True) as w:
-                warnings.simplefilter(
-                    "always",
-                    category=queue.DCORAidQueueMissingResourceWarning)
+                warnings.simplefilter("always")
                 self._jobs = queue.UploadQueue(
                     api=get_ckan_api(),
                     path_persistent_job_list=self.shelf_path,
                     cache_dir=self.cache_dir)
+                w = [wi for wi in w
+                     if issubclass(wi.category,
+                                   queue.DCORAidQueueMissingResourceWarning)]
                 if w:
                     msg = QtWidgets.QMessageBox()
                     msg.setIcon(QtWidgets.QMessageBox.Information)

@@ -1,7 +1,10 @@
+import logging
 import pathlib
 import re
 import shutil
 import tempfile
+import warnings
+
 import time
 from unittest import mock
 
@@ -40,6 +43,20 @@ def test_initialize():
     uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
                        resource_paths=rtdc_paths)
     assert uj.state == "init"
+
+
+def test_initialize_no_api_key(caplog):
+    caplog.set_level(logging.WARNING)
+    api = common.CKANAPI(server=common.SERVER,
+                         api_key="")
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        assert api.is_available(with_api_key=False)
+        assert not w
+        assert not api.is_available(with_api_key=True)
+        assert not w
+    # no warnings should be logged
+    assert not caplog.records
 
 
 def test_full_upload():

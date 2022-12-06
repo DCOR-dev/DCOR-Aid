@@ -151,7 +151,23 @@ class CKANAPI:
                        ssl_verify=self.verify)
 
     def is_available(self, with_api_key=False, with_correct_version=False):
-        """Check whether server and API are reachable"""
+        """Check whether server and API are reachable
+
+        Parameters
+        ----------
+        with_api_key: bool
+            Make sure that we can access the API via an API key.
+            This will always result in False if `self.api_key` is
+            not set.
+        with_correct_version: bool
+            Make sure that the remote server is running the minimum
+            required version of DCOR. Otherwise, return False.
+
+        Returns
+        -------
+        is_available: bool
+            The server is available and meets all requirements.
+        """
         # simply check whether we can access the site
         try:
             self.get("site_read")
@@ -168,6 +184,10 @@ class CKANAPI:
             except ValueError:
                 self.logger.error(traceback.format_exc())
                 status = False
+        # check whether we have an API key if we need one
+        if status and with_api_key and not self.api_key:
+            # We need access with an API key, but we don't have one
+            status = False
         # Do something only logged-in users can do
         if status and with_api_key:
             try:
@@ -244,11 +264,6 @@ class CKANAPI:
         """
         try:
             userdata = self.get("user_show")
-            warnings.warn("Yay, #6338 has made it into a release! This "
-                          + "function can now be rewritten as a one-liner! "
-                          + "also make sure to increment MIN_CKAN_VERSION "
-                          + "to 2.10!",
-                          DeprecationWarning)
         except APINotFoundError:
             self.logger.info("CKAN has not yet merged #6338")
             # Workaround for https://github.com/ckan/ckan/issues/5490
@@ -265,6 +280,12 @@ class CKANAPI:
                 else:
                     raise NoAPIKeyError(
                         "Could not determine user data. Please check API key.")
+        else:
+            warnings.warn("Yay, #6338 has made it into a release! This "
+                          + "function can now be rewritten as a one-liner! "
+                          + "also make sure to increment MIN_CKAN_VERSION "
+                          + "to 2.10!",
+                          DeprecationWarning)
         return userdata
 
     def post(self, api_call, data, dump_json=True, headers=None,
