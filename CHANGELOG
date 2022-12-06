@@ -1,3 +1,5 @@
+0.11.15
+ - setup: bump dclab from 0.47.1 to 0.47.2
 0.11.14
  - fix: logs cluttered with warning messages when no API key is set
  - enh: add --version flag to CLI
