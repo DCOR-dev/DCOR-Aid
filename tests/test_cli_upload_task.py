@@ -1,3 +1,4 @@
+import argparse
 import io
 import json
 import pathlib
@@ -125,3 +126,11 @@ def test_version(mock_stdout, monkeypatch):
     stdout_printed = mock_stdout.getvalue()
     assert stdout_printed.count("dcoraid-upload-task")
     assert stdout_printed.count(dcoraid.__version__)
+
+
+@mock.patch('sys.stdout', new_callable=io.StringIO)
+def test_version_exit_status(mock_stdout, monkeypatch):
+    with pytest.raises(SystemExit, match="0"):
+        monkeypatch.setattr(argparse._sys, "argv", ["dcoraid-upload-task",
+                                                    "--version"])
+        cli.upload_task()

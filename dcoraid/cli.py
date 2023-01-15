@@ -51,6 +51,7 @@ def upload_task(path_task=None, server=None, api_key=None, ret_job=False,
     uj = None
     exit_status = 1  # fails by default if there is no success
     try:
+
         if path_task is None or server is None or api_key is None:
             parser = upload_task_parser()
             args = parser.parse_args()
@@ -106,8 +107,8 @@ def upload_task(path_task=None, server=None, api_key=None, ret_job=False,
             # which means no successful upload and only HTTPErrors.
             raise httperror
     except SystemExit:
-        # The user just passed --help
-        pass
+        # The user just passed --help or --version
+        exit_status = 0
     except BaseException:
         # Write errors to errors file
         print(traceback.format_exc())
