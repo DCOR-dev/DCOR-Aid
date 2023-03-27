@@ -129,9 +129,10 @@ class UploadWidget(QtWidgets.QWidget):
                         "\n\n".join([str(wi.message) for wi in w]))
                     msg.setWindowTitle("Resources for uploads missing")
                     msg.exec_()
-            self.widget_jobs.set_job_list(self.jobs)
-            # upload finished signal
-            self.widget_jobs.upload_finished.connect(self.upload_finished)
+            if self.isVisible():
+                self.widget_jobs.set_job_list(self.jobs)
+                # upload finished signal
+                self.widget_jobs.upload_finished.connect(self.upload_finished)
         elif retry_if_fail:
             # try again
             self.init_timer.setInterval(1000)
@@ -406,6 +407,8 @@ class UploadTableWidget(QtWidgets.QTableWidget):
     @QtCore.pyqtSlot()
     def update_job_status(self):
         """Update UI with information from self.jobs (UploadJobList)"""
+        if not self.isVisible():
+            return
         # disable updates
         self.setUpdatesEnabled(False)
         # make sure the length of the table is long enough

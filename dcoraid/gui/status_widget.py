@@ -81,16 +81,18 @@ class StatusWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def request_status_update(self):
-        self.thread_pool.start(self.status_worker)
+        if self.isVisible():  # sanity check just in case something got deleted
+            self.thread_pool.start(self.status_worker)
 
     @QtCore.pyqtSlot(str, str, str, str)
     def set_status(self, text, tooltip, icon, server):
-        favicon = self.get_favicon(server)
-        self.flabel.setPixmap(favicon.pixmap(16, 16))
-        self.flabel.setToolTip(server)
-        self.toolButton_user.setText(text)
-        self.toolButton_user.setToolTip(tooltip)
-        self.toolButton_user.setIcon(QtGui.QIcon.fromTheme(icon))
+        if self.isVisible():  # sanity check just in case something got deleted
+            favicon = self.get_favicon(server)
+            self.flabel.setPixmap(favicon.pixmap(16, 16))
+            self.flabel.setToolTip(server)
+            self.toolButton_user.setText(text)
+            self.toolButton_user.setToolTip(tooltip)
+            self.toolButton_user.setIcon(QtGui.QIcon.fromTheme(icon))
 
     def stop_timers(self):
         if self.timer is not None:
