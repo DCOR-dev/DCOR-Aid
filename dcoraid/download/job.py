@@ -48,7 +48,7 @@ class DownloadJob:
         self.api = api.copy()  # create a copy of the API
         self.resource_id = resource_id
         self.job_id = resource_id + ("_cond" if condensed else "")
-        self.path = pathlib.Path(download_path)
+        self._user_path = pathlib.Path(download_path)
         self.condensed = condensed
         self.path_temp = None
         self.state = None
@@ -82,6 +82,16 @@ class DownloadJob:
         }
         return dj_state
 
+    @property
+    def path(self):
+        """Path to the resource which is downloaded"""
+        return self.get_download_path()
+
+    @property
+    def path_dir(self):
+        """Path to the download directory"""
+        return self.path.parent
+
     @staticmethod
     def from_download_job_state(dj_state, api):
         """Reinstantiate a job from an `DownloadJob.__getstate__` dict
@@ -107,18 +117,32 @@ class DownloadJob:
         ds_dict = self.api.get("package_show", id=res_dict["package_id"])
         return ds_dict
 
+    @functools.lru_cache()
     def get_download_path(self):
-        """Return the final location to which the file will be downloaded"""
-        rsdict = self.get_resource_dict()
-        ds_name = self.get_dataset_dict()["name"]
-        if self.condensed and rsdict["mimetype"] == "RT-DC":
-            stem, suffix = rsdict["name"].rsplit(".", 1)
-            res_name = stem + "_condensed." + suffix
+        """Return the final location to which the file is downloaded"""
+        if self._user_path.is_dir():
+            # Compute the resource path from the dataset dictionary
+            rsdict = self.get_resource_dict()
+            ds_name = self.get_dataset_dict()["name"]
+            # append dataset name to user-specified download directory
+            ds_dir = self._user_path / ds_name
+            ds_dir.mkdir(parents=True, exist_ok=True)
+            if self.condensed and rsdict["mimetype"] == "RT-DC":
+                stem, suffix = rsdict["name"].rsplit(".", 1)
+                res_name = stem + "_condensed." + suffix
+            else:
+                res_name = rsdict["name"]
+            dl_path = ds_dir / res_name
+        elif self._user_path.parent.is_dir():
+            # user specified an actual file
+            dl_path = self._user_path
         else:
-            res_name = rsdict["name"]
-        ds_dir = self.path / ds_name
-        ds_dir.mkdir(exist_ok=True, parents=True)
-        return ds_dir / res_name
+            raise ValueError(
+                f"The `download_path` passed in __init__ is invalid. "
+                f"Please make sure the target directory for {self._user_path} "
+                f"exists.")
+
+        return dl_path
 
     def get_resource_url(self):
         """Return a link to the resource on DCOR"""
@@ -223,7 +247,7 @@ class DownloadJob:
             "bytes downloaded": self.file_bytes_downloaded,
             "rate": self.get_rate(),
         }
-        if self.path is not None and self.path.is_file():
+        if self.path.exists() and self.path.is_file():
             data["bytes local"] = self.path.stat().st_size
         elif self.path_temp is not None and self.path_temp.is_file():
             data["bytes local"] = self.path_temp.stat().st_size
@@ -256,16 +280,13 @@ class DownloadJob:
         via :func:`DownloadJob.get_status`.
         """
         if self.state in ["init", "wait-disk"]:
-            # set-up temporary path
-            if self.path.is_dir():
-                # if a directory is given, we prepend the dataset name
-                self.path = self.get_download_path()
             if self.path.exists():
                 self.start_time = None
                 self.end_time = None
                 self.file_bytes_downloaded = 0
                 self.set_state("downloaded")
             else:
+                # set-up temporary path
                 self.path_temp = self.path.with_name(self.path.name + "~")
                 # check for disk space
                 if self.condensed:
@@ -327,8 +348,10 @@ class DownloadJob:
     def task_verify_resource(self):
         """Perform SHA256 verification"""
         if self.state == "downloaded":
-            if self.path is not None and self.path.is_file():
+            if self.path.exists() and self.path.is_file():
+                # This means the download succeeded to `self.path_temp`
                 if self.path_temp is not None and self.path_temp.exists():
+                    # Delete any temporary data.
                     self.path_temp.unlink()
                 self.set_state("done")
             else:  # only verify if we have self.temp_path

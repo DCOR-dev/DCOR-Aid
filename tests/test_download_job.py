@@ -72,7 +72,7 @@ def test_full_download_file_exists():
     dj = job.DownloadJob(api=api,
                          resource_id=ds_dict["resources"][0]["id"],
                          download_path=td)
-    assert dj.path.is_dir()
+    assert dj.path_dir.is_dir()
     dj.task_download_resource()
     dj.task_verify_resource()
     assert dj.start_time is not None
@@ -125,7 +125,8 @@ def test_saveload():
     dj2 = job.DownloadJob.from_download_job_state(state, api=api)
     state2 = dj2.__getstate__()
     assert state2["resource_id"] == ds_dict["resources"][0]["id"]
-    assert dj2.path.samefile(state["download_path"])
+    # File not downloaded, so can only test whether strings are equal
+    assert str(dj2.path) == str(state["download_path"])
 
 
 @mock.patch.object(job.shutil, "disk_usage")
