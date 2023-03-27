@@ -19,8 +19,13 @@ def monitor_upload_progress(upload_job):
     newline = False
     while upload_job.state == "parcel":
         time.sleep(1)
+    prev_msg = ""
     while upload_job.state == "transfer":
-        print(upload_job.get_progress_string(), end="\r", flush=True)
+        new_msg = upload_job.get_progress_string()
+        if new_msg != prev_msg:
+            # Only print something if it is new.
+            prev_msg = new_msg
+            print(new_msg, end="\r", flush=True)
         newline = True
         time.sleep(1)
     if newline:
@@ -51,7 +56,6 @@ def upload_task(path_task=None, server=None, api_key=None, ret_job=False,
     uj = None
     exit_status = 1  # fails by default if there is no success
     try:
-
         if path_task is None or server is None or api_key is None:
             parser = upload_task_parser()
             args = parser.parse_args()
@@ -70,7 +74,7 @@ def upload_task(path_task=None, server=None, api_key=None, ret_job=False,
                                     api=api,
                                     update_dataset_id=True)
                 print(f"Dataset ID is {uj.dataset_id}.")
-                print("Compressing resources.")
+                print("Compressing uncompressed resources.")
                 uj.task_compress_resources()
                 ascertain_state_or_bust(uj, "parcel")
 
