@@ -54,7 +54,7 @@ class DownloadWidget(QtWidgets.QWidget):
             self.setEnabled(True)
             self.jobs = DownloadQueue(api=api,
                                       path_persistent_job_list=self.shelf_path)
-            if self.isVisible():
+            if self.parent().parent().isVisible():
                 self.widget_jobs.set_job_list(self.jobs)
         else:
             # try again
@@ -123,7 +123,7 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
     @QtCore.pyqtSlot()
     def update_job_status(self):
         """Update UI with information from self.jobs (DownloadJobList)"""
-        if not self.isVisible():
+        if not self.parent().parent().isVisible():
             return
         # disable updates
         self.setUpdatesEnabled(False)

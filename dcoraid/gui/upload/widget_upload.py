@@ -129,7 +129,7 @@ class UploadWidget(QtWidgets.QWidget):
                         "\n\n".join([str(wi.message) for wi in w]))
                     msg.setWindowTitle("Resources for uploads missing")
                     msg.exec_()
-            if self.isVisible():
+            if self.parent().parent().isVisible():
                 self.widget_jobs.set_job_list(self.jobs)
                 # upload finished signal
                 self.widget_jobs.upload_finished.connect(self.upload_finished)

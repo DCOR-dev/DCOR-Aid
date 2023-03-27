@@ -81,12 +81,12 @@ class StatusWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def request_status_update(self):
-        if self.isVisible():  # sanity check just in case something got deleted
+        if self.parent().isVisible():  # sanity check just in case something got deleted
             self.thread_pool.start(self.status_worker)
 
     @QtCore.pyqtSlot(str, str, str, str)
     def set_status(self, text, tooltip, icon, server):
-        if self.isVisible():  # sanity check just in case something got deleted
+        if self.parent().isVisible():  # sanity check just in case something got deleted
             favicon = self.get_favicon(server)
             self.flabel.setPixmap(favicon.pixmap(16, 16))
             self.flabel.setToolTip(server)

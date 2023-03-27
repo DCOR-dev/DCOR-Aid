@@ -130,6 +130,8 @@ class DCORAid(QtWidgets.QMainWindow):
         self.show()
         self.raise_()
 
+        self.status_widget.request_status_update()
+
     def closeEvent(self, event):
         self.panel_upload.stop_timers()
         self.panel_download.stop_timers()
