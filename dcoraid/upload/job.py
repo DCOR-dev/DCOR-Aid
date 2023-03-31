@@ -78,7 +78,7 @@ class UploadJob:
             resource_names = [pp.name for pp in self.paths]
         # make sure that only valid characters are used as resource names
         resource_names = [valid_resource_name(rn) for rn in resource_names]
-        #: Important supplementary resource schema meta data that will
+        #: Important supplementary resource schema metadata that will
         #: be formatted to composite {"sp:section:key" = value} an appended
         #: to the resource metadata.
         self.supplements = resource_supplements

@@ -1,3 +1,4 @@
+import re
 from collections import OrderedDict
 import copy
 from functools import lru_cache
@@ -115,8 +116,14 @@ class ResourcesModel(QtCore.QAbstractListModel):
         if "file" not in data:
             data["file"] = {}
         if "filename" not in data["file"]:
-            data["file"]["filename"] = job.valid_resource_name(
-                pathlib.Path(rfile).name)
+            path = pathlib.Path(rfile)
+            fname = path.name
+            if re.match("M[0-9]*_data.rtdc", "M0001_data.rtdc"):
+                # We have M0001_data.rtdc. Get the file name from the
+                # directory above so the user does not have to manually
+                # rename everything
+                fname = f"{path.parent.name}_{fname}"
+            data["file"]["filename"] = job.valid_resource_name(fname)
         if "supplement" not in data:
             data["supplement"] = {}
         if not magic_keys:

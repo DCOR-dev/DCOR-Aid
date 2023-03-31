@@ -1,4 +1,5 @@
 0.12.0
+ - feat: append the directory name to ZMD (M001_data.rtdc) uploads
  - fix: aborting one upload/download job aborts all jobs (#71)
 0.11.21
  - fix: reduce progress print statements in dcoraid-upload-task CLI
