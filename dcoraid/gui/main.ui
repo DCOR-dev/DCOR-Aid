@@ -36,6 +36,12 @@
          <layout class="QHBoxLayout" name="horizontalLayout_9">
           <item>
            <widget class="QLineEdit" name="lineEdit_public_search">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="acceptDrops">
              <bool>false</bool>
             </property>
@@ -100,6 +106,9 @@
            <widget class="QPushButton" name="pushButton_public_search">
             <property name="text">
              <string>Search</string>
+            </property>
+            <property name="shortcut">
+             <string>Return</string>
             </property>
            </widget>
           </item>
