@@ -39,7 +39,7 @@ def test_queue_abort_does_not_stop_other_uploads_issue_71():
         # post dataset creation request
         data = dataset_create(dataset_dict=dataset_dict, api=api)
         uj = uq.new_job(dataset_id=data["id"],
-                             paths=[dpath])
+                        paths=[dpath])
         uj_list.append(uj)
         if ii == 0:
             uq.abort_job(uj.dataset_id)
