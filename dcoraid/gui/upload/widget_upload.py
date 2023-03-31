@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import warnings
 from functools import lru_cache
@@ -92,6 +94,23 @@ class UploadWidget(QtWidgets.QWidget):
             raise ValueError("Could not initialize upload job list. Please "
                              f"verify your connection to '{api.server}'!")
         return self._jobs
+
+    def dragEnterEvent(self, e):
+        """Whether files are accepted"""
+        if e.mimeData().hasUrls():
+            e.accept()
+        else:
+            e.ignore()
+
+    def dropEvent(self, e):
+        """Add dropped files to view"""
+        urls = e.mimeData().urls()
+        for ff in urls:
+            pp = pathlib.Path(ff.toLocalFile())
+            if pp.is_dir():
+                self.on_upload_task(sorted(pp.rglob("*.dcoraid-task")))
+            elif pp.suffix == ".dcoraid-task":
+                self.on_upload_task(pp)
 
     @show_wait_cursor
     @QtCore.pyqtSlot()
@@ -197,7 +216,9 @@ class UploadWidget(QtWidgets.QWidget):
                           supplements=supps)
 
     @QtCore.pyqtSlot(QtWidgets.QAction)
-    def on_upload_task(self, action):
+    def on_upload_task(self,action: QtWidgets.QAction
+                                    | pathlib.Path
+                                    | list[pathlib.Path]):
         """Import an UploadJob task file and add it to the queue
 
         This functionality is mainly used for automation. Another
@@ -205,8 +226,11 @@ class UploadWidget(QtWidgets.QWidget):
         DCOR-Aid.
         """
         if isinstance(action, pathlib.Path):
-            # special case for docs generation
+            # special case for drag&drop and for docs generation
             files = [action]
+        elif isinstance(action, list):
+            # special case for drag and drop
+            files = [f for f in action if isinstance(f, pathlib.Path)]
         elif action.data() == "single":
             files, _ = QtWidgets.QFileDialog.getOpenFileNames(
                 self,
