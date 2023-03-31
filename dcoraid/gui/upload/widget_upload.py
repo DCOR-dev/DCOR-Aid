@@ -216,9 +216,9 @@ class UploadWidget(QtWidgets.QWidget):
                           supplements=supps)
 
     @QtCore.pyqtSlot(QtWidgets.QAction)
-    def on_upload_task(self,action: QtWidgets.QAction
-                                    | pathlib.Path
-                                    | list[pathlib.Path]):
+    def on_upload_task(
+            self,
+            action: QtWidgets.QAction | pathlib.Path | list[pathlib.Path]):
         """Import an UploadJob task file and add it to the queue
 
         This functionality is mainly used for automation. Another
