@@ -17,6 +17,39 @@ data_path = pathlib.Path(__file__).parent / "data"
 dpath = data_path / "calibration_beads_47.rtdc"
 
 
+def test_queue_abort_does_not_stop_other_uploads_issue_71():
+    """Avoid issue 71
+
+    This just checks wheter everything is programmatically sound
+    and issue 71 cannot occur. The actual reason for issue 71
+    was that `Daemon.shutdown_flag.set()` was called *after*
+    `Daemon.terminate` which killed the daemon several times
+    until there were not more other upload jobs to be aborted.
+    """
+    api = common.get_api()
+    uq = UploadQueue(api=api)
+    uq.daemon_upload.shutdown_flag.set()
+    uq.daemon_verify.shutdown_flag.set()
+    time.sleep(.2)
+
+    uj_list = []
+    for ii in range(5):
+        # create some metadata
+        dataset_dict = common.make_dataset_dict(hint=f"dsdict_{ii}")
+        # post dataset creation request
+        data = dataset_create(dataset_dict=dataset_dict, api=api)
+        uj = uq.new_job(dataset_id=data["id"],
+                             paths=[dpath])
+        uj_list.append(uj)
+        if ii == 0:
+            uq.abort_job(uj.dataset_id)
+
+    assert uj_list[0].state == "abort"
+
+    for uj in uj_list[1:]:
+        assert uj.state != "abort"
+
+
 def test_queue_basic_functionalities():
     api = common.get_api()
     # create some metadata
@@ -343,11 +376,3 @@ def test_persistent_upload_joblist_warning_dataset_deleted_on_server():
 
     with pytest.warns(UserWarning, match=f"{new_id} could not be found"):
         UploadQueue(api=api, path_persistent_job_list=pujl_path)
-
-
-if __name__ == "__main__":
-    # Run all tests
-    loc = locals()
-    for key in list(loc.keys()):
-        if key.startswith("test_") and hasattr(loc[key], "__call__"):
-            loc[key]()

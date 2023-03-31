@@ -110,9 +110,14 @@ class DownloadQueue:
     def abort_job(self, job_id):
         """Abort a running job but don't remove it from the queue"""
         job = self.get_job(job_id)
-        if job.state == "transfer":
-            job.set_state("abort")
-            # https://github.com/requests/toolbelt/issues/297
+        prev_state = job.state
+        job.set_state("abort")
+        if prev_state == "transfer":
+            # Set the shutdown flag before terminating the thread, otherwise
+            # the thread will try to continue with the next job but the
+            # loop in KThread.terminate will kill all of those, causing
+            # the daemon to set all the other jobs to "abort".
+            self.daemon_download.shutdown_flag.set()
             self.daemon_download.terminate()
             self.daemon_download = DownloadDaemon(self.jobs)
 

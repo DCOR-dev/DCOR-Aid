@@ -102,10 +102,6 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
         self.jobs = jobs
 
     @QtCore.pyqtSlot(str)
-    def on_job_abort(self, job_id):
-        self.jobs.abort_job(job_id)
-
-    @QtCore.pyqtSlot(str)
     def on_job_delete(self, job_id):
         self.jobs.remove_job(job_id)
         self.clearContents()
