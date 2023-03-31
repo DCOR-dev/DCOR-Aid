@@ -1,7 +1,5 @@
 import abc
 
-from ..common import ttl_cache
-
 
 class DBInterrogator(abc.ABC):
     def __init__(self, mode, user_data):
@@ -81,13 +79,11 @@ class DBInterrogator(abc.ABC):
         """Local database date in seconds since epoch"""
 
     @property
-    @ttl_cache(seconds=5)
     def remote_version_score(self):
         """Remote database version"""
         return 0
 
     @property
-    @ttl_cache(seconds=5)
     def remote_timestamp(self):
         """Remote database date in seconds since epoch"""
         return 0

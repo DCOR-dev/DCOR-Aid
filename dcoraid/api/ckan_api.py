@@ -2,11 +2,13 @@ import copy
 import functools
 import json
 import logging
+import pathlib
 import traceback
 import warnings
 
 from dclab.external.packaging import parse as parse_version
 import requests
+import requests_cache
 
 from .._version import version
 
@@ -29,8 +31,24 @@ SERVER_RSUFFIX = {}
 
 class CKANAPI:
     def __init__(self, server, api_key="", ssl_verify=True,
-                 check_ckan_version=True):
-        """User-convenient interface to the CKAN API"""
+                 check_ckan_version=True, caching=True):
+        """User-convenient interface to the CKAN API
+
+        Parameters
+        ----------
+        server: str
+            Server to which to connect to, e.g. dcor.mpl.mpg.de
+        api_key: str
+            API token to use for accessing private datasets
+        ssl_verify: bool
+            Whether to verify SSL connections
+        check_ckan_version: bool
+            Whether to check for the proper CKAN version
+        caching: bool or str or pathlib.Path
+            Whether to perform caching `get` requests. If a path is
+            specified, it is used for caching, otherwise responses
+            are cached in memory.
+        """
         self.api_key = api_key.strip()
         self.server = self._make_server_url(server)
         self.api_url = self._make_api_url(server)
@@ -47,6 +65,34 @@ class CKANAPI:
 
         if check_ckan_version:
             CKANAPI.check_ckan_version(self.server, ssl_verify=ssl_verify)
+
+        # Caching
+        if caching:
+            if isinstance(caching, bool):
+                kwargs = {"backend": "memory"}
+            else:
+                kwargs = {"backend": "sqlite",
+                          "cache_name": pathlib.Path(caching)}
+            self.req_ses = requests_cache.CachedSession(urls_expire_after={
+                # API calls without parameters
+                self.api_url + "user_show": 5,
+                self.api_url + "group_list": 10,
+                self.api_url + "user_list": 30,
+                self.api_url + "status_show": 30,
+                self.api_url + "organization_list": 60,
+                # API calls with parameters
+                self.api_url + "package_search*": 10,
+                self.api_url + "package_collaborator_list_for_user*": 60,
+                self.api_url + "organization_list_for_user*": 60,
+                self.api_url + "group_list_authz*": 60,
+                self.api_url + "dataset_followee_list*": 3600,
+                self.api_url + "package_show*": requests_cache.DO_NOT_CACHE,
+                self.api_url + "resource_show*": requests_cache.DO_NOT_CACHE,
+                "*": requests_cache.DO_NOT_CACHE,
+                },
+                **kwargs)
+        else:
+            self.req_ses = requests
 
     @property
     def user_name(self):
@@ -206,7 +252,7 @@ class CKANAPI:
         ----------
         api_call: str
             An API call function (e.g. "package_show")
-        kwargs: Any
+        kwargs: dict
             Any keyword arguments to the API call
             (e.g. `name="test-dataset"`)
 
@@ -217,17 +263,17 @@ class CKANAPI:
             from the returned json string
         """
         if "?" in api_call:
-            raise ValueError("Please onyl use original API call without '?'!")
+            raise ValueError("Please only use original API call without '?'!")
         if kwargs:
             # Add keyword arguments
             kwv = []
             for kw in kwargs:
                 kwv.append("{}={}".format(kw, kwargs[kw]))
             api_call += "?" + "&".join(kwv)
-        req = requests.get(self.api_url + api_call,
-                           headers=self.headers,
-                           verify=self.verify,
-                           timeout=27.9)
+        req = self.req_ses.get(self.api_url + api_call,
+                               headers=self.headers,
+                               verify=self.verify,
+                               timeout=27.9)
         rdata = self.handle_response(req, api_call)
         return rdata["result"]
 

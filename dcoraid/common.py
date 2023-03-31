@@ -1,7 +1,5 @@
-import functools
 import hashlib
 import pathlib
-import time
 from functools import lru_cache
 
 import requests
@@ -24,22 +22,3 @@ def sha256sum(path):
                 break
             file_hash.update(data)
     return file_hash.hexdigest()
-
-
-def ttl_cache(seconds=5, maxsize=32, typed=False):
-    """A time-to-live cache based on lru_cache"""
-    def wrapper_cache(func):
-        func = functools.lru_cache(maxsize=maxsize, typed=typed)(func)
-        func.tinit = time.perf_counter()
-        func.delta = 0
-
-        @functools.wraps(func)
-        def wrapped_func(*args, **kwargs):
-            delta = (time.perf_counter() - func.tinit) // seconds
-            if delta != func.delta:
-                func.cache_clear()
-                func.delta = delta
-            return func(*args, **kwargs)
-        return wrapped_func
-
-    return wrapper_cache

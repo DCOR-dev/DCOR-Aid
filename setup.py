@@ -28,6 +28,7 @@ setup(
         "dclab[dcor]==0.48.4",  # pin for triage
         "numpy>=1.21",
         "requests>=2.13",
+        "requests_cache",  # caching API-'get' requests
         "requests_toolbelt",  # multipart uploads with progress
         ],
     extras_require={

@@ -2,8 +2,6 @@ import urllib.parse
 
 import numpy as np
 
-from ..common import ttl_cache
-
 from .db_core import DBInterrogator
 from .extract import DBExtract
 
@@ -19,7 +17,6 @@ class APIInterrogator(DBInterrogator):
             user_data = None
         super(APIInterrogator, self).__init__(mode=mode, user_data=user_data)
 
-    @ttl_cache(seconds=5)
     def get_circles(self):
         """Return the list of DCOR Circle names
         """
@@ -33,7 +30,6 @@ class APIInterrogator(DBInterrogator):
             data = self.api.get("organization_list")
         return data
 
-    @ttl_cache(seconds=5)
     def get_collections(self):
         """Return the list of DCOR Collection names"""
         if self.mode == "user":
@@ -47,14 +43,12 @@ class APIInterrogator(DBInterrogator):
                 + "Please ask someone to implement this with `offset`.")
         return data
 
-    @ttl_cache(seconds=3600)
     def get_datasets_user_following(self):
         """Return datasets the user is following"""
         assert self.mode == "user"
         data = self.api.get("dataset_followee_list", id=self.api.user_name)
         return DBExtract(data)
 
-    @ttl_cache(seconds=3600)
     def get_datasets_user_owned(self):
         """Return datasets the user created"""
         assert self.mode == "user"
@@ -86,7 +80,6 @@ class APIInterrogator(DBInterrogator):
 
         return dbextract
 
-    @ttl_cache(seconds=3600)
     def get_users(self, ret_fullnames=False):
         """Return the list of DCOR users"""
         data = self.api.get("user_list")

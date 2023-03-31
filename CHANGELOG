@@ -1,6 +1,7 @@
 0.12.0
  - feat: append the directory name to ZMD (M001_data.rtdc) uploads
  - feat: support drag&drop of task files to upload tab (#70)
+ - enh: replace ttl_cache with requests_cache (#69)
  - fix: aborting one upload/download job aborts all jobs (#71)
 0.11.21
  - fix: reduce progress print statements in dcoraid-upload-task CLI
