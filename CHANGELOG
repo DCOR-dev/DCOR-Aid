@@ -1,5 +1,7 @@
 0.12.1
  - enh: map "Search" button to "Enter" in "Find Data" UI
+ - enh: workaround for unresponsive widgets in tab widget: add labels
+ - ref: migrate "browse public" tab to its own widget
 0.12.0
  - feat: append the directory name to ZMD (M001_data.rtdc) uploads
  - feat: support drag&drop of task files to upload tab (#70)

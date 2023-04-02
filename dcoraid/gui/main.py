@@ -88,7 +88,7 @@ class DCORAid(QtWidgets.QMainWindow):
 
         # GUI
         # Preferences dialog
-        self.dlg_pref = PreferencesDialog()
+        self.dlg_pref = PreferencesDialog(self)
         # Window title
         self.setWindowTitle(f"DCOR-Aid {__version__}")
         # Disable native menubar (e.g. on Mac)
@@ -101,7 +101,7 @@ class DCORAid(QtWidgets.QMainWindow):
         self.actionAbout.triggered.connect(self.on_action_about)
 
         # Display login status
-        self.status_widget = StatusWidget(self)
+        self.status_widget = StatusWidget(self.tabWidget)
         self.tabWidget.setCornerWidget(self.status_widget)
         self.status_widget.clicked.connect(self.dlg_pref.on_show_server)
 
@@ -109,11 +109,8 @@ class DCORAid(QtWidgets.QMainWindow):
         self.pushButton_user_refresh.clicked.connect(
             self.on_refresh_private_data)
 
-        # Signals for public data browser
-        self.pushButton_public_search.clicked.connect(self.on_public_search)
-
         # Signal for requesting resource download
-        self.public_filter_chain.download_resource.connect(
+        self.panel_browse_public.request_download.connect(
             self.panel_download.download_resource)
         self.user_filter_chain.download_resource.connect(
             self.panel_download.download_resource)
@@ -175,25 +172,6 @@ class DCORAid(QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.information(self,
                                           "Software",
                                           sw_text)
-
-    @QtCore.pyqtSlot()
-    def on_public_search(self):
-        self.tab_browse.setCursor(QtCore.Qt.WaitCursor)
-        api = get_ckan_api(
-            public=not self.checkBox_public_include_private.isChecked())
-        try:
-            ai = APIInterrogator(api=api)
-            dbextract = ai.search_dataset(
-                self.lineEdit_public_search.text(),
-                limit=self.spinBox_public_rows.value())
-            self.public_filter_chain.set_db_extract(dbextract)
-        except ConnectionTimeoutErrors:
-            self.logger.error(tb.format_exc())
-            QtWidgets.QMessageBox.critical(
-                self,
-                f"Failed to connect to {api.server}",
-                tb.format_exc(limit=1))
-        self.tab_browse.setCursor(QtCore.Qt.ArrowCursor)
 
     @QtCore.pyqtSlot()
     def on_refresh_private_data(self):
