@@ -40,7 +40,7 @@ build: off
 
 test_script:
   - python -c "import dcoraid; print(dcoraid.__version__)"
-  - pip install coverage codecov
+  - pip install coverage
   - pip install pytest pytest-qt
   - python -m coverage run --source=dcoraid -m pytest tests --ignore tests/test_gui.py -x
   # sometimes GUI tests fail due to threading issues
@@ -49,8 +49,6 @@ test_script:
   # (exits 0 if the file does not exist)
   - if exist pytest-failures.txt exit 1
   - python -m coverage report -m
-  # Allow codecov to fail
-  - codecov || exit 0
 
 after_test:
   - appveyor-retry pip install twine wheel
