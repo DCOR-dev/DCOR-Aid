@@ -25,7 +25,7 @@ setup(
     description=description,
     long_description=open('README.rst').read() if exists('README.rst') else '',
     install_requires=[
-        "dclab[dcor]>=0.48.4",
+        "dclab[dcor]>=0.49.0",
         "numpy>=1.21",
         "requests>=2.13",
         "requests_cache",  # caching API-'get' requests
