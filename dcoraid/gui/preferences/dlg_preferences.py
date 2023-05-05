@@ -10,6 +10,7 @@ from PyQt5 import uic, QtCore, QtWidgets
 from PyQt5.QtCore import QStandardPaths
 
 from ...api import NoAPIKeyError, CKANAPI
+from ...common import ConnectionTimeoutErrors
 from ..tools import show_wait_cursor
 
 from ..api import get_ckan_api
@@ -201,7 +202,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         api = get_ckan_api()
         try:
             user_dict = api.get_user_dict()
-        except (ConnectionError, NoAPIKeyError):
+        except tuple(list(ConnectionTimeoutErrors) + [NoAPIKeyError]):
             self.logger.error(tb.format_exc())
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Warning)
