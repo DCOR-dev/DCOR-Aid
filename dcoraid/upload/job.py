@@ -1,3 +1,4 @@
+import atexit
 import tempfile
 import pathlib
 import shutil
@@ -103,6 +104,9 @@ class UploadJob:
         if cache_dir is None:
             cache_dir = pathlib.Path(tempfile.mkdtemp(
                 prefix=f"dcoraid_upload_compress-{self.dataset_id}_"))
+            # Make sure that directory is cleaned up after we are done.
+            atexit.register(shutil.rmtree, cache_dir,
+                            ignore_errors=True, onerror=None)
         else:
             cache_dir = pathlib.Path(cache_dir) / f"compress-{self.dataset_id}"
         self.cache_dir = cache_dir
@@ -332,7 +336,7 @@ class UploadJob:
                         raise IOError(f"Sanity check failed for {path}!\n"
                                       + "\n".join(insane))
                 if cdata["uncompressed"]:  # (partially) not compressed?
-                    res_dir = self.cache_dir / "{}".format(ii)
+                    res_dir = self.cache_dir / f"{ii}"
                     res_dir.mkdir(exist_ok=True, parents=True)
                     path_out = res_dir / path.name
                     # Check if the output path already exists:
