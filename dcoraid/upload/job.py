@@ -68,7 +68,9 @@ class UploadJob:
             Unique task ID (used for identifying jobs uploaded already)
         cache_dir: str or pathlib.Path
             Cache directory for storing compressed .rtdc files;
-            if not supplied, a temporary directory is created
+            if not supplied, a temporary directory is created.
+            Multiple upload jobs may share the same cache dir,
+            since each job creates its own subdirectory.
         """
         self.api = api.copy()  # create a copy of the API
         self.dataset_id = dataset_id

@@ -178,7 +178,7 @@ def create_task(path, dataset_dict, resource_dicts, task_id=None):
 def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
               update_dataset_id=False, force_dataset_creation=False,
               cache_dir=None):
-    """Open a task file and load it into an UploadJob
+    """Open a task file and load it into an :class:`.UploadJob`
 
     Parameters
     ----------
@@ -338,8 +338,8 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
     dataset_dict["id"] = dataset_id
 
     # Proceed with instantiation of UploadJob
-    uj = UploadJob.from_upload_job_state(uj_state, api=api,
-                                         cache_dir=cache_dir)
+    uj = UploadJob.from_upload_job_state(
+        uj_state, api=api, cache_dir=cache_dir)
 
     if task_id is not None:
         # Also update the ID dictionary

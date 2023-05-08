@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 from argparse import RawTextHelpFormatter
 import logging
@@ -47,16 +49,39 @@ def ascertain_state_or_bust(upload_job, state):
             )
 
 
-def upload_task(path_task=None, server=None, api_key=None, ret_job=False,
-                retries_num=10, retries_wait=30):
-    """Upload a .dcoraid-task file to a DCOR instance"""
+def upload_task(path_task: str | pathlib.Path = None,
+                server: str = "dcor.mpl.mpg.de",
+                api_key: str = None,
+                cache_dir: str | pathlib.Path = None,
+                ret_job: bool = False,
+                retries_num: int = 10,
+                retries_wait: float = 30.0):
+    """Upload a .dcoraid-task file to a DCOR instance
+
+    Parameters
+    ----------
+    path_task: str or pathlib.Path
+        path to the .dcoraid-task file
+    server: str
+        DCOR server to use (e.g. dcor.mpl.mpg.de)
+    api_key: str
+        user API token to use for the upload
+    cache_dir: str or pathlib.Path
+        directory used for caching
+    ret_job: bool
+        whether to return the :class:`.UploadJob` instance
+    retries_num: int
+        number of times to retry when connection problems are encountered
+    retries_wait: float
+        seconds to wait in-between retries
+    """
     # Initialize with None, otherwise we might get issues if parsing
     # of the arguments fails or in `finally`.
     path_error = None
     uj = None
     exit_status = 1  # fails by default if there is no success
     try:
-        if path_task is None or server is None or api_key is None:
+        if path_task is None or api_key is None:
             parser = upload_task_parser()
             args = parser.parse_args()
             path_task = args.path_task
@@ -72,7 +97,9 @@ def upload_task(path_task=None, server=None, api_key=None, ret_job=False,
                 # load the .dcoraid-task file
                 uj = task.load_task(path_task,
                                     api=api,
-                                    update_dataset_id=True)
+                                    update_dataset_id=True,
+                                    cache_dir=cache_dir,
+                                    )
                 print(f"Dataset ID is {uj.dataset_id}.")
                 print("Compressing uncompressed resources.")
                 uj.task_compress_resources()
@@ -146,9 +173,12 @@ def upload_task_parser():
     parser.add_argument('path_task', metavar="PATH", type=str,
                         help='The .dcoraid-task file')
     parser.add_argument('server', metavar="SERVER", type=str,
-                        help='DCOR instance to upload to')
+                        help='DCOR instance to upload to',
+                        default="dcor.mpl.mpg.de")
     parser.add_argument('api_key', metavar="API_KEY", type=str,
                         help='Your DCOR API key or token')
+    parser.add_argument('cache_dir', metavar="CACHE_DIR", type=str,
+                        help='Cache directory for data compression')
     parser.add_argument('--version', action='version',
                         version=f'dcoraid-upload-task {version}')
     return parser

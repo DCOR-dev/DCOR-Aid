@@ -70,11 +70,15 @@ def make_dataset_for_download(seed=0):
 def make_upload_task(task_id=True,  # tester may pass `None` to disable
                      dataset_id=None,
                      dataset_dict=True,
-                     resource_paths=[dpath],
-                     resource_names=["gorgonzola.rtdc"],
+                     resource_paths=None,
+                     resource_names=None,
                      resource_supplements=None,
                      ):
     """Return path to example task file"""
+    if resource_paths is None:
+        resource_paths = [dpath]
+    if resource_names is None:
+        resource_names = ["gorgonzola.rtdc"]
     if task_id is True:
         task_id = str(uuid.uuid4())
     if dataset_dict and not isinstance(dataset_dict, dict):

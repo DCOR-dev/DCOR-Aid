@@ -29,6 +29,20 @@ def test_cli_basic(monkeypatch):
     assert not path_error.exists()
 
 
+def test_cli_cache_dir(tmpdir):
+    path_task = pathlib.Path(
+        make_upload_task(resource_names=["cli_upload.rtdc"]))
+    api = get_api()
+    uj = cli.upload_task(path_task=path_task,
+                         server=api.server,
+                         api_key=api.api_key,
+                         cache_dir=tmpdir,
+                         ret_job=True)
+    ist = str(uj.cache_dir)
+    soll = pathlib.Path(tmpdir) / f"compress-{uj.dataset_id}"
+    assert str(ist) == str(soll)
+
+
 @pytest.mark.parametrize("entry,emsg",
                          [["license_id", "Please choose a license_id"],
                           ["owner_org", "must always be uploaded to a Circle"],
