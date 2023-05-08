@@ -9,7 +9,9 @@ import traceback as tb
 
 import dclab
 import requests
+import requests_cache
 import requests_toolbelt
+import urllib3
 
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 
@@ -157,7 +159,9 @@ class DCORAid(QtWidgets.QMainWindow):
     def on_action_software(self):
         libs = [dclab,
                 requests,
+                requests_cache,
                 requests_toolbelt,
+                urllib3,
                 ]
         sw_text = "DCOR-Aid {}\n\n".format(__version__)
         sw_text += "Python {}\n\n".format(sys.version)
