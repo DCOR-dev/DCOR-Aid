@@ -1,5 +1,4 @@
 import copy
-import functools
 import pathlib
 import shutil
 import time
@@ -7,7 +6,7 @@ import warnings
 
 import requests
 
-from ..common import sha256sum
+from ..common import sha256sum, weak_lru_cache
 
 #: Valid job states (in more or less chronological order)
 JOB_STATES = [
@@ -106,18 +105,18 @@ class DownloadJob:
     def id(self):
         return self.resource_id
 
-    @functools.lru_cache(maxsize=100)
+    @weak_lru_cache(maxsize=100)
     def get_resource_dict(self):
         """Return resource dictionary"""
         return self.api.get("resource_show", id=self.resource_id)
 
-    @functools.lru_cache(maxsize=100)
+    @weak_lru_cache(maxsize=100)
     def get_dataset_dict(self):
         res_dict = self.get_resource_dict()
         ds_dict = self.api.get("package_show", id=res_dict["package_id"])
         return ds_dict
 
-    @functools.lru_cache()
+    @weak_lru_cache()
     def get_download_path(self):
         """Return the final location to which the file is downloaded"""
         if self._user_path.is_dir():

@@ -1,5 +1,6 @@
 import numbers
-from functools import lru_cache
+
+from ..common import weak_lru_cache
 
 
 class DBExtract:
@@ -66,7 +67,7 @@ class DBExtract:
                 self.datasets.append(dd)
 
     @property
-    @lru_cache(maxsize=1)
+    @weak_lru_cache(maxsize=1)
     def circles(self):
         if not self._circles:
             circ_list = []
@@ -81,7 +82,7 @@ class DBExtract:
         return self._circles
 
     @property
-    @lru_cache(maxsize=1)
+    @weak_lru_cache(maxsize=1)
     def collections(self):
         if not self._collections:
             coll_list = []

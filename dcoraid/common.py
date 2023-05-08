@@ -1,6 +1,7 @@
+import functools
 import hashlib
 import pathlib
-from functools import lru_cache
+import weakref
 
 import requests
 
@@ -9,7 +10,7 @@ ConnectionTimeoutErrors = (ConnectionError,
                            requests.exceptions.Timeout)
 
 
-@lru_cache(maxsize=2000)
+@functools.lru_cache(maxsize=2000)
 def sha256sum(path):
     """Compute the SHA256 sum of a file on disk"""
     block_size = 2**20
@@ -22,3 +23,22 @@ def sha256sum(path):
                 break
             file_hash.update(data)
     return file_hash.hexdigest()
+
+
+def weak_lru_cache(maxsize=128, typed=False):
+    """LRU Cache decorator that keeps a weak reference to "self""
+
+    https://stackoverflow.com/questions/33672412/
+    python-functools-lru-cache-with-instance-methods-release-object
+    """
+    def wrapper(func):
+        @functools.lru_cache(maxsize, typed)
+        def _func(_self, *args, **kwargs):
+            return func(_self(), *args, **kwargs)
+
+        @functools.wraps(func)
+        def inner(self, *args, **kwargs):
+            return _func(weakref.ref(self), *args, **kwargs)
+
+        return inner
+    return wrapper

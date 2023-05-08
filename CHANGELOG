@@ -2,6 +2,7 @@
  - fix: error message in preferences user tab no connection available
  - enh: allow to select upload cache directory in CLI
  - enh: make sure temporary cache directories for uploads are removed
+ - enh: replace lru_cache with weak_lru_cache for instance methods
  - setup: bump dclab from 0.49.0 to 0.50.2
  - setup: bump urllib3 to 2.0
  - setup: bump requests_toolbelt to 1.0
