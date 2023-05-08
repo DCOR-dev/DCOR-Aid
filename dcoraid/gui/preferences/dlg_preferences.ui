@@ -184,6 +184,27 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <item>
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Cache location for compressed files</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_uploads_cache"/>
+          </item>
+          <item>
+           <widget class="QToolButton" name="toolButton_uploads_cache_browse">
+            <property name="text">
+             <string>Browse...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
          <widget class="QCheckBox" name="checkBox_upload_write_task_id">
           <property name="text">
            <string>When loading a *.dcoraid-task file from disk, automatically update it with the

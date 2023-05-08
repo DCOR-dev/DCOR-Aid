@@ -40,6 +40,8 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             self.on_api_token_revoke)
         self.toolButton_eye.clicked.connect(self.on_toggle_api_password_view)
         # uploads
+        self.toolButton_uploads_cache_browse.clicked.connect(
+            self.on_uploads_browse)
         self.toolButton_uploads_apply.clicked.connect(self.on_uploads_apply)
         # downloads
         self.toolButton_downloads_browse.clicked.connect(
@@ -173,8 +175,38 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         utwdid = int(self.checkBox_upload_write_task_id.isChecked())
         self.settings.setValue("uploads/update task with dataset id", utwdid)
 
+        current = self.settings.value("uploads/cache path", ".")
+        path_cache = self.lineEdit_uploads_cache.text()
+        self.settings.setValue("uploads/cache path", path_cache)
+        if path_cache != current:
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.setText("In order for the new cache path to be used, please "
+                        "restart DCOR-Aid!")
+            msg.setWindowTitle("Please restart DCOR-Aid")
+            msg.exec_()
+
+    def on_uploads_browse(self):
+        default = self.settings.value("uploads/cache path", ".")
+        path = QtWidgets.QFileDialog.getExistingDirectory(
+            self,
+            "Choose upload cache location",
+            default,
+        )
+        self.lineEdit_uploads_cache.setText(path)
+
     @QtCore.pyqtSlot()
     def on_uploads_init(self):
+        fallback = QStandardPaths.writableLocation(
+                      QStandardPaths.CacheLocation)
+        cache_path = self.settings.value("uploads/cache path", fallback)
+        if not pathlib.Path(cache_path).exists():
+            cache_path = fallback
+        else:
+            # set it in the settings (in case it's not there)
+            self.settings.setValue("uploads/cache path", cache_path)
+        self.lineEdit_uploads_cache.setText(cache_path)
+
         utwdid = int(self.settings.value("uploads/update task with dataset id",
                                          "1"))
         self.checkBox_upload_write_task_id.blockSignals(True)

@@ -59,9 +59,6 @@ class UploadWidget(QtWidgets.QWidget):
             QStandardPaths.writableLocation(
                 QStandardPaths.AppLocalDataLocation),
             "persistent_upload_jobs")
-        #: path to cache directory (compression)
-        self.cache_dir = QtCore.QStandardPaths.writableLocation(
-            QtCore.QStandardPaths.CacheLocation)
 
         # UploadQueue instance
         self._jobs = None
@@ -78,6 +75,15 @@ class UploadWidget(QtWidgets.QWidget):
 
     def __del__(self):
         del self._jobs
+
+    @property
+    def cache_dir(self):
+        """path to cache directory (compression)"""
+        fallback = QStandardPaths.writableLocation(
+            QStandardPaths.CacheLocation)
+        settings = QtCore.QSettings()
+        cache_path = settings.value("uploads/cache path", fallback)
+        return cache_path
 
     @property
     def jobs(self):
