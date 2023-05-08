@@ -110,7 +110,7 @@ def test_cli_fail_wrong_server_httperror(mock_stdout, monkeypatch):
     path_error = path_task.parent / (path_task.name + "_error.txt")
     assert path_error.exists()
     err_text = path_error.read_text()
-    assert err_text.count("Failed to establish a new connection")
+    assert err_text.count("Failed to resolve")
     assert err_text.count("does.not.exist.example.com")
 
     stdout_printed = mock_stdout.getvalue()

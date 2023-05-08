@@ -37,12 +37,6 @@ def main(splash=True):
         splash.show()
         app.processEvents(QEventLoop.AllEvents, 300)
 
-    import warnings
-    from requests.packages.urllib3.exceptions import SubjectAltNameWarning
-    # Ignore SubjectAltNameWarning for certificates in medical branding,
-    # because they will show up in the dclab-compress-warnings log.
-    warnings.filterwarnings("ignore", category=SubjectAltNameWarning)
-
     from PyQt5 import QtCore, QtGui
     from .gui import DCORAid
 

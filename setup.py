@@ -28,8 +28,9 @@ setup(
         "dclab[dcor]>=0.50.2",
         "numpy>=1.21",
         "requests>=2.13",
+        "urllib3>=2.0",  # requests_toolbelt and general compatibility
         "requests_cache",  # caching API-'get' requests
-        "requests_toolbelt",  # multipart uploads with progress
+        "requests_toolbelt>=1.0.0",  # multipart uploads with progress
         ],
     extras_require={
         "GUI": ["pyqt5"],
