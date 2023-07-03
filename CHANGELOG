@@ -1,3 +1,5 @@
+0.12.6
+ - fix: properly propagate SystemExit exit codes
 0.12.5
  - fix: make CACHE_DIR an optional argument to dclab-upload-task
 0.12.4

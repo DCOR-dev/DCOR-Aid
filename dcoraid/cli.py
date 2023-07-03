@@ -137,9 +137,9 @@ def upload_task(path_task: str | pathlib.Path = None,
             # We only get here if we "continued" through the entire loop,
             # which means no successful upload and only HTTPErrors.
             raise httperror
-    except SystemExit:
-        # The user just passed --help or --version
-        exit_status = 0
+    except SystemExit as e:
+        # e.code is 0 if the user just passed --help or --version
+        exit_status = e.code
     except BaseException:
         # Write errors to errors file
         print(traceback.format_exc())
