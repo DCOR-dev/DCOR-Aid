@@ -1,3 +1,5 @@
+0.12.5
+ - fix: make CACHE_DIR an optional argument to dclab-upload-task
 0.12.4
  - fix: error message in preferences user tab no connection available
  - enh: allow to select upload cache directory in CLI

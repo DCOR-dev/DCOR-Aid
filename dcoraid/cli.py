@@ -177,7 +177,7 @@ def upload_task_parser():
                         default="dcor.mpl.mpg.de")
     parser.add_argument('api_key', metavar="API_KEY", type=str,
                         help='Your DCOR API key or token')
-    parser.add_argument('cache_dir', metavar="CACHE_DIR", type=str,
+    parser.add_argument('--cache_dir', metavar="CACHE_DIR", type=str,
                         help='Cache directory for data compression')
     parser.add_argument('--version', action='version',
                         version=f'dcoraid-upload-task {version}')
