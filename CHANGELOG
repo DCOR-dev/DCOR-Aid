@@ -1,6 +1,6 @@
 0.12.7
  - setup: bump requests to 2.31.0 (CVE-2023-32681)
- - setup: buump dclab from 0.50.2 to 0.52.0
+ - setup: bump dclab from 0.50.2 to 0.52.0
 0.12.6
  - fix: properly propagate SystemExit exit codes
 0.12.5
