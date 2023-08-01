@@ -25,7 +25,7 @@ setup(
     description=description,
     long_description=open('README.rst').read() if exists('README.rst') else '',
     install_requires=[
-        "dclab[dcor]>=0.50.2",
+        "dclab[dcor]>=0.52.0",
         "numpy>=1.21",
         "requests>=2.31",  # CVE-2023-32681
         "urllib3>=2.0",  # requests_toolbelt and general compatibility
