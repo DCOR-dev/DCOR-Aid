@@ -27,7 +27,7 @@ setup(
     install_requires=[
         "dclab[dcor]>=0.50.2",
         "numpy>=1.21",
-        "requests>=2.13",
+        "requests>=2.31",  # CVE-2023-32681
         "urllib3>=2.0",  # requests_toolbelt and general compatibility
         "requests_cache",  # caching API-'get' requests
         "requests_toolbelt>=1.0.0",  # multipart uploads with progress
