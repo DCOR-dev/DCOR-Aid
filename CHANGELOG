@@ -1,4 +1,5 @@
 0.12.8:
+ - fix: set row count to zero when all jobs are removed from upload queue
  - enh: increase buffer size for uploads to 4MB
 0.12.7
  - setup: bump requests to 2.31.0 (CVE-2023-32681)

@@ -415,16 +415,19 @@ class UploadTableWidget(QtWidgets.QTableWidget):
     @QtCore.pyqtSlot(str)
     def on_job_abort(self, dataset_id):
         self.jobs.abort_job(dataset_id)
+        self.update_job_status()
 
     @QtCore.pyqtSlot(str)
     def on_job_delete(self, dataset_id):
         self.jobs.remove_job(dataset_id)
+        self.update_job_status()
 
     @QtCore.pyqtSlot()
     def on_selection(self):
         row = self.currentRow()
-        job = self.jobs[row]
-        self.job_selected.emit(job)
+        if self.jobs:
+            job = self.jobs[row]
+            self.job_selected.emit(job)
 
     @QtCore.pyqtSlot(str)
     def on_upload_finished(self, dataset_id):
@@ -442,8 +445,8 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         # disable updates
         self.setUpdatesEnabled(False)
         # make sure the length of the table is long enough
+        self.setRowCount(len(self.jobs))
         if self.jobs:
-            self.setRowCount(len(self.jobs))
             self.setColumnCount(6)
 
             for row, job in enumerate(self.jobs):
