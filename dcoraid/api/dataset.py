@@ -199,6 +199,14 @@ def resource_add(dataset_id, path, api, resource_name=None,
                 'update__resources__extend': f'[{{"name":"{resource_name}"}}]',
                 'update__resources__-1__upload': (resource_name, fd)})
             m = MultipartEncoderMonitor(e, monitor_callback)
+            # Increase the read size to speed-up upload (the default chunk
+            # size for uploads in urllib is 8k which results in a lot of
+            # Python code being involved in uploading a 20GB file; Setting
+            # the chunk size to 4MB should increase the upload speed):
+            # https://github.com/requests/toolbelt/issues/75
+            # #issuecomment-237189952
+            m._read = m.read
+            m.read = lambda size: m._read(4 * 1024 * 1024)
             # perform upload
             timeout = 27.9
             try:
