@@ -39,9 +39,8 @@ def ascertain_state_or_bust(upload_job, state):
     """If `upload_job.state != `state`, raise an exception"""
     if upload_job.state != state:
         if upload_job.state == "error":
-            print(f"Job {upload_job} encountered an error:")
-            print(upload_job.traceback)
-            raise ValueError("See message above!")
+            raise ValueError(f"Job {upload_job} encountered an error:\n"
+                             f"{upload_job.traceback}")
         else:
             raise ValueError(
                 f"The upload job {upload_job} should be in the state "

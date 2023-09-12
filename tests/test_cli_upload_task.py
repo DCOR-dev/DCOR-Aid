@@ -84,12 +84,11 @@ def test_cli_fail_upload(mock_stdout, mock_sha256sum, monkeypatch):
     assert ret_val != 0
     path_error = path_task.parent / (path_task.name + "_error.txt")
     assert path_error.exists()
-    assert path_error.read_text().count("See message above!")
-    assert path_error.read_text().count("ValueError")
-
-    stdout_printed = mock_stdout.getvalue()
-    assert "SHA256 sum failed for resources" in stdout_printed
-    assert "'cli_upload.rtdc' (BAD SHA vs." in stdout_printed
+    error_text = path_error.read_text()
+    assert "encountered an error" in error_text
+    assert "ValueError" in error_text
+    assert "SHA256 sum failed for resources" in error_text
+    assert "'cli_upload.rtdc' (BAD SHA vs." in error_text
 
 
 @mock.patch('sys.stdout', new_callable=io.StringIO)
