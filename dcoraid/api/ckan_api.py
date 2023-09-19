@@ -4,7 +4,6 @@ import json
 import logging
 import pathlib
 import traceback
-import warnings
 
 from dclab.external.packaging import parse as parse_version
 import requests
@@ -74,11 +73,11 @@ class CKANAPI:
                 kwargs = {"backend": "sqlite",
                           "cache_name": pathlib.Path(caching)}
             self.req_ses = requests_cache.CachedSession(urls_expire_after={
-                # API calls without parameters
+                # API calls without parameters; seconds cached
                 self.api_url + "user_show": 5,
                 self.api_url + "group_list": 10,
                 self.api_url + "user_list": 30,
-                self.api_url + "status_show": 30,
+                self.api_url + "status_show": 60,
                 self.api_url + "organization_list": 60,
                 # API calls with parameters
                 self.api_url + "package_search*": 10,
@@ -93,6 +92,11 @@ class CKANAPI:
                 **kwargs)
         else:
             self.req_ses = requests
+
+    @property
+    def ckan_version_object(self):
+        version_act = self.get("status_show")["ckan_version"]
+        return parse_version(version_act)
 
     @property
     def user_name(self):
@@ -142,11 +146,11 @@ class CKANAPI:
     def check_ckan_version(server, ssl_verify):
         api = CKANAPI(server=server, ssl_verify=ssl_verify,
                       check_ckan_version=False)
-        version_act = api.get("status_show")["ckan_version"]
-        if parse_version(version_act) < parse_version(MIN_CKAN_VERSION):
+        cur_version = api.ckan_version_object
+        if api.ckan_version_object < parse_version(MIN_CKAN_VERSION):
             raise ValueError(
                 f"DCOR-Aid requires CKAN version {MIN_CKAN_VERSION}, but "
-                + f"the server {api.server} is running CKAN {version_act}. "
+                + f"the server {api.server} is running CKAN {cur_version}. "
                 + "Please ask the admin of the server to upgrade CKAN or "
                 + "downgrade your version of DCOR-Aid."
             )
@@ -308,10 +312,13 @@ class CKANAPI:
     def get_user_dict(self):
         """Return the current user data dictionary
         """
-        try:
+        if self.ckan_version_object >= parse_version("2.10.1"):
             userdata = self.get("user_show")
-        except APINotFoundError:
-            self.logger.info("CKAN has not yet merged #6338")
+        else:
+            # TODO:
+            #  When there are no more 2.9 CKAN instances, remove this
+            #  part and increment MIN_CKAN_VERSION.
+            self.logger.info("Using workaround for userdata retrieval #6338")
             # Workaround for https://github.com/ckan/ckan/issues/5490
             # Get the user for which the email field is visible.
             try:
@@ -326,12 +333,6 @@ class CKANAPI:
                 else:
                     raise NoAPIKeyError(
                         "Could not determine user data. Please check API key.")
-        else:
-            warnings.warn("Yay, #6338 has made it into a release! This "
-                          + "function can now be rewritten as a one-liner! "
-                          + "also make sure to increment MIN_CKAN_VERSION "
-                          + "to 2.10!",
-                          DeprecationWarning)
         return userdata
 
     def post(self, api_call, data, dump_json=True, headers=None,

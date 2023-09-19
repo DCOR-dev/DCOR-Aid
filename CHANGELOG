@@ -1,5 +1,6 @@
 0.12.9
  - fix: twisted error message upon SHA-256 upload verification (#73)
+ - ref: introduce `CKANAPI.ckan_version_object` fetching the CKAN version
 0.12.8:
  - fix: set row count to zero when all jobs are removed from upload queue
  - enh: increase buffer size for uploads to 4MB
