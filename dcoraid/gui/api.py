@@ -8,10 +8,10 @@ from PyQt5 import QtCore
 
 from ..api import CKANAPI
 
-_skip_ssl_verify = os.environ.get("DCORAID_SKIP_SSL_VERIFY").lower() == "true"
+_disable_ssl = os.environ.get("DCORAID_SKIP_SSL_VERIFY", "").lower() == "true"
 #: Either a boolean or a path to the server's SSL certificate. Defaults
 #: to `None` which means DCOR-Aid decides depending on where it is.
-_SSL_VERIFY = False if _skip_ssl_verify else None
+_SSL_VERIFY = False if _disable_ssl else None
 
 
 def get_ckan_api(public=False):
