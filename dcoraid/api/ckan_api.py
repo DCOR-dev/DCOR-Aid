@@ -93,6 +93,9 @@ class CKANAPI:
         else:
             self.req_ses = requests
 
+    def __repr__(self):
+        return f"<CKANAPI {self.api_url} at {hex(id(self))}>"
+
     @property
     def ckan_version_object(self):
         version_act = self.get("status_show")["ckan_version"]

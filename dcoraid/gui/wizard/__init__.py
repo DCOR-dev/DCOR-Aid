@@ -5,7 +5,7 @@ import uuid
 from dclab.rtdc_dataset.fmt_dcor import access_token
 from PyQt5 import uic, QtCore, QtWidgets
 
-from ...api import NoAPIKeyError, CKANAPI
+from ...api import NoAPIKeyError, APINotFoundError, CKANAPI
 
 
 def get_dcor_dev_api_key():
@@ -21,7 +21,7 @@ def get_dcor_dev_api_key():
                   ssl_verify=True)
     try:
         api.get_user_dict()
-    except NoAPIKeyError:
+    except (NoAPIKeyError, APINotFoundError):
         # create a new user
         rstr = str(uuid.uuid4())
         pwd = str(uuid.uuid4())[:8]
