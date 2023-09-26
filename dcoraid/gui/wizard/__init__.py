@@ -26,25 +26,39 @@ def get_dcor_dev_api_key():
         rstr = str(uuid.uuid4())
         pwd = str(uuid.uuid4())[:8]
         usr = "dcoraid-{}".format(rstr[:5])
-        user_dict = api.post(
+        api.post(
             "user_create",
             data={"name": usr,
                   "fullname": "Player {}".format(rstr[:5]),
                   "email": "{}@dcor-dev.mpl.mpg.de".format(usr),
                   "password": pwd,
                   })
-        api_key = user_dict["apikey"]
-        # Let the user know that he has a password
-        QtWidgets.QMessageBox.information(
-            None, "You have a password",
-            "DCOR-Aid generated a password for you which you could use "
-            + "to view your private datasets online. If you would like "
-            + "to test private datasets, please record this: "
-            + "\n\n user: {}\n password: {}".format(usr, pwd)
-            + "\n\nAlternatively, you could at any point set a valid "
-            + "email address in the user preferences and request a "
-            + "password reset link via the web interface.")
+        # Ask the user to create an access token via the web interface, since
+        # CKAN does not support API token generation via API:
+        # https://github.com/ckan/ckan/issues/7836
+        api_dlg = APITokenRequestDCORDev(parent=None,
+                                         user=usr,
+                                         password=pwd)
+        if api_dlg.exec():
+            api_key = api_dlg.get_api_key()
+        else:
+            api_key = ""
     return api_key
+
+
+class APITokenRequestDCORDev(QtWidgets.QDialog):
+    def __init__(self, parent, user, password):
+        super(APITokenRequestDCORDev, self).__init__(parent)
+        path_ui = pkg_resources.resource_filename(
+            "dcoraid.gui.wizard", "dcordevapi.ui")
+        uic.loadUi(path_ui, self)
+        self.label_user.setText(user)
+        url = f"https://dcor-dev.mpl.mpg.de/user/{user}/api-tokens"
+        self.label_url.setText(f"<a href='{url}'>{url}</a>")
+        self.label_password.setText(password)
+
+    def get_api_key(self):
+        return self.lineEdit_token.text().strip()
 
 
 class SetupWizard(QtWidgets.QWizard):
