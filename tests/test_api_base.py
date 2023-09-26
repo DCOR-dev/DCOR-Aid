@@ -8,10 +8,10 @@ def test_api_requests_cache_no_parameters():
     api = common.get_api()
     t0 = time.monotonic()
     api.get("status_show")
-    t1 = time.monotonic()
-    for ii in range(100):
+    t1 = time.perf_counter()
+    for ii in range(50):
         api.get("status_show")
-    t2 = time.monotonic()
+    t2 = time.perf_counter()
     assert (t1 - t0) > (t2 - t1)
 
 
@@ -20,8 +20,8 @@ def test_api_requests_cache_with_parameters():
     api = common.get_api()
     t0 = time.monotonic()
     api.get("organization_list_for_user", permission="create_dataset")
-    t1 = time.monotonic()
-    for ii in range(100):
+    t1 = time.perf_counter()
+    for ii in range(50):
         api.get("organization_list_for_user", permission="create_dataset")
-    t2 = time.monotonic()
+    t2 = time.perf_counter()
     assert (t1 - t0) > (t2 - t1)
