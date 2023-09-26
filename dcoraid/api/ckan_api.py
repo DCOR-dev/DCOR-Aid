@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import functools
 import json
@@ -29,8 +31,12 @@ SERVER_RSUFFIX = {}
 
 
 class CKANAPI:
-    def __init__(self, server, api_key="", ssl_verify=True,
-                 check_ckan_version=True, caching=True):
+    def __init__(self,
+                 server: str,
+                 api_key: str | None = "",
+                 ssl_verify: bool = True,
+                 check_ckan_version: bool = True,
+                 caching: bool = True):
         """User-convenient interface to the CKAN API
 
         Parameters
@@ -48,7 +54,7 @@ class CKANAPI:
             specified, it is used for caching, otherwise responses
             are cached in memory.
         """
-        self.api_key = api_key.strip()
+        self.api_key = (api_key or "").strip()
         self.server = self._make_server_url(server)
         self.api_url = self._make_api_url(server)
         self.headers = {"user-agent": f"DCOR-Aid/{version}"
