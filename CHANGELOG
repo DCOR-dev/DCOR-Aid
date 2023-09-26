@@ -4,6 +4,7 @@
  - fix: support None as empty API key
  - fix: explain to user how to create API token, since CKAN 2.10 does
    not support automatic generation of API keys anymore
+ - fix: workaround for broken CKAN logic in user_show
  - enh: skip SSL verification via DCORAID_SKIP_SSL_VERIFY environment variable
  - enh: add ``__repr__`` for ``CKANAPI``
  - ref: introduce `CKANAPI.ckan_version_object` fetching the CKAN version

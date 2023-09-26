@@ -322,7 +322,13 @@ class CKANAPI:
         """Return the current user data dictionary
         """
         if self.ckan_version_object >= parse_version("2.10.1"):
-            userdata = self.get("user_show")
+            try:
+                userdata = self.get("user_show")
+            except APINotFoundError:
+                # This is a workaround for a broken CKAN API. CKAN should
+                # actually return "Access Denied" instead of "Not Found",
+                # more details: https://github.com/ckan/ckan/issues/7838
+                raise APIAuthorizationError("Access deneied for 'user_show'")
         else:
             # TODO:
             #  When there are no more 2.9 CKAN instances, remove this
