@@ -35,7 +35,7 @@ setup(
     extras_require={
         "GUI": ["pyqt5"],
         },
-    python_requires='>=3.8, <4',
+    python_requires='>=3.10, <4',
     entry_points={
         "gui_scripts": ['dcoraid = dcoraid.__main__:main'],
         "console_scripts": ["dcoraid-upload-task = dcoraid.cli:upload_task"],
