@@ -41,7 +41,7 @@ jobs:
         # Run the binary (the most simple test)
         dist\\DCOR-Aid\\DCOR-Aid.exe --version
         python win_make_iss.py
-        ISCC.exe /Q win_dckit.iss
+        ISCC.exe /Q win_dcoraid.iss
     - name: Release Assets
       uses: softprops/action-gh-release@v1
       with:
