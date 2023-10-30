@@ -1,5 +1,6 @@
 0.13.0
  - setup: drop support for Python 3.9
+ - ci: migrate from appveyor to GitHub Actions
 0.12.9
  - fix: twisted error message upon SHA-256 upload verification (#73)
  - fix: user_show raised unexpected APINotFoundError in wizard
