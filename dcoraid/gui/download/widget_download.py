@@ -3,7 +3,7 @@ import traceback
 from functools import partial
 import os
 import os.path as os_path
-import pkg_resources
+from importlib import resources
 import platform
 import subprocess
 import webbrowser
@@ -24,9 +24,9 @@ class DownloadWidget(QtWidgets.QWidget):
         """Manage running downloads
         """
         super(DownloadWidget, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "dcoraid.gui.download", "widget_download.ui")
-        uic.loadUi(path_ui, self)
+        ref_ui = resources.files("dcoraid.gui.download") / "widget_download.ui"
+        with resources.as_file(ref_ui) as path_ui:
+            uic.loadUi(path_ui, self)
 
         self.settings = QtCore.QSettings()
 
@@ -108,6 +108,10 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
         self.update_job_status()
 
     @QtCore.pyqtSlot(str)
+    def on_job_retry(self, job_id):
+        self.jobs.get_job(job_id).retry_download()
+
+    @QtCore.pyqtSlot(str)
     def on_download_finished(self, job_id):
         """Triggers download_finished whenever a download is finished"""
         if job_id not in self._finished_downloads:
@@ -142,7 +146,11 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
             self.set_label_item(row, 4, job.get_rate_string())
             if status["state"] == "done":
                 self.on_download_finished(job.job_id)
-            self.set_actions_item(row, 5, job)
+            try:
+                self.set_actions_item(row, 5, job)
+            except BaseException:
+                job.set_state("error")
+                job.traceback = traceback.format_exc()
 
         # spacing (did not work in __init__)
         header = self.horizontalHeader()
@@ -182,28 +190,39 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
                                            QtWidgets.QSizePolicy.Expanding,
                                            QtWidgets.QSizePolicy.Minimum)
             horz_layout.addItem(spacer)
-
-            res_dict = job.get_resource_dict()
-            ds_dict = job.get_dataset_dict()
-            dl_path = job.path
-            if not dl_path.is_dir():
-                dl_path = dl_path.parent
-            actions = [
-                {"icon": "eye",
-                 "tooltip": f"view dataset {ds_dict['name']} online",
-                 "function": partial(
-                     webbrowser.open,
-                     f"{job.api.server}/dataset/{ds_dict['id']}")
-                 },
-                {"icon": "folder",
-                 "tooltip": "open local download directory",
-                 "function": partial(open_file, str(dl_path))
-                 },
-                {"icon": "trash",
-                 "tooltip": f"abort download {res_dict['name']}",
-                 "function": partial(self.on_job_delete, job.job_id)
-                 },
-            ]
+            if job.state == "error":
+                actions = [
+                    {"icon": "trash",
+                     "tooltip": f"delete this job",
+                     "function": partial(self.on_job_delete, job.job_id)
+                     },
+                    {"icon": "redo",
+                     "tooltip": f"retry download",
+                     "function": partial(self.on_job_retry, job.job_id)
+                     },
+                ]
+            else:
+                res_dict = job.get_resource_dict()
+                ds_dict = job.get_dataset_dict()
+                dl_path = job.path
+                if not dl_path.is_dir():
+                    dl_path = dl_path.parent
+                actions = [
+                    {"icon": "eye",
+                     "tooltip": f"view dataset {ds_dict['name']} online",
+                     "function": partial(
+                         webbrowser.open,
+                         f"{job.api.server}/dataset/{ds_dict['id']}")
+                     },
+                    {"icon": "folder",
+                     "tooltip": "open local download directory",
+                     "function": partial(open_file, str(dl_path))
+                     },
+                    {"icon": "trash",
+                     "tooltip": f"abort download {res_dict['name']}",
+                     "function": partial(self.on_job_delete, job.job_id)
+                     },
+                ]
             for action in actions:
                 tbact = QtWidgets.QToolButton(widact)
                 icon = QtGui.QIcon.fromTheme(action["icon"])
