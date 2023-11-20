@@ -1,3 +1,5 @@
+0.13.1
+ - fix: handle not-found-errors for non-existent resource downloads
 0.13.0
  - setup: drop support for Python 3.9
  - ci: migrate from appveyor to GitHub Actions

@@ -2,7 +2,7 @@
 from os.path import exists
 import warnings
 
-from dcoraid._version import version
+from dcoraid import __version__ as version
 
 NAME = "DCOR-Aid"
 

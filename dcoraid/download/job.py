@@ -1,11 +1,15 @@
 import copy
 import pathlib
 import shutil
+import traceback
+
 import time
 import warnings
 
+import numpy as np
 import requests
 
+from ..api import errors as api_errors
 from ..common import sha256sum, weak_lru_cache
 
 #: Valid job states (in more or less chronological order)
@@ -240,19 +244,32 @@ class DownloadJob:
         status: dict
             Dictionary with various interesting parameters
         """
-        data = {
-            "state": self.state,
-            "bytes total": self.file_size,
-            "bytes downloaded": self.file_bytes_downloaded,
-            "rate": self.get_rate(),
-        }
-        if self.path.exists() and self.path.is_file():
-            data["bytes local"] = self.path.stat().st_size
-        elif self.path_temp is not None and self.path_temp.is_file():
-            data["bytes local"] = self.path_temp.stat().st_size
-        else:
-            data["bytes local"] = 0
-
+        # Check whether the resource exists
+        try:
+            data = {
+                "state": self.state,
+                "bytes total": self.file_size,
+                "bytes downloaded": self.file_bytes_downloaded,
+                "rate": self.get_rate(),
+            }
+            if self.path.exists() and self.path.is_file():
+                data["bytes local"] = self.path.stat().st_size
+            elif self.path_temp is not None and self.path_temp.is_file():
+                data["bytes local"] = self.path_temp.stat().st_size
+            else:
+                data["bytes local"] = 0
+        except api_errors.APINotFoundError:
+            # The user likely tried to download the file from a different
+            # host or an evil admin deleted a file.
+            self.set_state("error")
+            self.traceback = traceback.format_exc()
+            data = {
+                "state": self.state,
+                "bytes total": np.nan,
+                "bytes downloaded": np.nan,
+                "rate": np.nan,
+                "bytes local": np.nan,
+            }
         return data
 
     def retry_download(self):

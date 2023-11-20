@@ -1,7 +1,12 @@
 import tempfile
 from unittest import mock
+import uuid
+
+import numpy as np
+import pytest
 
 from dcoraid.download import job
+from dcoraid.api import errors as api_errors
 
 from . import common
 
@@ -108,6 +113,20 @@ def test_get_status():
     dj.task_download_resource()
     assert dj.get_status()["bytes downloaded"] == size
     assert dj.get_status()["rate"] > 0
+
+
+def test_invalid():
+    api = common.get_api()
+    td = tempfile.mkdtemp(prefix="test-download")
+    rid = str(uuid.uuid4())  # This resource ID does not exist.
+    dj = job.DownloadJob(api=api,
+                         resource_id=rid,
+                         download_path=td)
+    with pytest.raises(api_errors.APINotFoundError, match=rid):
+        dj.get_resource_dict()
+    assert dj.state == "init"
+    assert np.isnan(dj.get_status()["bytes total"])
+    assert dj.state == "error"
 
 
 def test_saveload():
