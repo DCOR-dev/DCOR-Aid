@@ -1,7 +1,6 @@
 def main(splash=True):
+    from importlib import resources
     import logging
-    import os
-    import pkg_resources
     import platform
     import sys
 
@@ -24,14 +23,14 @@ def main(splash=True):
         QGuiApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
 
     app = QApplication(sys.argv)
-    imdir = pkg_resources.resource_filename("dcoraid", "img")
 
     if splash:
         from PyQt5.QtWidgets import QSplashScreen
         from PyQt5.QtGui import QPixmap
         from PyQt5.QtCore import QEventLoop
-        splash_path = os.path.join(imdir, "splash.png")
-        splash_pix = QPixmap(splash_path)
+        ref_splash = resources.files("dcoraid.img") / "splash.png"
+        with resources.as_file(ref_splash) as splash_path:
+            splash_pix = QPixmap(str(splash_path))
         splash = QSplashScreen(splash_pix)
         splash.setMask(splash_pix.mask())
         splash.show()
@@ -41,8 +40,9 @@ def main(splash=True):
     from .gui import DCORAid
 
     # Set Application Icon
-    icon_path = os.path.join(imdir, "icon.png")
-    app.setWindowIcon(QtGui.QIcon(icon_path))
+    ref_icon = resources.files("dcoraid.img") / "splash.png"
+    with resources.as_file(ref_icon) as icon_path:
+        app.setWindowIcon(QtGui.QIcon(str(icon_path)))
 
     # Use dots as decimal separators
     QtCore.QLocale.setDefault(QtCore.QLocale(QtCore.QLocale.C))

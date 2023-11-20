@@ -1,6 +1,6 @@
 import logging
 import pathlib
-import pkg_resources
+from importlib import resources
 import random
 import socket
 import string
@@ -24,9 +24,10 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         """Create a new window for preferences
         """
         super(PreferencesDialog, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "dcoraid.gui.preferences", "dlg_preferences.ui")
-        uic.loadUi(path_ui, self)
+        ref_ui = resources.files(
+            "dcoraid.gui.preferences") / "dlg_preferences.ui"
+        with resources.as_file(ref_ui) as path_ui:
+            uic.loadUi(path_ui, self)
 
         self.setWindowTitle("DCOR-Aid Preferences")
         # server

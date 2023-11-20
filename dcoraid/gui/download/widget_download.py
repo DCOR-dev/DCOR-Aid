@@ -193,11 +193,11 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
             if job.state == "error":
                 actions = [
                     {"icon": "trash",
-                     "tooltip": f"delete this job",
+                     "tooltip": "delete this job",
                      "function": partial(self.on_job_delete, job.job_id)
                      },
                     {"icon": "redo",
-                     "tooltip": f"retry download",
+                     "tooltip": "retry download",
                      "function": partial(self.on_job_retry, job.job_id)
                      },
                 ]

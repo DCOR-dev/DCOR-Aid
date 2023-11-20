@@ -1,4 +1,4 @@
-import pkg_resources
+from importlib import resources
 import sys
 import uuid
 
@@ -49,9 +49,10 @@ def get_dcor_dev_api_key():
 class APITokenRequestDCORDev(QtWidgets.QDialog):
     def __init__(self, parent, user, password):
         super(APITokenRequestDCORDev, self).__init__(parent)
-        path_ui = pkg_resources.resource_filename(
-            "dcoraid.gui.wizard", "dcordevapi.ui")
-        uic.loadUi(path_ui, self)
+        ref_ui = resources.files("dcoraid.gui.wizard") / "dcordevapi.ui"
+        with resources.as_file(ref_ui) as path_ui:
+            uic.loadUi(path_ui, self)
+
         self.label_user.setText(user)
         url = f"https://dcor-dev.mpl.mpg.de/user/{user}/api-tokens"
         self.label_url.setText(f"<a href='{url}'>{url}</a>")
@@ -66,9 +67,9 @@ class SetupWizard(QtWidgets.QWizard):
 
     def __init__(self, *args, **kwargs):
         super(SetupWizard, self).__init__(None)
-        path_ui = pkg_resources.resource_filename(
-            "dcoraid.gui.wizard", "wizard.ui")
-        uic.loadUi(path_ui, self)
+        ref_ui = resources.files("dcoraid.gui.wizard") / "wizard.ui"
+        with resources.as_file(ref_ui) as path_ui:
+            uic.loadUi(path_ui, self)
 
         self.pushButton_path_access_token.clicked.connect(
             self.on_browse_access_token)

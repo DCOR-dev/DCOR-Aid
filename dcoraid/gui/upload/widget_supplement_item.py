@@ -1,4 +1,4 @@
-import pkg_resources
+from importlib import resources
 
 from PyQt5 import uic, QtCore, QtWidgets
 
@@ -83,9 +83,11 @@ class RSSTagsItem(RSSItemBase):
     def __init__(self, *args, **kwargs):
         """Represents an item in the supplementary resource schema"""
         super(RSSTagsItem, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "dcoraid.gui.upload", "widget_supplement_tags.ui")
-        uic.loadUi(path_ui, self)
+        ref_ui = resources.files(
+            "dcoraid.gui.upload") / "widget_supplement_tags.ui"
+        with resources.as_file(ref_ui) as path_ui:
+            uic.loadUi(path_ui, self)
+
         self.tableWidget.setRowCount(3)
         self.on_assert_row_count()
 
@@ -157,9 +159,11 @@ class RSSItem(RSSItemBase):
     def __init__(self, *args, **kwargs):
         """Represents an item in the supplementary resource schema"""
         super(RSSItem, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "dcoraid.gui.upload", "widget_supplement_item.ui")
-        uic.loadUi(path_ui, self)
+        ref_ui = resources.files(
+            "dcoraid.gui.upload") / "widget_supplement_item.ui"
+        with resources.as_file(ref_ui) as path_ui:
+            uic.loadUi(path_ui, self)
+
         self.apply_schema()
 
         # signals

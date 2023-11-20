@@ -1,7 +1,8 @@
+import atexit
+from contextlib import ExitStack
 import logging
-import os
 import pathlib
-import pkg_resources
+from importlib import resources
 import signal
 import sys
 import time
@@ -25,10 +26,13 @@ from .preferences import PreferencesDialog
 from .status_widget import StatusWidget
 from .wizard import SetupWizard
 
+file_manager = ExitStack()
+atexit.register(file_manager.close)
+
 # set Qt icon theme search path
-QtGui.QIcon.setThemeSearchPaths([
-    os.path.join(pkg_resources.resource_filename("dcoraid", "img"),
-                 "icon-theme")])
+ref = resources.files('dcoraid.img') / 'icon-theme'
+path = file_manager.enter_context(resources.as_file(ref))
+QtGui.QIcon.setThemeSearchPaths([str(path)])
 QtGui.QIcon.setThemeName(".")
 
 
@@ -84,9 +88,9 @@ class DCORAid(QtWidgets.QMainWindow):
 
         #: DCOR-Aid settings
         self.settings = QtCore.QSettings()
-        path_ui = pkg_resources.resource_filename(
-            "dcoraid.gui", "main.ui")
-        uic.loadUi(path_ui, self)
+        ref_ui = resources.files("dcoraid.gui") / "main.ui"
+        with resources.as_file(ref_ui) as path_ui:
+            uic.loadUi(path_ui, self)
 
         # GUI
         # Preferences dialog

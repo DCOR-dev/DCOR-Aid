@@ -1,5 +1,5 @@
 import copy
-import pkg_resources
+from importlib import resources
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
@@ -13,9 +13,9 @@ class FilterBase(QtWidgets.QWidget):
         """Filter view widget with title, edit, checkbox, and table
         """
         super(FilterBase, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename("dcoraid.gui.dbview",
-                                                  "filter_base.ui")
-        uic.loadUi(path_ui, self)
+        ref_ui = resources.files("dcoraid.gui.dbview") / "filter_base.ui"
+        with resources.as_file(ref_ui) as path_ui:
+            uic.loadUi(path_ui, self)
 
         #: List of entries in the current list
         self.entries = []

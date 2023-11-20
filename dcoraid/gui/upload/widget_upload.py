@@ -5,7 +5,7 @@ import warnings
 from functools import lru_cache
 import os.path as os_path
 import pathlib
-import pkg_resources
+from importlib import resources
 import time
 import traceback as tb
 
@@ -30,9 +30,9 @@ class UploadWidget(QtWidgets.QWidget):
         """Manage running uploads
         """
         super(UploadWidget, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "dcoraid.gui.upload", "widget_upload.ui")
-        uic.loadUi(path_ui, self)
+        ref_ui = resources.files("dcoraid.gui.upload") / "widget_upload.ui"
+        with resources.as_file(ref_ui) as path_ui:
+            uic.loadUi(path_ui, self)
 
         # hide side panel at beginning
         self.widget_info.setVisible(False)

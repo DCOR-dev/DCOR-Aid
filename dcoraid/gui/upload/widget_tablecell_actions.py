@@ -1,4 +1,4 @@
-import pkg_resources
+from importlib import resources
 import webbrowser
 
 from PyQt5 import uic, QtCore, QtWidgets
@@ -14,9 +14,11 @@ class TableCellActions(QtWidgets.QWidget):
         Used for the "Running Uploads" table in the "Uploads" tab.
         """
         super(TableCellActions, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "dcoraid.gui.upload", "widget_tablecell_actions.ui")
-        uic.loadUi(path_ui, self)
+        ref_ui = resources.files(
+            "dcoraid.gui.upload") / "widget_tablecell_actions.ui"
+        with resources.as_file(ref_ui) as path_ui:
+            uic.loadUi(path_ui, self)
+
         self.job = job
         # signals and slots
         self.tb_abort.clicked.connect(self.on_abort)

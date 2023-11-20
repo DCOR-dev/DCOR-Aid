@@ -1,6 +1,6 @@
 import traceback as tb
 
-import pkg_resources
+from importlib import resources
 
 from PyQt5 import uic, QtCore, QtWidgets
 
@@ -17,9 +17,10 @@ class BrowsePublic(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         """Browse public DCOR data"""
         super(BrowsePublic, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "dcoraid.gui.browse_public", "widget_browse_public.ui")
-        uic.loadUi(path_ui, self)
+        ref_ui = resources.files(
+            "dcoraid.gui.browse_public") / "widget_browse_public.ui"
+        with resources.as_file(ref_ui) as path_ui:
+            uic.loadUi(path_ui, self)
 
         # Signals for public data browser
         self.pushButton_public_search.clicked.connect(self.on_public_search)

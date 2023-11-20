@@ -1,6 +1,6 @@
 import copy
 
-import pkg_resources
+from importlib import resources
 
 from PyQt5 import QtCore, QtWidgets, uic
 
@@ -16,9 +16,9 @@ class FilterChain(QtWidgets.QWidget):
         """
         super(FilterChain, self).__init__(*args, **kwargs)
         QtWidgets.QMainWindow.__init__(self)
-        path_ui = pkg_resources.resource_filename("dcoraid.gui.dbview",
-                                                  "filter_chain.ui")
-        uic.loadUi(path_ui, self)
+        ref_ui = resources.files("dcoraid.gui.dbview") / "filter_chain.ui"
+        with resources.as_file(ref_ui) as path_ui:
+            uic.loadUi(path_ui, self)
 
         #: Current database extract
         #: (instance of :class:`dcoraid.dbmodel.core.DBExtract`)

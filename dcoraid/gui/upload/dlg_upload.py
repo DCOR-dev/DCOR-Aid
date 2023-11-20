@@ -1,6 +1,6 @@
 import logging
 import pathlib
-import pkg_resources
+from importlib import resources
 import traceback as tb
 
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
@@ -31,9 +31,10 @@ class UploadDialog(QtWidgets.QDialog):
         """
         super(UploadDialog, self).__init__(*args, **kwargs)
         self.logger = logging.getLogger(__name__)
-        path_ui = pkg_resources.resource_filename(
-            "dcoraid.gui.upload", "dlg_upload.ui")
-        uic.loadUi(path_ui, self)
+        ref_ui = resources.files(
+            "dcoraid.gui.upload") / "dlg_upload.ui"
+        with resources.as_file(ref_ui) as path_ui:
+            uic.loadUi(path_ui, self)
 
         # Dialog box buttons
         self.pushButton_proceed = self.buttonBox.button(

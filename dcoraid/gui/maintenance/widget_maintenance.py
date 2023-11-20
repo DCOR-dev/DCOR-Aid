@@ -1,7 +1,7 @@
 from os import path as os_path
 import shutil
 
-import pkg_resources
+from importlib import resources
 
 from PyQt5 import uic, QtCore, QtWidgets
 from PyQt5.QtCore import QStandardPaths
@@ -19,9 +19,11 @@ class MaintenanceWidget(QtWidgets.QWidget):
         """Maintenance tasks
         """
         super(MaintenanceWidget, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "dcoraid.gui.maintenance", "widget_maintenance.ui")
-        uic.loadUi(path_ui, self)
+
+        ref_ui = resources.files(
+            "dcoraid.gui.maintenance") / "widget_maintenance.ui"
+        with resources.as_file(ref_ui) as path_ui:
+            uic.loadUi(path_ui, self)
 
         self.toolButton_cache.clicked.connect(self.on_clear_cache)
         self.toolButton_drafts.clicked.connect(self.on_remove_drafts)
