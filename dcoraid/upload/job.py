@@ -369,7 +369,7 @@ class UploadJob:
                             # determine the index of the current curve
                             for ci, cand in enumerate(cands):
                                 if cand.samefile(self.cache_dir):
-                                    # we have found ourself
+                                    # we have found ourselves
                                     for rogue in cands[ci+1:]:
                                         # Remove rogue cache data
                                         shutil.rmtree(rogue,
