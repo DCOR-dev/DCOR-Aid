@@ -328,6 +328,7 @@ class CKANAPI:
                 # This is a workaround for a broken CKAN API. CKAN should
                 # actually return "Access Denied" instead of "Not Found",
                 # more details: https://github.com/ckan/ckan/issues/7838
+                # This has been fixed in CKAN 2.10.3.
                 raise APIAuthorizationError("Access denied for 'user_show'")
         else:
             # TODO:
