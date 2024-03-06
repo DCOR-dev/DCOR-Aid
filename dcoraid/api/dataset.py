@@ -1,8 +1,10 @@
 """Convenience wrappers for commonly used API calls"""
 import copy
+import functools
 import logging
 import pathlib
 import time
+from typing import Callable
 
 import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
@@ -145,6 +147,20 @@ def dataset_draft_remove_all(api, ignore_dataset_ids=None):
     return deleted, ignored
 
 
+@functools.lru_cache(maxsize=100)
+def get_organization_id_for_dataset(
+        api: CKANAPI,
+        dataset_id: str):
+    """Return the organization ID for the given dataset
+
+    This method is cached, because `package_show*` is not cached
+    by the underlying API. Since we are only interested in the
+    organization ID (which cannot change), this is fine.
+    """
+    ds_dict = api.get("package_show", id=dataset_id)
+    return ds_dict["organization"]["id"]
+
+
 def resource_add(dataset_id, path, api, resource_name=None,
                  resource_dict=None, exist_ok=False, monitor_callback=None):
     """Add a resource to a dataset
@@ -190,32 +206,16 @@ def resource_add(dataset_id, path, api, resource_name=None,
     if not exist_ok or not resource_exists(dataset_id=dataset_id,
                                            resource_name=resource_name,
                                            api=api):
-        # Attempt upload
-        with path.open("rb") as fd:
-            # use package_revise to upload the resource
-            # https://github.com/DCOR-dev/DCOR-Aid/issues/28
-            e = MultipartEncoder(fields={
-                'match__id': dataset_id,
-                'update__resources__extend': f'[{{"name":"{resource_name}"}}]',
-                'update__resources__-1__upload': (resource_name, fd)})
-            m = MultipartEncoderMonitor(e, monitor_callback)
-            # Increase the read size to speed-up upload (the default chunk
-            # size for uploads in urllib is 8k which results in a lot of
-            # Python code being involved in uploading a 20GB file; Setting
-            # the chunk size to 4MB should increase the upload speed):
-            # https://github.com/requests/toolbelt/issues/75
-            # #issuecomment-237189952
-            m._read = m.read
-            m.read = lambda size: m._read(4 * 1024 * 1024)
-            # perform upload
-            resource_add_upload_legacy_indirect_ckan(
-                api=api,
-                me_monitor=m,
-                dataset_id=dataset_id,
-                resource_name=resource_name,
-                logger=logger,
-                timeout=27.9
-            )
+        # perform upload
+        resource_add_upload_legacy_indirect_ckan(
+            api=api,
+            resource_path=path,
+            dataset_id=dataset_id,
+            resource_name=resource_name,
+            monitor_callback=monitor_callback,
+            logger=logger,
+            timeout=27.9
+        )
 
     # If we are here, then the upload was successful
     logger.info(f"Finished upload {dataset_id}/{resource_name}")
@@ -236,9 +236,10 @@ def resource_add(dataset_id, path, api, resource_name=None,
 
 def resource_add_upload_legacy_indirect_ckan(
         api: CKANAPI,
-        me_monitor: MultipartEncoderMonitor,
+        resource_path: str | pathlib.Path,
         dataset_id: str,
         resource_name: str,
+        monitor_callback: Callable = None,
         logger: logging.Logger = None,
         timeout: float = 27.9):
     """Legacy upload procedure for resources
@@ -252,36 +253,56 @@ def resource_add_upload_legacy_indirect_ckan(
     upload link.
     """
     upload_id = f"{dataset_id}/{resource_name}"
-    logger.info(f"Commencing legacy upload of {upload_id}")
-    try:
-        api.post("package_revise",
-                 data=me_monitor,
-                 dump_json=False,
-                 headers={"Content-Type": me_monitor.content_type},
-                 timeout=timeout)
-    except requests.exceptions.Timeout:
-        # This means that the server does not respond. This is ok,
-        # because we can just check whether the resource was
-        # processed correctly.
-        if logger is not None:
-            logger.info(f"Timeout for upload {upload_id}")
-        start_wait_srv = time.monotonic()
-        wait_time_minutes = 60
-        for ii in range(wait_time_minutes):
-            if resource_exists(dataset_id=dataset_id,
-                               resource_name=resource_name,
-                               api=api):
-                srv_time = timeout + time.monotonic() - start_wait_srv
-                if logger is not None:
-                    logger.info(f"Waited {srv_time / 60} min for {upload_id}")
-                break
+    if logger is not None:
+        logger.info(f"Commencing legacy upload of {upload_id}")
+
+    with pathlib.Path(resource_path).open("rb") as fd:
+        # use package_revise to upload the resource
+        # https://github.com/DCOR-dev/DCOR-Aid/issues/28
+        e = MultipartEncoder(fields={
+            'match__id': dataset_id,
+            'update__resources__extend': f'[{{"name":"{resource_name}"}}]',
+            'update__resources__-1__upload': (resource_name, fd)})
+        m = MultipartEncoderMonitor(e, monitor_callback)
+        # Increase the read size to speed-up upload (the default chunk
+        # size for uploads in urllib is 8k which results in a lot of
+        # Python code being involved in uploading a 20GB file; Setting
+        # the chunk size to 4MB should increase the upload speed):
+        # https://github.com/requests/toolbelt/issues/75
+        # #issuecomment-237189952
+        m._read = m.read
+        m.read = lambda size: m._read(4 * 1024 * 1024)
+
+        try:
+            api.post("package_revise",
+                     data=m,
+                     dump_json=False,
+                     headers={"Content-Type": m.content_type},
+                     timeout=timeout)
+        except requests.exceptions.Timeout:
+            # This means that the server does not respond. This is ok,
+            # because we can just check whether the resource was
+            # processed correctly.
+            if logger is not None:
+                logger.info(f"Timeout for upload {upload_id}")
+            start_wait_srv = time.monotonic()
+            wait_time_minutes = 60
+            for ii in range(wait_time_minutes):
+                if resource_exists(dataset_id=dataset_id,
+                                   resource_name=resource_name,
+                                   api=api):
+                    srv_time = timeout + time.monotonic() - start_wait_srv
+                    if logger is not None:
+                        logger.info(
+                            f"Waited {srv_time / 60} min for {upload_id}")
+                    break
+                else:
+                    if logger is not None:
+                        logger.info(f"Waiting {ii + 1} min for {upload_id}")
+                    time.sleep(60)
             else:
-                if logger is not None:
-                    logger.info(f"Waiting {ii + 1} min for {upload_id}")
-                time.sleep(60)
-        else:
-            raise ValueError(f"Timeout or {upload_id} not processed after "
-                             + f"{wait_time_minutes} minutes!")
+                raise ValueError(f"Timeout or {upload_id} not processed after "
+                                 + f"{wait_time_minutes} minutes!")
 
 
 def resource_exists(dataset_id, resource_name, api, resource_dict=None):
