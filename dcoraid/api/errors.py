@@ -1,30 +1,38 @@
 class APIError(BaseException):
+    """General CKANAPI error"""
     pass
 
 
 class APIAuthorizationError(APIError):
+    """User credentials are invalid"""
     pass
 
 
 class APIBadGatewayError(APIError):
+    """Cannot connect to DCOR server"""
     pass
 
 
 class APIConflictError(APIError):
+    """Invalid payload to DCOR server"""
     pass
 
 
 class APIGatewayTimeoutError(APIError):
+    """Timeout due to network connection"""
     pass
 
 
 class APINotFoundError(APIError):
+    """Requested object not found on DCOR"""
     pass
 
 
 class APIOutdatedError(APIError):
+    """DCOR-Aid is outdated, the server requests a newer version"""
     pass
 
 
 class NoAPIKeyError(APIError):
+    """DCOR does not have an API key"""
     pass

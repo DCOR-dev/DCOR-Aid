@@ -6,7 +6,7 @@ import json
 import logging
 import pathlib
 import traceback
-from typing import Any, Dict
+import numbers
 
 from dclab.external.packaging import parse as parse_version
 import requests
@@ -37,7 +37,7 @@ class CKANAPI:
                  api_key: str | None = "",
                  ssl_verify: bool = True,
                  check_ckan_version: bool = True,
-                 caching: bool = True):
+                 caching: bool | str | pathlib.Path = True):
         """User-convenient interface to the CKAN API
 
         Parameters
@@ -259,7 +259,7 @@ class CKANAPI:
                 status = True
         return status
 
-    def get(self, api_call: str, **kwargs: Dict[Any]):
+    def get(self, api_call: str, **kwargs: str | numbers.Number):
         """GET request
 
         Parameters
