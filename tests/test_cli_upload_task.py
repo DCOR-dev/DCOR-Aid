@@ -4,6 +4,7 @@ import json
 import pathlib
 import sys
 from unittest import mock
+import uuid
 
 import pytest
 
@@ -100,16 +101,18 @@ def test_cli_fail_wrong_server_httperror(mock_stdout, monkeypatch):
     path_task = pathlib.Path(
         make_upload_task(resource_names=["cli_upload.rtdc"]))
     api = get_api()
-    ret_val = cli.upload_task(path_task=path_task,
-                              server="does.not.exist.example.com",
-                              api_key=api.api_key,
-                              retries_wait=.01,
-                              ret_job=False)
+    ret_val = cli.upload_task(
+        path_task=path_task,
+        server=f"{uuid.uuid4()}.does.not.exist.example.com",
+        api_key=api.api_key,
+        retries_wait=.01,
+        ret_job=False)
     assert ret_val != 0
     path_error = path_task.parent / (path_task.name + "_error.txt")
     assert path_error.exists()
     err_text = path_error.read_text()
-    assert err_text.count("Failed to resolve")
+    assert (err_text.count("Failed to resolve")
+            or err_text.count("Failed to establish a new connection"))
     assert err_text.count("does.not.exist.example.com")
 
     stdout_printed = mock_stdout.getvalue()
