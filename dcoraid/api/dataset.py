@@ -8,6 +8,7 @@ import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
 from .errors import APIConflictError, APINotFoundError
+from .ckan_api import CKANAPI
 
 
 def dataset_activate(dataset_id, api):
@@ -185,7 +186,6 @@ def resource_add(dataset_id, path, api, resource_name=None,
     path = pathlib.Path(path)
     if resource_name is None:
         resource_name = path.name
-    dsrid = f"{dataset_id}/{resource_name}"  # human-readable resource id
     srv_time = 0  # total time waited for the server to process the upload
     if not exist_ok or not resource_exists(dataset_id=dataset_id,
                                            resource_name=resource_name,
@@ -208,35 +208,17 @@ def resource_add(dataset_id, path, api, resource_name=None,
             m._read = m.read
             m.read = lambda size: m._read(4 * 1024 * 1024)
             # perform upload
-            timeout = 27.9
-            try:
-                api.post("package_revise",
-                         data=m,
-                         dump_json=False,
-                         headers={"Content-Type": m.content_type},
-                         timeout=timeout)
-            except requests.exceptions.Timeout:
-                # This means that the server does not respond. This is ok,
-                # because we can just check whether the resource was
-                # processed correctly.
-                logger.info(f"Timeout for upload {dsrid}")
-                start_wait_srv = time.monotonic()
-                wait_time_minutes = 60
-                for ii in range(wait_time_minutes):
-                    if resource_exists(dataset_id=dataset_id,
-                                       resource_name=resource_name,
-                                       api=api):
-                        srv_time = timeout + time.monotonic() - start_wait_srv
-                        logger.info(f"Waited {srv_time/60} min for {dsrid}")
-                        break
-                    else:
-                        logger.info(f"Waiting {ii+1} min for {dsrid}")
-                        time.sleep(60)
-                else:
-                    raise ValueError(f"Timeout or {dsrid} not processed after "
-                                     + f"{wait_time_minutes} minutes!")
+            resource_add_upload_legacy_indirect_ckan(
+                api=api,
+                me_monitor=m,
+                dataset_id=dataset_id,
+                resource_name=resource_name,
+                logger=logger,
+                timeout=27.9
+            )
+
     # If we are here, then the upload was successful
-    logger.info(f"Finished upload {dsrid}")
+    logger.info(f"Finished upload {dataset_id}/{resource_name}")
 
     if resource_dict:
         pkg_dict = api.get("package_show", id=dataset_id)
@@ -250,6 +232,56 @@ def resource_add(dataset_id, path, api, resource_name=None,
         api.post("package_revise", revise_dict)
 
     return srv_time
+
+
+def resource_add_upload_legacy_indirect_ckan(
+        api: CKANAPI,
+        me_monitor: MultipartEncoderMonitor,
+        dataset_id: str,
+        resource_name: str,
+        logger: logging.Logger = None,
+        timeout: float = 27.9):
+    """Legacy upload procedure for resources
+
+    This method uses the legacy path (nginx -> uwsgi -> CKAN API) to
+    upload resources to the block storage of the DCOR instance. It is
+    termed legacy, because it is very inefficient to process resources
+    like this. A better approach is to upload resources directly to S3.
+    DCOR supports uploading resources directly to S3, which is facilitated
+    via the `resource_upload_s3_url` API action providing a presigned
+    upload link.
+    """
+    upload_id = f"{dataset_id}/{resource_name}"
+    logger.info(f"Commencing legacy upload of {upload_id}")
+    try:
+        api.post("package_revise",
+                 data=me_monitor,
+                 dump_json=False,
+                 headers={"Content-Type": me_monitor.content_type},
+                 timeout=timeout)
+    except requests.exceptions.Timeout:
+        # This means that the server does not respond. This is ok,
+        # because we can just check whether the resource was
+        # processed correctly.
+        if logger is not None:
+            logger.info(f"Timeout for upload {upload_id}")
+        start_wait_srv = time.monotonic()
+        wait_time_minutes = 60
+        for ii in range(wait_time_minutes):
+            if resource_exists(dataset_id=dataset_id,
+                               resource_name=resource_name,
+                               api=api):
+                srv_time = timeout + time.monotonic() - start_wait_srv
+                if logger is not None:
+                    logger.info(f"Waited {srv_time / 60} min for {upload_id}")
+                break
+            else:
+                if logger is not None:
+                    logger.info(f"Waiting {ii + 1} min for {upload_id}")
+                time.sleep(60)
+        else:
+            raise ValueError(f"Timeout or {upload_id} not processed after "
+                             + f"{wait_time_minutes} minutes!")
 
 
 def resource_exists(dataset_id, resource_name, api, resource_dict=None):
