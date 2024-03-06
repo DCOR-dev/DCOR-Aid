@@ -333,6 +333,18 @@ def resource_add_upload_direct_s3(
         raise ValueError(f"Upload {upload_id} failed with "
                          f"{hrep.status_code}: {hrep.reason}")
 
+    # The upload succeeded, now add the resource to the CKAN database.
+    revise_dict = {
+        "match": {"id": dataset_id},
+        "update": {"resources": [{"id": upload_info["resource_id"],
+                                  "name": resource_name,
+                                  "s3_available": True,
+                                  }
+                                 ]
+                   }
+        }
+    api.post("package_revise", revise_dict)
+
 
 def resource_add_upload_legacy_indirect_ckan(
         api: CKANAPI,
