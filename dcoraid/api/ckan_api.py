@@ -6,6 +6,7 @@ import json
 import logging
 import pathlib
 import traceback
+from typing import Any, Dict
 
 from dclab.external.packaging import parse as parse_version
 import requests
@@ -258,7 +259,7 @@ class CKANAPI:
                 status = True
         return status
 
-    def get(self, api_call, **kwargs):
+    def get(self, api_call: str, **kwargs: Dict[Any]):
         """GET request
 
         Parameters
@@ -281,7 +282,7 @@ class CKANAPI:
             # Add keyword arguments
             kwv = []
             for kw in kwargs:
-                kwv.append("{}={}".format(kw, kwargs[kw]))
+                kwv.append(f"{kw}={kwargs[kw]}")
             api_call += "?" + "&".join(kwv)
         req = self.req_ses.get(self.api_url + api_call,
                                headers=self.headers,
