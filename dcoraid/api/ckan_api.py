@@ -15,7 +15,7 @@ import requests_cache
 from .._version import version
 
 from .errors import (APIConflictError, APINotFoundError, NoAPIKeyError,
-                     APIBadGatewayError, APIGatewayTimeoutError,
+                     APIBadGatewayError, APIBadRequest, APIGatewayTimeoutError,
                      APIAuthorizationError, APIOutdatedError)
 
 #: Minimum required CKAN version on the server side
@@ -171,12 +171,18 @@ class CKANAPI:
         except BaseException:
             self.logger.error(traceback.format_exc())
             rdata = {}
+
         if isinstance(rdata, str):
-            raise ValueError(
-                "Command did not succeed, output: '{}'".format(rdata))
+            # Something went wrong on a lower level.
+            if rdata.startswith("Bad request"):
+                raise APIBadRequest(rdata)
+            else:
+                raise ValueError(
+                    "Command did not succeed, output: '{}'".format(rdata))
+
         if not req.ok:
             error = rdata.get("error", {})
-            etype = error.get("__type", req.reason)
+            e_type = error.get("__type", req.reason)
             etext = ""
             for key in error:
                 if not key.startswith("_"):
@@ -184,7 +190,7 @@ class CKANAPI:
             if not etext and len(req.reason) < 100:
                 # Skip large html output, only use small error messages
                 etext = req.content.decode("utf-8")
-            msg = "{}: {} (for '{}')".format(etype, etext, api_call)
+            msg = "{}: {} (for '{}')".format(e_type, etext, api_call)
             if req.reason == "NOT FOUND":
                 raise APINotFoundError(msg)
             elif req.reason == "CONFLICT":

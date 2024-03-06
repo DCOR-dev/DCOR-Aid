@@ -1,3 +1,6 @@
+0.14.0
+ - feat: support new DCOR API for uploading data directly to S3
+ - enh: add api.errors.APIBadRequest error class
 0.13.3
  - setup: bump dclab from 0.55.7 to 0.57.0
 0.13.2

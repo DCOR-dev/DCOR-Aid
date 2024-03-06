@@ -13,6 +13,11 @@ class APIBadGatewayError(APIError):
     pass
 
 
+class APIBadRequest(APIError):
+    """An API command cannot be found"""
+    pass
+
+
 class APIConflictError(APIError):
     """Invalid payload to DCOR server"""
     pass
