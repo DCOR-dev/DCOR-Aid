@@ -239,7 +239,7 @@ def resource_add(dataset_id, path, api, resource_name=None,
             )
 
     # If we are here, then the upload was successful
-    logger.info(f"Finished upload {dataset_id}/{resource_name}")
+    logger.info(f"Finished upload of {dataset_id}/{resource_name}")
 
     if resource_dict:
         pkg_dict = api.get("package_show", id=dataset_id)
@@ -330,7 +330,7 @@ def resource_add_upload_direct_s3(
         )
 
     if hrep.status_code != 204:
-        raise ValueError(f"Upload {upload_id} failed with "
+        raise ValueError(f"Upload of {upload_id} failed with "
                          f"{hrep.status_code}: {hrep.reason}")
 
     # The upload succeeded, now add the resource to the CKAN database.
