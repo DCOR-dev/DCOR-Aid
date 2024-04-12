@@ -351,7 +351,6 @@ class DownloadJob:
                             for chunk in r.iter_content(chunk_size=chunk_size):
                                 # If you have chunk encoded response uncomment
                                 # if and set chunk_size parameter to None.
-                                # if chunk:
                                 f.write(chunk)
                                 self.file_bytes_downloaded += len(chunk)
                     self.end_time = time.perf_counter()

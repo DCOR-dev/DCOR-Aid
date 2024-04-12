@@ -41,3 +41,13 @@ class APIOutdatedError(APIError):
 class NoAPIKeyError(APIError):
     """DCOR does not have an API key"""
     pass
+
+
+class NoS3UploadAvailableError(BaseException):
+    """Used for identifying DCOR servers that don't support direct S3 upload"""
+    pass
+
+
+class S3UploadError(BaseException):
+    """raised when an upload to S3 failed"""
+    pass

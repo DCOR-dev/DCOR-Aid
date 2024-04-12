@@ -41,9 +41,9 @@ def get_api_key():
 
 
 def make_dataset_dict(hint=""):
-    hint += " "
+    space = " " if hint else ""
     dataset_dict = {
-        "title": "A test dataset {}{}".format(hint, time.time()),
+        "title": f"A test dataset {hint}{space}{time.time()}",
         "private": True,
         "license_id": "CC0-1.0",
         "owner_org": CIRCLE,

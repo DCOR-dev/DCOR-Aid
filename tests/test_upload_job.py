@@ -65,7 +65,8 @@ def test_full_upload():
     bare_dict = common.make_dataset_dict(hint="create-with-resource")
     # create dataset (to get the "id")
     dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
-    uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
+    uj = job.UploadJob(api=api,
+                       dataset_id=dataset_dict["id"],
                        resource_paths=rtdc_paths)
     assert uj.state == "init"
     uj.task_compress_resources()
@@ -76,16 +77,16 @@ def test_full_upload():
     common.wait_for_job_no_queue(uj)
 
 
-def test_full_upload_with_file_with_spaces_in_name():
-    tdir = tempfile.mkdtemp("rtdc_with_spaces_")
-    rtdc_path_with_space = pathlib.Path(tdir) / "name questö spaces.rtdc"
+def test_full_upload_with_file_with_spaces_in_name(tmp_path):
+    rtdc_path_with_space = tmp_path / "name questö spaces.rtdc"
     shutil.copy2(rtdc_paths[1], rtdc_path_with_space)
     api = common.get_api()
     # create some metadata
     bare_dict = common.make_dataset_dict(hint="create-with-resource")
     # create dataset (to get the "id")
     dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
-    uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
+    uj = job.UploadJob(api=api,
+                       dataset_id=dataset_dict["id"],
                        resource_paths=[rtdc_path_with_space])
     assert uj.state == "init"
     uj.task_compress_resources()
