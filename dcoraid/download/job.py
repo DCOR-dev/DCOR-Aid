@@ -1,4 +1,6 @@
 import copy
+import hashlib
+import logging
 import pathlib
 import shutil
 import traceback
@@ -11,6 +13,9 @@ import requests
 
 from ..api import errors as api_errors
 from ..common import sha256sum, weak_lru_cache
+
+
+logger = logging.getLogger(__name__)
 
 #: Valid job states (in more or less chronological order)
 JOB_STATES = [
@@ -54,6 +59,9 @@ class DownloadJob:
         self._user_path = pathlib.Path(download_path)
         self.condensed = condensed
         self.path_temp = None
+        # SHA256 sum of the *downloaded* resource (computed either while
+        # downloading or after the download) for verification.
+        self.sha256sum_dl = None
         self.state = None
         self.set_state("init")
         self.traceback = None
@@ -324,6 +332,7 @@ class DownloadJob:
                 else:
                     # proceed with download
                     # reset everything
+                    hasher = hashlib.sha256()
                     self.file_bytes_downloaded = 0
                     self.start_time = None
                     self.end_time = None
@@ -353,6 +362,17 @@ class DownloadJob:
                                 # if and set chunk_size parameter to None.
                                 f.write(chunk)
                                 self.file_bytes_downloaded += len(chunk)
+                                # Compute the SHA256 sum while downloading.
+                                # This is faster than reading everything
+                                # again after the download but has the slight
+                                # risk of losing data in memory before it got
+                                # written to disk. A risk we are going to take
+                                # for the sake of performance.
+                                if (self.sha256sum_dl is None
+                                        # We do not verify SHA256 for condensed
+                                        and not self.condensed):
+                                    hasher.update(chunk)
+                        self.sha256sum_dl = hasher.hexdigest()
                     self.end_time = time.perf_counter()
                     self.set_state("downloaded")
         else:
@@ -376,15 +396,22 @@ class DownloadJob:
                     # TODO:
                     #  - Check whether the condensed file can be opened
                     #    with dclab?
+                    #  - Verify the ETag of the condensed file (S3 normally
+                    #    sends the ETag in the header, if the file was not
+                    #    uploaded via multipart, then we can just verify the
+                    #    MD5 sum)?
                     self.path_temp.rename(self.path)
                     self.set_state("done")
                 else:
-                    # First check whether all SHA256 sums are already available
-                    # online
-                    if (self.get_resource_dict()["sha256"]
-                            != sha256sum(self.path_temp)):
+                    if self.sha256sum_dl is None:
+                        logger.info(f"Computing SHA256 for {self.path_temp}")
+                        self.sha256sum_dl = sha256sum(self.path_temp)
+                    sha256_expected = self.get_resource_dict()["sha256"]
+                    sha256_actual = self.sha256sum_dl
+                    if sha256_expected != sha256_actual:
                         self.set_state("error")
-                        self.traceback = "SHA256 sum check failed!"
+                        self.traceback = (f"SHA256 sum check failed for "
+                                          f"{self.path}!")
                     else:
                         self.path_temp.rename(self.path)
                         self.set_state("done")
