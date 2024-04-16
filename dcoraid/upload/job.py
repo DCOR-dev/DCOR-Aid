@@ -1,4 +1,5 @@
 import atexit
+import logging
 import tempfile
 import pathlib
 import shutil
@@ -8,10 +9,11 @@ import warnings
 from dclab.rtdc_dataset.check import IntegrityChecker
 from dclab.cli import compress
 
-from ..api import (dataset_activate, resource_add, resource_exists,
-                   resource_sha256_sums)
+from ..api import dataset_activate, resource_add, resource_exists
 from ..common import sha256sum
 
+
+logger = logging.getLogger(__name__)
 
 #: Valid job states (in more or less chronological order)
 JOB_STATES = [
@@ -95,6 +97,8 @@ class UploadJob:
         self.file_sizes = [pathlib.Path(ff).stat().st_size
                            for ff in self.paths]
         self.file_bytes_uploaded = [0] * len(self.paths)
+        #: ETags for the files uploaded by this UploadJob instance
+        self.etags = [None] * len(self.paths)
         self.index = 0
         self.start_time = None
         self.end_time = None
@@ -305,7 +309,9 @@ class UploadJob:
         """
         if state not in JOB_STATES:
             raise ValueError("Unknown state: '{}'".format(state))
-        self.state = state
+        if state != self.state:
+            logger.info(f"New state: {state}")
+            self.state = state
 
     def task_compress_resources(self):
         """Compress resources if they are not fully compressed
@@ -427,7 +433,7 @@ class UploadJob:
                     continue
                 else:
                     # Normal upload.
-                    srv_time = resource_add(
+                    srv_time, etag = resource_add(
                         dataset_id=self.dataset_id,
                         path=path,
                         resource_name=resource_name,
@@ -435,6 +441,7 @@ class UploadJob:
                         api=self.api,
                         exist_ok=True,
                         monitor_callback=self.monitor_callback)
+                    self.etags[ii] = etag
                     self.paths_uploaded.append(path)
                     self.wait_time += srv_time
             self.end_time = time.perf_counter()
@@ -445,44 +452,68 @@ class UploadJob:
                           + "'{}'!".format(self.state))
 
     def task_verify_resources(self):
-        """Perform SHA256 verification"""
+        """Perform ETag or SHA256 verification"""
         if self.state == "online":
-            # Make sure that all SHA256 sums are already available online.
-            for ii in range(500):
-                sha256dict = resource_sha256_sums(
-                    dataset_id=self.dataset_id,
-                    api=self.api)
-                missing = [n for n in sha256dict if sha256dict[n] is None]
-                if missing:
+            # A resource can either be verified via its SHA256 sum or via
+            # the ETag that is computed in the case of an S3 upload.
+            # For every path in self.paths, this list tracks all files that
+            # have been verified.
+            verifiable_files = [False] * len(self.paths)
+            verified_files = [False] * len(self.paths)
+            sha256_dcor = [None] * len(self.paths)
+            for _ in range(500):
+                ds_dict = self.api.get("package_show", id=self.dataset_id)
+                resources = ds_dict.get("resources", [])
+                if len(resources) == len(verifiable_files):
+                    for ii, res_dict in enumerate(resources):
+                        if (self.etags[ii] is not None
+                                and self.etags[ii] == res_dict.get("etag")):
+                            verifiable_files[ii] = True
+                            verified_files[ii] = True
+                        if sha256 := res_dict.get("sha256"):
+                            sha256_dcor[ii] = sha256
+                            verifiable_files[ii] = True
+
+                if not all(verifiable_files):
                     self.set_state("wait-dcor")
                     time.sleep(1)
                     continue
                 else:
-                    # all SHA256 sums are available
+                    # ETags or SHA256 sums are available
                     break
             else:
                 # things are taking too long
                 self.set_state("error")
-                msg_parts = ["SHA256 sums not computed by DCOR:"]
-                msg_parts += [f" - {name}" for name in missing]
+                msg_parts = ["ETags or SHA256 sums not populated by DCOR:"]
+                for ii, res_dict in enumerate(resources):
+                    if not verified_files[ii]:
+                        msg_parts += [f" - {res_dict['name']}"]
                 self.traceback = "\n".join(msg_parts)
 
             # Only start verification if all SHA256 sums are available.
-            if not missing:
+            if all(verifiable_files):
                 self.set_state("verify")
-                bad_sha256 = []
+                bad_checksums = []
                 for ii, path in enumerate(self.paths):
-                    resource_name = self.resource_names[ii]
-                    # compute SHA256 sum
-                    sha = sha256sum(path)
-                    if sha != sha256dict[resource_name]:
-                        bad_sha256.append(
-                            [resource_name, sha, sha256dict[resource_name]])
-                if bad_sha256:
+                    if verified_files[ii]:
+                        # verified using ETag
+                        logger.info(f"ETag verified for {path}")
+                        continue
+                    # must verify with SHA256 sum
+                    sha256_path = sha256sum(path)
+                    verified_files[ii] = sha256_dcor[ii] == sha256_path
+                    if verified_files[ii]:
+                        logger.info(f"SHA256 verified for {path}")
+                    else:
+                        bad_checksums.append(
+                            [self.paths[ii], sha256_path, sha256_dcor[ii]])
+                        logger.error(f"SHA256 verification failed for {path}")
+
+                if bad_checksums:
                     # we have bad resources, tell the user
                     self.set_state("error")
                     msg_parts = ["SHA256 sum failed for resources:"]
-                    for item in bad_sha256:
+                    for item in bad_checksums:
                         msg_parts.append("'{}' ({} vs. {})!".format(*item))
                     self.traceback = "\n".join(msg_parts)
                 else:

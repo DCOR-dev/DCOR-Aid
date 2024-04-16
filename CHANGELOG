@@ -1,5 +1,6 @@
 0.14.0
  - feat: support new DCOR API for uploading data directly to S3
+ - feat: perform faster ETag verification instead of SHA256 summing
  - enh: add api.errors.APIBadRequest error class
  - setup: bump dclab from 0.57.0 to 0.58.2
 0.13.3

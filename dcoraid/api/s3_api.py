@@ -295,7 +295,7 @@ def upload_s3_presigned(
         retries: int = 3,
         timeout: float = 27.3,
         callback: callable = None,
-        ):
+        ) -> str:
     """Upload data to an S3 bucket using presigned URLS
 
     For user convenience, this method performs some sanity checks
@@ -508,7 +508,7 @@ def upload_s3_presigned_multipart(
             continue
         else:
             etag_full = get_etag_from_response(resp_compl)
-            if etag_full is not None:
+            if etag_full:  # should not be None or an empty string
                 if etag_full == etag_expected:
                     # This is the ideal case. Everything is good.
                     break
@@ -556,7 +556,7 @@ def upload_s3_presigned_single(
         retries: int = 3,
         timeout: float = 27.3,
         callback: callable = None
-        ):
+        ) -> str:
     """Upload a single file using a PUT request to a presigned URL
 
     The returned ETag is checked against the MD5 sum of the file.

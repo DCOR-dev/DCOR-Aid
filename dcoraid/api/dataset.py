@@ -193,6 +193,9 @@ def resource_add(dataset_id, path, api, resource_name=None,
     -------
     srv_time: float
         Total time the server (nginx+uwsgi) needed to process the upload
+    etag: str
+        ETag of the resource on S3; returns None if the upload was not
+        performed via S3
 
     See Also
     --------
@@ -200,12 +203,17 @@ def resource_add(dataset_id, path, api, resource_name=None,
         An implementation of an upload job that monitors progress.
     """
     logger = logging.getLogger(__name__ + ".resource_add")
+    etag = None
     if resource_dict is None:
         resource_dict = {}
     path = pathlib.Path(path)
     if resource_name is None:
         resource_name = path.name
     srv_time = 0  # total time waited for the server to process the upload
+    # The ETag is computed locally only while uploading to S3, so in any other
+    # case (e.g. the resource already exists), no ETag is computed. We
+    # normally use the ETag to verify the upload, for which in this case
+    # we have to use the SHA256 hash of the local file.
     if not exist_ok or not resource_exists(dataset_id=dataset_id,
                                            resource_name=resource_name,
                                            api=api):
@@ -213,7 +221,7 @@ def resource_add(dataset_id, path, api, resource_name=None,
         # Perform the upload
         try:
             # Uploading directly to S3 is the preferred option.
-            resource_add_upload_direct_s3(
+            etag = resource_add_upload_direct_s3(
                 api=api,
                 resource_path=path,
                 dataset_id=dataset_id,
@@ -224,7 +232,7 @@ def resource_add(dataset_id, path, api, resource_name=None,
             )
         except NoS3UploadAvailableError as e:
             # This is the fall-back option that causes a performance hit
-            # on the DCOR server and will unsupported in the future.
+            # on the DCOR server and will be unsupported in the future.
             logger.warning(str(e))
             resource_add_upload_legacy_indirect_ckan(
                 api=api,
@@ -250,7 +258,7 @@ def resource_add(dataset_id, path, api, resource_name=None,
             f"update__resources__{res_dict['id']}": resource_dict}
         api.post("package_revise", revise_dict)
 
-    return srv_time
+    return srv_time, etag
 
 
 def resource_add_upload_direct_s3(
@@ -260,7 +268,7 @@ def resource_add_upload_direct_s3(
         resource_name: str,
         monitor_callback: Callable = None,
         logger: logging.Logger = None,
-        timeout: float = 27.9):
+        timeout: float = 27.9) -> str:
     """Direct resource upload to S3
 
     This is an efficient method for uploading resources. The files are
@@ -283,6 +291,13 @@ def resource_add_upload_direct_s3(
         logger instance
     timeout: float
         timeout for the requests.post command for the upload
+
+    Returns
+    -------
+    etag: str
+        ETag computed for the resource during upload (can be compared
+        to the ETag that DCOR stores in the "etag" resource property to
+        verify an upload)
     """
     upload_id = f"{dataset_id}/{resource_name}"
     if logger is not None:
@@ -308,7 +323,7 @@ def resource_add_upload_direct_s3(
         f"We have {len(upload_info['upload_urls'])} upload parts for "
         f"a resource of size {file_size/1024**2:.2f} MiB of {upload_id}")
 
-    upload_s3_presigned(
+    etag = upload_s3_presigned(
         path=resource_path,
         upload_urls=upload_info["upload_urls"],
         complete_url=upload_info["complete_url"],
@@ -327,6 +342,7 @@ def resource_add_upload_direct_s3(
                                       ]
         }
     api.post("package_revise", revise_dict)
+    return etag
 
 
 def resource_add_upload_legacy_indirect_ckan(
@@ -430,12 +446,3 @@ def resource_exists(dataset_id, resource_name, api, resource_dict=None):
             return True
     else:
         return False
-
-
-def resource_sha256_sums(dataset_id, api):
-    """Return a dictionary of resources with the SHA256 sums as values"""
-    pkg_dict = api.get("package_show", id=dataset_id)
-    sha256dict = {}
-    for resource in pkg_dict.get("resources", []):
-        sha256dict[resource["name"]] = resource.get("sha256", None)
-    return sha256dict
