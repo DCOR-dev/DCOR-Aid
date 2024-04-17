@@ -346,7 +346,15 @@ class DownloadJob:
                     url = self.get_resource_url()
                     headers = copy.deepcopy(self.api.headers)
                     if self.path_temp.exists():
-                        # resume previous download
+                        # Resume a previous download.
+                        # We have to update the hash of the current file with
+                        # the data that has already been uploaded.
+                        if (self.sha256sum_dl is None
+                                # We do not verify SHA256 for condensed
+                                and not self.condensed):
+                            with self.path_temp.open("rb") as fd:
+                                while chunk := fd.read(1024**2):
+                                    hasher.update(chunk)
                         bytes_present = self.path_temp.stat().st_size
                         headers["Range"] = f"bytes={bytes_present}-"
                     with requests.get(url,

@@ -45,6 +45,7 @@ def test_download_resume():
                           download_path=td)
     dj2.task_download_resource()
     dj2.task_verify_resource()
+    assert not dj2.traceback
     assert dj2.start_time is not None
     assert dj2.end_time is not None
     assert dj2.path.exists()
