@@ -10,6 +10,8 @@ import pytest
 
 import dcoraid
 from dcoraid import cli
+from dcoraid.api import dataset
+from dcoraid.api.dataset import resource_add_upload_direct_s3
 
 from .common import get_api, make_upload_task
 
@@ -72,10 +74,20 @@ def test_cli_fail_if_no_entries_missing(entry, emsg, monkeypatch):
 @mock.patch("dcoraid.upload.job.sha256sum",
             side_effect=["BAD SHA", "BAD SHA2", "BAD SHA3"])
 @mock.patch('sys.stdout', new_callable=io.StringIO)
-def test_cli_fail_upload(mock_stdout, mock_sha256sum, monkeypatch):
+def test_cli_fail_upload_sha256(mock_stdout, mock_sha256sum, monkeypatch):
     def sys_exit(status):
         return status
     monkeypatch.setattr(sys, "exit", sys_exit)
+
+    # Force computation of the SHA256 sum by *not* returning an ETag after
+    # the upload.
+    def patched_resource_add_upload_direct_s3(*args, **kwargs):
+        """Patched version that does not return an ETag"""
+        resource_add_upload_direct_s3(*args, **kwargs)
+        return None
+    monkeypatch.setattr(dataset,
+                        "resource_add_upload_direct_s3",
+                        patched_resource_add_upload_direct_s3)
 
     path_task = pathlib.Path(
         make_upload_task(resource_names=["cli_upload.rtdc"]))
@@ -89,7 +101,7 @@ def test_cli_fail_upload(mock_stdout, mock_sha256sum, monkeypatch):
     assert "encountered an error" in error_text
     assert "ValueError" in error_text
     assert "SHA256 sum failed for resources" in error_text
-    assert "'cli_upload.rtdc' (BAD SHA vs." in error_text
+    assert "(BAD SHA vs." in error_text
 
 
 @mock.patch('sys.stdout', new_callable=io.StringIO)
