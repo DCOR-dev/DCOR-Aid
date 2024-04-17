@@ -405,7 +405,7 @@ def resource_add_upload_legacy_indirect_ckan(
                     srv_time = timeout + time.monotonic() - start_wait_srv
                     if logger is not None:
                         logger.info(
-                            f"Waited {srv_time / 60} min for {upload_id}")
+                            f"Waited {srv_time / 60:.1f} min for {upload_id}")
                     break
                 else:
                     if logger is not None:
