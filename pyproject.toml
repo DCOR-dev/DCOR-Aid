@@ -1,0 +1,53 @@
+[build-system]
+# Defined by PEP 518:
+requires = [
+    # for version management
+    "setuptools>=64", "setuptools_scm[toml]>=8"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dcoraid"
+authors = [
+    # In alphabetical order.
+    {name = "Paul Müller"},
+]
+maintainers = [
+    {name = "Paul Müller", email="dev@craban.de"},
+]
+description = "GUI/CLI for managing data on DCOR"
+readme = "README.rst"
+requires-python = ">=3.10, <4"
+keywords = ["RT-DC", "DC", "deformability", "cytometry"]
+classifiers = [
+    'Operating System :: OS Independent',
+    'Programming Language :: Python :: 3',
+    'Intended Audience :: Science/Research',
+]
+license = {text = "GPL v3"}
+dependencies = [
+    "dclab[dcor]>=0.58.2",
+    "numpy>=1.21",
+    "requests>=2.31",  # CVE-2023-32681
+    "urllib3>=2.0",  # requests_toolbelt and general compatibility
+    "requests_cache",  # caching API-'get' requests
+    "requests_toolbelt>=1.0.0",  # multipart uploads with progress
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+GUI = ["pyqt5"]
+
+[project.scripts]
+dcoraid = "dcoraid.__main__:main"
+dcoraid-upload-task = "dcoraid.cli:upload_task"
+
+[project.urls]
+source = "https://github.com/DCOR-dev/DCOR-Aid"
+tracker = "https://github.com/DCOR-dev/DCOR-Aid/issues"
+documentation = "https://dc.readthedocs.io/en/stable/"
+changelog = "https://github.com/DCOR-dev/DCOR-Aid/tree/master/DCOR-Aid/CHANGELOG"
+
+[tool.setuptools_scm]
+write_to = "dcoraid/_version.py"
+version_scheme = "post-release"

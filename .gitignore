@@ -102,9 +102,10 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-_version_save.py
 
 docs/*.bib.bak
 
 .idea
 pytest-failures.txt
+
+_version.py
