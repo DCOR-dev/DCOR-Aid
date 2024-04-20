@@ -45,8 +45,8 @@ dcoraid-upload-task = "dcoraid.cli:upload_task"
 [project.urls]
 source = "https://github.com/DCOR-dev/DCOR-Aid"
 tracker = "https://github.com/DCOR-dev/DCOR-Aid/issues"
-documentation = "https://dc.readthedocs.io/en/stable/"
-changelog = "https://github.com/DCOR-dev/DCOR-Aid/tree/master/DCOR-Aid/CHANGELOG"
+documentation = "https://dc.readthedocs.io"
+changelog = "https://github.com/DCOR-dev/DCOR-Aid/blob/master/CHANGELOG"
 
 [tool.setuptools_scm]
 write_to = "dcoraid/_version.py"
