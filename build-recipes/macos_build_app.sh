@@ -7,9 +7,9 @@
 # Notes:
 # - AppVersion is optional (used for name of DMG container)
 # - This script must be called from the root directory of the repository
-# - The file ./travis/AppNameApp.py [sic] must be present (relative
+# - The file ./AppNameAppLauncher.py [sic] must be present (relative
 #   to root of the repository)
-
+set -x
 set -e
 
 if [ -z $1 ]; then
@@ -36,7 +36,7 @@ rm -rf ./dist
 
 pip install -r macos_build_requirements.txt
 
-pyinstaller -y --log-level=WARN ${SPEC}
+pyinstaller -y --log-level=INFO ${SPEC}
 
 # Test the binary by executing it with --version argument
 echo ""
