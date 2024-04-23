@@ -124,6 +124,7 @@ def test_cli_fail_wrong_server_httperror(mock_stdout, monkeypatch):
     assert path_error.exists()
     err_text = path_error.read_text()
     assert (err_text.count("Failed to resolve")
+            or err_text.count("Read timed out")
             or err_text.count("Failed to establish a new connection"))
     assert err_text.count("does.not.exist.example.com")
 
