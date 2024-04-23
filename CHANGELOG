@@ -1,3 +1,5 @@
+0.14.1
+ - setup: fix build pipeline (remove editable install)
 0.14.0
  - feat: support new DCOR API for uploading data directly to S3
  - feat: perform faster ETag verification instead of SHA256 summing

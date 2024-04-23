@@ -19,12 +19,13 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install setuptools wheel twine
-        pip install -e .[GUI]
+        pipx install twine
+        pip install .[GUI]
     - name: Build and publish
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_PWD }}
       run: |
-        python setup.py sdist bdist_wheel
+        pipx run build --sdist
+        pipx run build --wheel
         twine upload --skip-existing dist/*
