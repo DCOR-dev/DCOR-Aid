@@ -1,3 +1,6 @@
+0.14.2
+ - docs: improve doc strings
+ - ref: improve logging
 0.14.1
  - setup: fix build pipeline (remove editable install)
 0.14.0

@@ -35,7 +35,7 @@ class CKANAPI:
     def __init__(self,
                  server: str,
                  api_key: str | None = "",
-                 ssl_verify: bool = True,
+                 ssl_verify: bool | str = True,
                  check_ckan_version: bool = True,
                  caching: bool | str | pathlib.Path = True):
         """User-convenient interface to the CKAN API
@@ -46,8 +46,9 @@ class CKANAPI:
             Server to which to connect to, e.g. dcor.mpl.mpg.de
         api_key: str
             API token to use for accessing private datasets
-        ssl_verify: bool
-            Whether to verify SSL connections
+        ssl_verify: bool or str
+            Either a boolean indicating whether SSL certificates should be
+            verified or a path to an SSL certificate for certificate pinning.
         check_ckan_version: bool
             Whether to check for the proper CKAN version
         caching: bool or str or pathlib.Path
