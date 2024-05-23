@@ -4,8 +4,10 @@ def main(splash=True):
     import platform
     import sys
 
+    from ._version import version
+
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG if version.count("post") else logging.INFO,
         format="%(asctime)s %(levelname)s %(processName)s/%(threadName)s "
                + "in %(name)s: %(message)s",
         datefmt='%H:%M:%S')

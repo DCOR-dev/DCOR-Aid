@@ -1,11 +1,9 @@
 import atexit
 from contextlib import ExitStack
 import logging
-import pathlib
 from importlib import resources
 import signal
 import sys
-import time
 import traceback as tb
 
 import dclab
@@ -66,31 +64,18 @@ class DCORAid(QtWidgets.QMainWindow):
                                                  300)
             sys.exit(0)
 
-        # setup logging
-        log_dir = pathlib.Path(
-            QtCore.QStandardPaths.writableLocation(
-                QtCore.QStandardPaths.AppLocalDataLocation)) / "logs"
-        log_dir.mkdir(parents=True, exist_ok=True)
-        log_file = log_dir / time.strftime("dcoraid_%Y-%m-%d_%H-%M-%S.log")
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s %(levelname)s [%(threadName)s] in %(name)s "
-                   + "%(funcName)s:%(lineno)d: %(message)s",
-            filename=str(log_file))
-        # keep ten logs
-        log_entries = sorted(log_dir.glob("*.log"))
-        log_entries.reverse()
-        for pp in log_entries[10:]:
-            pp.unlink()
-
-        self.logger = logging.getLogger(__name__)
-        self.logger.info(f"DCOR-Aid {__version__}")
-
         #: DCOR-Aid settings
         self.settings = QtCore.QSettings()
         ref_ui = resources.files("dcoraid.gui") / "main.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
+
+        # setup logging
+        root_logger = logging.getLogger()
+        root_logger.addHandler(self.panel_logs.log_handler)
+
+        self.logger = logging.getLogger(__name__)
+        self.logger.info(f"DCOR-Aid {__version__}")
 
         # GUI
         # Preferences dialog

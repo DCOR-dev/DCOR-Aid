@@ -357,6 +357,16 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab_logs">
+       <attribute name="title">
+        <string>Logs</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="WidgetLog" name="panel_logs" native="true"/>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -476,6 +486,12 @@
    <class>BrowsePublic</class>
    <extends>QWidget</extends>
    <header>dcoraid.gui.browse_public.widget_browse_public</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>WidgetLog</class>
+   <extends>QWidget</extends>
+   <header>dcoraid.gui.logs.widget_log</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

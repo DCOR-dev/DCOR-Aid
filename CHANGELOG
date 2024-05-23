@@ -1,4 +1,5 @@
 0.14.2
+ - enh: add logging tab in GUI
  - docs: improve doc strings
  - ref: improve logging
 0.14.1
