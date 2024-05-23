@@ -358,6 +358,9 @@
        </layout>
       </widget>
       <widget class="QWidget" name="tab_logs">
+       <attribute name="icon">
+        <iconset theme="scroll"/>
+       </attribute>
        <attribute name="title">
         <string>Logs</string>
        </attribute>

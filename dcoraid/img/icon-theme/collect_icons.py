@@ -66,6 +66,7 @@ icons = {
         "people-carry",
         "puzzle-piece",
         "redo",
+        "scroll",
         "shipping-fast",
         "slash",
         "street-view",
