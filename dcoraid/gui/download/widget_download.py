@@ -68,11 +68,13 @@ class DownloadWidget(QtWidgets.QWidget):
         dl_path = self.settings.value("downloads/default path", fallback)
         self.widget_jobs.jobs.new_job(resource_id, dl_path, condensed)
 
-    def stop_timers(self):
+    def prepare_quit(self):
         """Should be called before the application quits"""
         self.init_timer.stop()
         if self.widget_jobs.timer is not None:
             self.widget_jobs.timer.stop()
+        if self.jobs is not None:
+            self.jobs.__del__()
 
 
 class DownloadTableWidget(QtWidgets.QTableWidget):

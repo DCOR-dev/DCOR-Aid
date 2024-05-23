@@ -96,7 +96,7 @@ class StatusWidget(QtWidgets.QWidget):
             self.toolButton_user.setToolTip(tooltip)
             self.toolButton_user.setIcon(QtGui.QIcon.fromTheme(icon))
 
-    def stop_timers(self):
+    def prepare_quit(self):
         if self.timer is not None:
             self.timer.stop()
 

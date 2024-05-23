@@ -3,6 +3,7 @@
  - enh: add logging tab in GUI
  - docs: improve doc strings
  - ref: improve logging
+ - tests: reduce segmentation faults during testing (#14)
 0.14.1
  - setup: fix build pipeline (remove editable install)
 0.14.0

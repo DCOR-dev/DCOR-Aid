@@ -121,9 +121,13 @@ class DCORAid(QtWidgets.QMainWindow):
         self.status_widget.request_status_update()
 
     def closeEvent(self, event):
-        self.panel_upload.stop_timers()
-        self.panel_download.stop_timers()
-        self.status_widget.stop_timers()
+        root_logger = logging.getLogger()
+        while len(root_logger.handlers) > 0:
+            h = root_logger.handlers[0]
+            root_logger.removeHandler(h)
+        self.panel_upload.prepare_quit()
+        self.panel_download.prepare_quit()
+        self.status_widget.prepare_quit()
         QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
                                              300)
         event.accept()

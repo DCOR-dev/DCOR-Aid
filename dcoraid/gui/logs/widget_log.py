@@ -22,6 +22,8 @@ levels = {
 
 
 class StringSignalLogHandler(logging.Handler):
+    new_message = QtCore.pyqtSignal(str)
+
     def __init__(self, signal, *args, **kwargs):
         super(StringSignalLogHandler, self).__init__(*args, **kwargs)
         self.signal = signal
