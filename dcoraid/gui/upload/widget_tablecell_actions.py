@@ -42,8 +42,9 @@ class TableCellActions(QtWidgets.QWidget):
         msg.setText("There was an error during data transfer. If this happens "
                     + "often or with a particular type of dataset, please "
                     + "<a href='https://github.com/DCOR-dev/DCOR-Aid/issues'>"
-                    + "create an issue online</a>.")
-        msg.setWindowTitle("Job {} error".format(self.job.dataset_id[:5]))
+                    + "create an issue online</a>. Click on the button below "
+                      "to see details required for fixing the problem.")
+        msg.setWindowTitle(f"Job {self.job.dataset_id[:5]} error")
         msg.setDetailedText(self.job.traceback)
         msg.exec_()
 
