@@ -1,4 +1,5 @@
 0.14.2
+ - fix: avoid error in upload tab when no jobs are present
  - enh: add logging tab in GUI
  - docs: improve doc strings
  - ref: improve logging

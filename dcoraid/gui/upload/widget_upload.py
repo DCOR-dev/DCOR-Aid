@@ -440,7 +440,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
     @QtCore.pyqtSlot()
     def update_job_status(self):
         """Update UI with information from self.jobs (UploadJobList)"""
-        if not self.isVisible():
+        if not self.isVisible() or not self.jobs:
             return
         # disable updates
         self.setUpdatesEnabled(False)
