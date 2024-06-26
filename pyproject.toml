@@ -26,7 +26,7 @@ classifiers = [
 ]
 license = {text = "GPL v3"}
 dependencies = [
-    "dclab[dcor]>=0.58.7",
+    "dclab[dcor]>=0.60.0",
     "numpy>=1.21",
     "requests>=2.31",  # CVE-2023-32681
     "urllib3>=2.0",  # requests_toolbelt and general compatibility
