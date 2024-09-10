@@ -19,11 +19,11 @@ jobs:
       DISPLAY: :0
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@main
       with:
         fetch-depth: 0
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@main
       with:
         python-version: ${{ matrix.python-version }}
     - name: Setup xvfb (Linux)
@@ -68,7 +68,7 @@ jobs:
       run: |
         flake8 --exclude _version.py .
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
     - name: Create app and check if it runs (macOS)
       if: runner.os == 'macOS'
       working-directory: ./build-recipes
