@@ -1,4 +1,7 @@
 0.15.1
+ - fix: fall-back to ETag verification when downloading resources for
+   which no SHA256 sum exists
+ - fix: set error message before publishing download job error state
  - ref: reduce logging level for SSL verification
 0.15.0
  - setup: bump dclab from 0.58.7 to 0.60.0 (internal basins support)

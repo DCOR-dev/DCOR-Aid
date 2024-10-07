@@ -12,7 +12,7 @@ import numpy as np
 import requests
 
 from ..api import errors as api_errors
-from ..common import sha256sum, weak_lru_cache
+from ..common import etagsum, sha256sum, weak_lru_cache
 
 
 logger = logging.getLogger(__name__)
@@ -269,8 +269,8 @@ class DownloadJob:
         except api_errors.APINotFoundError:
             # The user likely tried to download the file from a different
             # host or an evil admin deleted a file.
-            self.set_state("error")
             self.traceback = traceback.format_exc()
+            self.set_state("error")
             data = {
                 "state": self.state,
                 "bytes total": np.nan,
@@ -294,6 +294,10 @@ class DownloadJob:
         """
         if state not in JOB_STATES:
             raise ValueError("Unknown state: '{}'".format(state))
+        if state == "error":
+            logger.error(f"Entered error state")
+            if self.traceback:
+                logger.error(f"{self.traceback}")
         self.state = state
 
     def task_download_resource(self):
@@ -357,6 +361,7 @@ class DownloadJob:
                                     hasher.update(chunk)
                         bytes_present = self.path_temp.stat().st_size
                         headers["Range"] = f"bytes={bytes_present}-"
+
                     with requests.get(url,
                                       stream=True,
                                       headers=headers,
@@ -389,7 +394,7 @@ class DownloadJob:
                           + "'{}'!".format(self.state))
 
     def task_verify_resource(self):
-        """Perform SHA256 verification"""
+        """Perform ETag/SHA256 verification"""
         if self.state == "downloaded":
             if self.path.exists() and self.path.is_file():
                 # This means the download succeeded to `self.path_temp`
@@ -400,7 +405,7 @@ class DownloadJob:
             else:  # only verify if we have self.temp_path
                 self.set_state("verify")
                 if self.condensed:
-                    # do not perform SHA256 check
+                    # do not perform ETag/SHA256 check
                     # TODO:
                     #  - Check whether the condensed file can be opened
                     #    with dclab?
@@ -411,18 +416,52 @@ class DownloadJob:
                     self.path_temp.rename(self.path)
                     self.set_state("done")
                 else:
-                    if self.sha256sum_dl is None:
-                        logger.info(f"Computing SHA256 for {self.path_temp}")
-                        self.sha256sum_dl = sha256sum(self.path_temp)
-                    sha256_expected = self.get_resource_dict()["sha256"]
-                    sha256_actual = self.sha256sum_dl
-                    if sha256_expected != sha256_actual:
-                        self.set_state("error")
-                        self.traceback = (f"SHA256 sum check failed for "
-                                          f"{self.path}!")
+                    # perform ETag/SHA256 check
+                    res_dict = self.get_resource_dict()
+                    rid = res_dict["id"]
+                    # Can we verify the SHA256 sum?
+                    sha256_expected = res_dict.get("sha256")
+                    if True or sha256_expected is None:
+                        # The server has not yet computed the SHA256 sum
+                        # of the resource. This can happen when we are
+                        # downloading a resource immediately after it was
+                        # uploaded. Instead of verifying he SHA256 sum,
+                        # verify the ETag of the file.
+                        # TODO: Compute the ETag during download.
+                        logger.info(f"Resource {rid} has no SHA256 set, "
+                                    f"falling back to ETag verification.")
+                        import IPython
+                        IPython.embed()
+                        etag_expected = res_dict.get("etag")
+                        if etag_expected is None:
+                            self.traceback = (f"Neither SHA256 nor ETag "
+                                              f"defined for resource {rid}")
+                            self.set_state("error")
+                        else:
+                            etag_actual = etagsum(self.path_temp)
+                            if etag_expected != etag_actual:
+                                self.traceback = (
+                                    f"ETag verification failed for resource "
+                                    f"{rid} ({self.path_temp})")
+                                self.set_state("error")
+                            else:
+                                logger.info(f"ETag verified ({rid})")
+                                self.path_temp.rename(self.path)
+                                self.set_state("done")
                     else:
-                        self.path_temp.rename(self.path)
-                        self.set_state("done")
+                        if self.sha256sum_dl is None:
+                            logger.info(f"Computing SHA256 for resource {rid} "
+                                        f"({self.path_temp})")
+                            self.sha256sum_dl = sha256sum(self.path_temp)
+                        sha256_actual = self.sha256sum_dl
+                        if sha256_expected != sha256_actual:
+                            self.traceback = (f"SHA256 sum check failed for "
+                                              f"{self.path}!")
+                            self.set_state("error")
+                        else:
+                            logger.info(f"SHA256 verified ({rid})")
+                            self.path_temp.rename(self.path)
+                            self.set_state("done")
         elif self.state != "done":  # ignore state "done" [sic!]
             # Only issue this warning if the download is not already done.
             warnings.warn("Resource verification is only possible when state "
