@@ -44,5 +44,5 @@ def setup_certificate_file():
             _SSL_VERIFY = str(cert_path)
         else:
             _SSL_VERIFY = True
-    logger.info(f"SSL verification: {_SSL_VERIFY}")
+    logger.debug(f"SSL verification: {_SSL_VERIFY}")
     return _SSL_VERIFY
