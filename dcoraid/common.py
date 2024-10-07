@@ -5,6 +5,9 @@ import weakref
 
 import requests
 
+from .api import s3_api
+
+
 ConnectionTimeoutErrors = (ConnectionError,
                            requests.exceptions.ConnectionError,
                            requests.exceptions.Timeout)
@@ -25,27 +28,22 @@ def etagsum(path):
     The code for generating the upload URLs can be found at
     :func:`dcor_shared.s3.create_presigned_upload_urls`.
     """
-    gib = 1024**3
-    mib = 1024**2
     path = pathlib.Path(path)
-    file_size = path.stat().st_size
-
-    if file_size % gib == 0:
-        num_parts = file_size // gib
-    else:
-        num_parts = file_size // gib + 1
+    parms = s3_api.compute_upload_part_parameters(path.stat().st_size)
 
     # Compute the MD5 sums of the individual upload parts.
     md5_sums = []
     with path.open("rb") as fd:
-        for ii in range(num_parts):
-            cur_md5 = hashlib.md5()
-            for jj in range(1024):  # 1GB chunk = 1024 * 1MB chunk
-                data = fd.read(mib)
-                if not data:
-                    break
-                cur_md5.update(data)
-            md5_sums.append(cur_md5.hexdigest())
+        for ii in range(parms["num_parts"]):
+            fd_part = s3_api.FilePart(file_object=fd,
+                                      part_number=ii,
+                                      part_size=parms["part_size"],
+                                      file_size=parms["file_size"],
+                                      )
+            part_hash = hashlib.md5()
+            while data := fd_part.read(s3_api.MiB):
+                part_hash.update(data)
+            md5_sums.append(part_hash.hexdigest())
 
     if len(md5_sums) == 1:
         etag = md5_sums[0]

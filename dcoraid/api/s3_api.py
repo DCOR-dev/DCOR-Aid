@@ -200,6 +200,51 @@ def assemble_complete_multipart_xml(parts_etags):
     return s
 
 
+def compute_upload_part_parameters(file_size):
+    """Given a file of certain size, return sizes and number of parts
+
+    Parameters
+    ----------
+    file_size: int
+        file size in bytes
+
+    Returns
+    -------
+    parms: dict
+        dictionary with the keys:
+
+        - "num_parts": number of parts of the upload
+        - "part_size": size of the parts (except for the last part)
+        - "part_size_last": size of the last part
+        - "file_size": same as input parameter
+    """
+    gib = 1024**3
+
+    # Compute number of parts
+    if file_size % gib == 0:
+        num_parts = file_size // gib
+    else:
+        num_parts = file_size // gib + 1
+
+    # Compute part file size
+    if file_size % num_parts == 0:
+        # Every part has the same size, since the file size is
+        # a multiple of the number of parts.
+        part_size = file_size // num_parts
+    else:
+        # The last part is a few bytes smaller than the other parts.
+        part_size = file_size // num_parts + 1
+
+    part_size_last = file_size - part_size * (num_parts - 1)
+
+    return {
+        "num_parts": num_parts,
+        "part_size": part_size,
+        "part_size_last": part_size_last,
+        "file_size": file_size,
+    }
+
+
 def get_etag_from_response(response):
     """Given a response from a PUT or POST request, extract the ETag
 
@@ -329,14 +374,14 @@ def upload_s3_presigned(
     file_size = path.stat().st_size
     num_parts = len(upload_urls)
 
-    if file_size % num_parts == 0:
-        part_size = file_size // num_parts
-    else:
-        part_size = file_size // num_parts + 1
+    parms = compute_upload_part_parameters(file_size)
+    if num_parts != parms["num_parts"]:
+        raise ValueError(f"Expected {parms['num_parts']} upload URLs, "
+                         f"got {num_parts}")
+    part_size = parms["part_size"]
+    part_size_last = parms["part_size_last"]
 
-    final_part_size = file_size - part_size * (num_parts - 1)
-
-    if final_part_size <= 0:
+    if part_size_last <= 0:
         # Something went wrong. If we attempt to upload the file
         # with the given number of parts, then there is no data
         # left (at least) for the final part.
@@ -357,7 +402,7 @@ def upload_s3_presigned(
             f"uploading a single part to the S3 object storage. Please "
             f"increase the number of parts for your upload.")
 
-    if final_part_size < (5 * MiB) and num_parts > 1:
+    if part_size_last < (5 * MiB) and num_parts > 1:
         raise ValueError(
             f"The size for one upload part, given the file size of "
             f"{file_size / 1024:.1f} kiB and the number of parts "

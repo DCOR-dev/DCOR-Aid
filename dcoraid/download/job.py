@@ -295,7 +295,7 @@ class DownloadJob:
         if state not in JOB_STATES:
             raise ValueError("Unknown state: '{}'".format(state))
         if state == "error":
-            logger.error(f"Entered error state")
+            logger.error("Entered error state")
             if self.traceback:
                 logger.error(f"{self.traceback}")
         self.state = state
@@ -349,6 +349,8 @@ class DownloadJob:
                     # Do the things to do and watch self.state while doing so
                     url = self.get_resource_url()
                     headers = copy.deepcopy(self.api.headers)
+
+                    bytes_present = 0
                     if self.path_temp.exists():
                         # Resume a previous download.
                         # We have to update the hash of the current file with
@@ -362,30 +364,31 @@ class DownloadJob:
                         bytes_present = self.path_temp.stat().st_size
                         headers["Range"] = f"bytes={bytes_present}-"
 
-                    with requests.get(url,
-                                      stream=True,
-                                      headers=headers,
-                                      verify=self.api.verify,
-                                      timeout=29.9) as r:
-                        r.raise_for_status()
-                        with self.path_temp.open('ab') as f:
-                            chunk_size = 1024 * 1024
-                            for chunk in r.iter_content(chunk_size=chunk_size):
-                                # If you have chunk encoded response uncomment
-                                # if and set chunk_size parameter to None.
-                                f.write(chunk)
-                                self.file_bytes_downloaded += len(chunk)
-                                # Compute the SHA256 sum while downloading.
-                                # This is faster than reading everything
-                                # again after the download but has the slight
-                                # risk of losing data in memory before it got
-                                # written to disk. A risk we are going to take
-                                # for the sake of performance.
-                                if (self.sha256sum_dl is None
-                                        # We do not verify SHA256 for condensed
-                                        and not self.condensed):
-                                    hasher.update(chunk)
-                        self.sha256sum_dl = hasher.hexdigest()
+                    if bytes_present != self.file_size:
+                        with requests.get(url,
+                                          stream=True,
+                                          headers=headers,
+                                          verify=self.api.verify,
+                                          timeout=29.9) as r:
+                            r.raise_for_status()
+                            with self.path_temp.open('ab') as f:
+                                mib = 1024 * 1024
+                                for chunk in r.iter_content(chunk_size=mib):
+                                    f.write(chunk)
+                                    self.file_bytes_downloaded += len(chunk)
+                                    # Compute the SHA256 sum while downloading.
+                                    # This is faster than reading everything
+                                    # again after the download but has the
+                                    # slight risk of losing data in memory
+                                    # before it got written to disk. A risk we
+                                    # are going to take for the sake of
+                                    # performance.
+                                    if (self.sha256sum_dl is None
+                                            # We do not verify SHA256
+                                            # for condensed data.
+                                            and not self.condensed):
+                                        hasher.update(chunk)
+                    self.sha256sum_dl = hasher.hexdigest()
                     self.end_time = time.perf_counter()
                     self.set_state("downloaded")
         else:
@@ -421,7 +424,7 @@ class DownloadJob:
                     rid = self.resource_id
                     # Can we verify the SHA256 sum?
                     sha256_expected = res_dict.get("sha256")
-                    if True or sha256_expected is None:
+                    if sha256_expected is None:
                         # The server has not yet computed the SHA256 sum
                         # of the resource. This can happen when we are
                         # downloading a resource immediately after it was
@@ -430,8 +433,6 @@ class DownloadJob:
                         # TODO: Compute the ETag during download.
                         logger.info(f"Resource {rid} has no SHA256 set, "
                                     f"falling back to ETag verification.")
-                        import IPython
-                        IPython.embed()
                         etag_expected = res_dict.get("etag")
                         if etag_expected is None:
                             self.traceback = (f"Neither SHA256 nor ETag "
