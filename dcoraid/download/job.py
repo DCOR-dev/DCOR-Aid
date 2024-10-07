@@ -418,7 +418,7 @@ class DownloadJob:
                 else:
                     # perform ETag/SHA256 check
                     res_dict = self.get_resource_dict()
-                    rid = res_dict["id"]
+                    rid = self.resource_id
                     # Can we verify the SHA256 sum?
                     sha256_expected = res_dict.get("sha256")
                     if True or sha256_expected is None:
