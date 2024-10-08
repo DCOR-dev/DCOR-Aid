@@ -3,13 +3,15 @@ import pathlib
 import re
 import shutil
 import tempfile
-import warnings
-
 import time
 from unittest import mock
+import warnings
 
 import pytest
+
 import dclab.cli
+import h5py
+
 from dcoraid.api import dataset_create
 from dcoraid.upload import job
 
@@ -32,6 +34,39 @@ def test_resource_name_characters():
                         "ä" + job.VALID_RESOURCE_CHARS)
     assert not re.match(job.VALID_RESOURCE_REGEXP,
                         job.VALID_RESOURCE_CHARS + " ")
+
+
+def test_external_links_not_allowed():
+    api = common.get_api()
+    # Create a temporary upload directory
+    td = pathlib.Path(tempfile.mkdtemp(prefix="dcoraid_external_link_upload_"))
+    h5path = td / "peter.rtdc"
+    shutil.copy2(rtdc_paths[0], h5path)
+    h5path_image = h5path.with_name("image.hdf5")
+    # Dataset creation
+    with h5py.File(h5path) as src, \
+            h5py.File(h5path_image, "w") as h5:
+        # write image data to separate file
+        h5["image"] = src["/events/image"][:]
+
+    # turn image into an external link
+    with h5py.File(h5path, "a") as src:
+        del src["/events/image"]
+        src["/events/image"] = h5py.ExternalLink(
+            str(h5path_image), "image"
+        )
+
+    # create some metadata
+    bare_dict = common.make_dataset_dict(hint="create-with-resource")
+    # create dataset (to get the "id")
+    dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
+    uj = job.UploadJob(api=api,
+                       dataset_id=dataset_dict["id"],
+                       resource_paths=list(td.glob("*.rtdc")))
+    assert uj.state == "init"
+    with pytest.raises(IOError, match="The HDF5 file contains at least "
+                                      "one external link"):
+        uj.task_compress_resources()
 
 
 def test_initialize():
@@ -222,11 +257,3 @@ def test_state_compress_reuse():
         uj.task_compress_resources()
         with pytest.raises(AssertionError):
             mockobj.assert_called()
-
-
-if __name__ == "__main__":
-    # Run all tests
-    loc = locals()
-    for key in list(loc.keys()):
-        if key.startswith("test_") and hasattr(loc[key], "__call__"):
-            loc[key]()

@@ -333,6 +333,8 @@ class UploadJob:
                     insane = [c.msg for c in ic.sanity_check()]
                     # check for features not defined in dclab
                     insane += [c.msg for c in ic.check_features_unknown_hdf5()]
+                    # check for external link, they don't make sense on DCOR
+                    insane += [c.msg for c in ic.check_external_links()]
                     if insane:
                         # The user is responsible for cleaning up the mess.
                         # We just make sure no dirty data gets uploaded to
