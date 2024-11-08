@@ -1,3 +1,6 @@
+0.15.3
+ - fix: timeout after 500 s in dataset_activate in case
+   the server is under heavy load
 0.15.2
  - setup: false dclab dependency version
 0.15.1

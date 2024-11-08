@@ -16,7 +16,7 @@ from .ckan_api import CKANAPI
 from .s3_api import upload_s3_presigned
 
 
-def dataset_activate(dataset_id, api):
+def dataset_activate(dataset_id: str, api: CKANAPI):
     """Change the state of a dataset to "active"
 
     In the DCOR workflow, datasets are created as drafts and
@@ -34,7 +34,11 @@ def dataset_activate(dataset_id, api):
     revise_dict = {
         "match": {"id": dataset_id},
         "update": {"state": "active"}}
-    api.post("package_revise", revise_dict)
+    api.post("package_revise",
+             revise_dict,
+             # Dataset activation may take long when there are a lot of
+             # resources.
+             timeout=500)
 
 
 def dataset_create(dataset_dict, api, resources=None,
