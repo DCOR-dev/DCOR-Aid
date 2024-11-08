@@ -1,4 +1,5 @@
 0.15.3
+ - fix: check whether dataset is activated before activating it
  - fix: timeout after 500 s in dataset_activate in case
    the server is under heavy load
 0.15.2
