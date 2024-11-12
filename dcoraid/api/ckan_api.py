@@ -268,7 +268,7 @@ class CKANAPI:
 
     def get(self,
             api_call: str,
-            timeout:float = 27.9,
+            timeout: float = 27.9,
             **kwargs: str | numbers.Number):
         """GET request
 
