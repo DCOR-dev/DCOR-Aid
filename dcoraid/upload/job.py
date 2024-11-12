@@ -88,6 +88,7 @@ class UploadJob:
         #: to the resource metadata.
         self.supplements = resource_supplements
         self.resource_names = resource_names
+        self._resources_uploaded = [False] * len(resource_names)
         self.task_id = task_id
         self.paths_uploaded = []
         self.paths_uploaded_before = []
@@ -99,6 +100,7 @@ class UploadJob:
         self.file_bytes_uploaded = [0] * len(self.paths)
         #: ETags for the files uploaded by this UploadJob instance
         self.etags = [None] * len(self.paths)
+        #: Resource index indicating upload progress
         self.index = 0
         self.start_time = None
         self.end_time = None
@@ -325,7 +327,19 @@ class UploadJob:
             raise ValueError("There are no RT-DC files in this dataset!")
         self.set_state("compress")
         for ii, path in enumerate(self.paths):
-            if path.suffix in [".rtdc", ".dc"]:  # do we have an .rtdc file?
+            if path.suffix in [".rtdc", ".dc"]:  # do we have a DC file?
+                if resource_exists(
+                        dataset_id=self.dataset_id,
+                        resource_name=self.resource_names[ii],
+                        resource_dict=self.get_composite_supplements(ii),
+                        api=self.api
+                        ):
+                    # There is no need to compress resources that have
+                    # already been upladed to DCOR. The same check is done
+                    # in task_upload_resources, so there is no danger that
+                    # an uncompressed resource would be uploaded.
+                    continue
+
                 with IntegrityChecker(path) as ic:
                     # check for compression
                     cdata = ic.check_compression()[0].data
@@ -393,6 +407,7 @@ class UploadJob:
                         compress(path_out=path_out, path_in=path)
                     # replace current path_out with compressed path
                     self.paths[ii] = path_out
+                    self.file_sizes[ii] = path_out.stat().st_size
         self.set_state("parcel")
 
     def task_upload_resources(self):

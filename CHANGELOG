@@ -1,4 +1,5 @@
 0.15.4
+ - fix: check for already uploaded resources before attempting to compress
  - fix: timeout parameter not passed to `CKANAPI.get`
 0.15.3
  - fix: check whether dataset is activated before activating it

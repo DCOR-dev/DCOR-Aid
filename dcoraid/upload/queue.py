@@ -125,7 +125,7 @@ class UploadQueue:
                                                       cache_dir=self.cache_dir)
                 except APINotFoundError:
                     pp = self.jobs_eternal.path_queued / (dataset_id + ".json")
-                    warnings.warn(f"Datast {dataset_id} could not be found "
+                    warnings.warn(f"Dataset {dataset_id} could not be found "
                                   f"on {self.api.server}! If the dataset has "
                                   f"been deleted, please remove the local "
                                   f"file {pp}.",

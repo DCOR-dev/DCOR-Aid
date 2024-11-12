@@ -4,7 +4,7 @@ import functools
 import logging
 import pathlib
 import time
-from typing import Callable
+from typing import Callable, Dict
 
 import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
@@ -430,8 +430,11 @@ def resource_add_upload_legacy_indirect_ckan(
                                  + f"{wait_time_minutes} minutes!")
 
 
-def resource_exists(dataset_id, resource_name, api, resource_dict=None):
-    """Check whether a resource exists in a dataset
+def resource_exists(dataset_id: str,
+                    resource_name: str,
+                    api: CKANAPI,
+                    resource_dict: Dict = None):
+    """Check whether a resource exists in a dataset on DCOR
 
     Parameters
     ----------
