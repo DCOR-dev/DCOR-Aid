@@ -266,13 +266,18 @@ class CKANAPI:
                 status = True
         return status
 
-    def get(self, api_call: str, **kwargs: str | numbers.Number):
+    def get(self,
+            api_call: str,
+            timeout:float = 27.9,
+            **kwargs: str | numbers.Number):
         """GET request
 
         Parameters
         ----------
         api_call: str
             An API call function (e.g. "package_show")
+        timeout: float
+            Timeout for the request call
         kwargs: dict
             Any keyword arguments to the API call
             (e.g. `name="test-dataset"`)
@@ -294,7 +299,7 @@ class CKANAPI:
         req = self.req_ses.get(self.api_url + api_call,
                                headers=self.headers,
                                verify=self.verify,
-                               timeout=27.9)
+                               timeout=timeout)
         rdata = self.handle_response(req, api_call)
         return rdata["result"]
 

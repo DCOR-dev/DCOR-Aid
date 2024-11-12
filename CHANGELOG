@@ -1,3 +1,5 @@
+0.15.4
+ - fix: timeout parameter not passed to `CKANAPI.get`
 0.15.3
  - fix: check whether dataset is activated before activating it
  - fix: timeout after 500 s in dataset_activate in case
