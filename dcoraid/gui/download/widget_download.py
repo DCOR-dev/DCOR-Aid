@@ -17,6 +17,9 @@ from ..api import get_ckan_api
 from ..tools import show_wait_cursor
 
 
+logger = logging.getLogger(__name__)
+
+
 class DownloadWidget(QtWidgets.QWidget):
     download_finished = QtCore.pyqtSignal()
 
@@ -81,8 +84,8 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
     download_finished = QtCore.pyqtSignal()
 
     def __init__(self, *args, **kwargs):
+        self._busy_updating_widgets = False
         super(DownloadTableWidget, self).__init__(*args, **kwargs)
-        self.logger = logging.getLogger(__name__)
         self.jobs = []  # Will become DownloadQueue with self.set_job_list
 
         settings = QtCore.QSettings()
@@ -127,40 +130,50 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
         """Update UI with information from self.jobs (DownloadJobList)"""
         if not self.parent().parent().isVisible():
             return
-        # disable updates
-        self.setUpdatesEnabled(False)
+        if self._busy_updating_widgets:
+            return
+        self._busy_updating_widgets = True
+
         # make sure the length of the table is long enough
         self.setRowCount(len(self.jobs))
         self.setColumnCount(6)
 
         for row, job in enumerate(self.jobs):
-            status = job.get_status()
-            self.set_label_item(row, 0, job.job_id[:5])
+            if job.job_id in self._finished_downloads:
+                # Widgets of finished downloads have already been drawn.
+                continue
             try:
-                title = get_download_title(job)
-            except BaseException:
-                self.logger.error(traceback.format_exc())
-                # Probably a connection error
-                title = "-- error getting dataset title --"
-            self.set_label_item(row, 1, title)
-            self.set_label_item(row, 2, status["state"])
-            self.set_label_item(row, 3, job.get_progress_string())
-            self.set_label_item(row, 4, job.get_rate_string())
-            if status["state"] == "done":
-                self.on_download_finished(job.job_id)
-            try:
+                status = job.get_status()
+                self.set_label_item(row, 0, job.job_id[:5])
+                try:
+                    title = get_download_title(job)
+                except BaseException:
+                    logger.error(traceback.format_exc())
+                    # Probably a connection error
+                    title = "-- error getting dataset title --"
+                self.set_label_item(row, 1, title)
+                self.set_label_item(row, 2, status["state"])
+                self.set_label_item(row, 3, job.get_progress_string())
+                self.set_label_item(row, 4, job.get_rate_string())
+                if status["state"] == "done":
+                    logger.info(f"Download {job.job_id} finished")
+                    self.on_download_finished(job.job_id)
                 self.set_actions_item(row, 5, job)
             except BaseException:
                 job.set_state("error")
                 job.traceback = traceback.format_exc()
+
+            QtWidgets.QApplication.processEvents(
+                QtCore.QEventLoop.AllEvents,
+                300)
 
         # spacing (did not work in __init__)
         header = self.horizontalHeader()
         header.setSectionResizeMode(
             0, QtWidgets.QHeaderView.ResizeToContents)
         header.setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
-        # enable updates again
-        self.setUpdatesEnabled(True)
+
+        self._busy_updating_widgets = False
 
     def set_label_item(self, row, col, label):
         """Get/Create a Qlabel at the specified position

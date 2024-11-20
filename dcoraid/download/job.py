@@ -12,7 +12,7 @@ import numpy as np
 import requests
 
 from ..api import errors as api_errors
-from ..common import etagsum, sha256sum, weak_lru_cache
+from ..common import etagsum, sha256sum
 
 
 logger = logging.getLogger(__name__)
@@ -53,6 +53,9 @@ class DownloadJob:
         condensed: bool
             Whether to download the condensed dataset
         """
+        self._resource_dict = None
+        self._dataset_dict = None
+        self._download_path = None
         self.api = api.copy()  # create a copy of the API
         self.resource_id = resource_id
         self.job_id = resource_id + ("_cond" if condensed else "")
@@ -117,43 +120,46 @@ class DownloadJob:
     def id(self):
         return self.resource_id
 
-    @weak_lru_cache(maxsize=100)
     def get_resource_dict(self):
         """Return resource dictionary"""
-        return self.api.get("resource_show", id=self.resource_id)
+        if self._resource_dict is None:
+            self._resource_dict = self.api.get("resource_show",
+                                               id=self.resource_id)
+        return self._resource_dict
 
-    @weak_lru_cache(maxsize=100)
     def get_dataset_dict(self):
-        res_dict = self.get_resource_dict()
-        ds_dict = self.api.get("package_show", id=res_dict["package_id"])
-        return ds_dict
+        if self._dataset_dict is None:
+            res_dict = self.get_resource_dict()
+            self._dataset_dict = self.api.get("package_show",
+                                              id=res_dict["package_id"])
+        return self._dataset_dict
 
-    @weak_lru_cache()
     def get_download_path(self):
         """Return the final location to which the file is downloaded"""
-        if self._user_path.is_dir():
-            # Compute the resource path from the dataset dictionary
-            rsdict = self.get_resource_dict()
-            ds_name = self.get_dataset_dict()["name"]
-            # append dataset name to user-specified download directory
-            ds_dir = self._user_path / ds_name
-            ds_dir.mkdir(parents=True, exist_ok=True)
-            if self.condensed and rsdict["mimetype"] == "RT-DC":
-                stem, suffix = rsdict["name"].rsplit(".", 1)
-                res_name = stem + "_condensed." + suffix
+        if self._download_path is None:
+            if self._user_path.is_dir():
+                # Compute the resource path from the dataset dictionary
+                rsdict = self.get_resource_dict()
+                ds_name = self.get_dataset_dict()["name"]
+                # append dataset name to user-specified download directory
+                ds_dir = self._user_path / ds_name
+                ds_dir.mkdir(parents=True, exist_ok=True)
+                if self.condensed and rsdict["mimetype"] == "RT-DC":
+                    stem, suffix = rsdict["name"].rsplit(".", 1)
+                    res_name = stem + "_condensed." + suffix
+                else:
+                    res_name = rsdict["name"]
+                self._download_path = ds_dir / res_name
+            elif self._user_path.parent.is_dir():
+                # user specified an actual file
+                self._download_path = self._user_path
             else:
-                res_name = rsdict["name"]
-            dl_path = ds_dir / res_name
-        elif self._user_path.parent.is_dir():
-            # user specified an actual file
-            dl_path = self._user_path
-        else:
-            raise ValueError(
-                f"The `download_path` passed in __init__ is invalid. "
-                f"Please make sure the target directory for {self._user_path} "
-                f"exists.")
+                raise ValueError(
+                    f"The `download_path` passed in __init__ is invalid. "
+                    f"Please make sure the target directory for "
+                    f"{self._user_path} exists.")
 
-        return dl_path
+        return self._download_path
 
     def get_resource_url(self):
         """Return a link to the resource on DCOR"""
