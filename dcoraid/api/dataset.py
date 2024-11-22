@@ -255,7 +255,7 @@ def resource_add(dataset_id, path, api, resource_name=None,
                 resource_name=resource_name,
                 monitor_callback=monitor_callback,
                 logger=logger,
-                timeout=27.9
+                timeout=500,
             )
 
     # If we are here, then the upload was successful
@@ -270,7 +270,7 @@ def resource_add(dataset_id, path, api, resource_name=None,
         revise_dict = {
             "match__id": dataset_id,
             f"update__resources__{res_dict['id']}": resource_dict}
-        api.post("package_revise", revise_dict)
+        api.post("package_revise", revise_dict, timeout=500)
 
     return srv_time, etag
 
@@ -355,7 +355,7 @@ def resource_add_upload_direct_s3(
                                        }
                                       ]
         }
-    api.post("package_revise", revise_dict)
+    api.post("package_revise", revise_dict, timeout=500)
     return etag
 
 
