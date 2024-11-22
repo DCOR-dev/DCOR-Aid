@@ -1,3 +1,12 @@
+0.15.6
+ - fix: when checking resource existence for a dataset, do not call
+   "package_show" for every single resource
+ - fix: use `verifiable_files` instead of `verified_files` in error message
+   before verifying messages
+ - fix: possible exception during upload verification with flaky connection
+ - enh: increase timeout for "package_show" in `UploadJob` to 500 s
+ - ref: renamed `resource_dict` to `check_resource_dict` in `resource_exists`
+ - ref: add optional `dataset_dict` to `resource_exists`
 0.15.5
  - fix: downloads tab became unresponsive for > 100 downloads
 0.15.4

@@ -77,7 +77,7 @@ class UploadJob:
         self.api = api.copy()  # create a copy of the API
         self.dataset_id = dataset_id
         # make sure the dataset_id is valid
-        self.api.get("package_show", id=self.dataset_id)
+        self.api.get("package_show", id=self.dataset_id, timeout=500)
         self.paths = [pathlib.Path(pp).resolve() for pp in resource_paths]
         if resource_names is None:
             resource_names = [pp.name for pp in self.paths]
@@ -326,13 +326,15 @@ class UploadJob:
         if not dc_files:
             raise ValueError("There are no RT-DC files in this dataset!")
         self.set_state("compress")
+        ds_dict = self.api.get("package_show", id=self.dataset_id, timeout=500)
         for ii, path in enumerate(self.paths):
             if path.suffix in [".rtdc", ".dc"]:  # do we have a DC file?
                 if resource_exists(
                         dataset_id=self.dataset_id,
                         resource_name=self.resource_names[ii],
-                        resource_dict=self.get_composite_supplements(ii),
-                        api=self.api
+                        api=self.api,
+                        check_resource_dict=self.get_composite_supplements(ii),
+                        dataset_dict=ds_dict
                         ):
                     # There is no need to compress resources that have
                     # already been upladed to DCOR. The same check is done
@@ -432,6 +434,9 @@ class UploadJob:
             # begin transfer
             self.set_state("transfer")
             # Do the things to do and watch self.state while doing so
+            ds_dict = self.api.get("package_show",
+                                   id=self.dataset_id,
+                                   timeout=500)
             for ii, path in enumerate(self.paths):
                 self.index = ii
                 resource_name = self.resource_names[ii]
@@ -439,8 +444,9 @@ class UploadJob:
                 exists = resource_exists(
                     dataset_id=self.dataset_id,
                     resource_name=resource_name,
-                    resource_dict=resource_supplement,
-                    api=self.api)
+                    api=self.api,
+                    check_resource_dict=resource_supplement,
+                    dataset_dict=ds_dict)
                 if exists:
                     # We are currently retrying an upload. If the
                     # resource exists, we have already uploaded it.
@@ -478,8 +484,10 @@ class UploadJob:
             verifiable_files = [False] * len(self.paths)
             verified_files = [False] * len(self.paths)
             sha256_dcor = [None] * len(self.paths)
-            for _ in range(500):
-                ds_dict = self.api.get("package_show", id=self.dataset_id)
+            for _ in range(100):
+                ds_dict = self.api.get("package_show",
+                                       id=self.dataset_id,
+                                       timeout=500)
                 resources = ds_dict.get("resources", [])
                 if len(resources) == len(verifiable_files):
                     for ii, res_dict in enumerate(resources):
@@ -493,7 +501,7 @@ class UploadJob:
 
                 if not all(verifiable_files):
                     self.set_state("wait-dcor")
-                    time.sleep(1)
+                    time.sleep(5)
                     continue
                 else:
                     # ETags or SHA256 sums are available
@@ -502,9 +510,9 @@ class UploadJob:
                 # things are taking too long
                 self.set_state("error")
                 msg_parts = ["ETags or SHA256 sums not populated by DCOR:"]
-                for ii, res_dict in enumerate(resources):
-                    if not verified_files[ii]:
-                        msg_parts += [f" - {res_dict['name']}"]
+                for ii, res_name in enumerate(self.resource_names):
+                    if not verifiable_files[ii]:
+                        msg_parts += [f" - {res_name}"]
                 self.traceback = "\n".join(msg_parts)
 
             # Only start verification if all SHA256 sums are available.

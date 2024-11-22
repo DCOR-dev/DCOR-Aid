@@ -135,7 +135,7 @@ def test_dataset_resource_exists():
 
     assert not resource_exists(dataset_id=data["id"],
                                resource_name=dpath.name,
-                               resource_dict={
+                               check_resource_dict={
                                        "sp:chip:channel width": 21.0
                                    },
                                api=api)
@@ -157,7 +157,7 @@ def test_dataset_resource_exists2():
 
     assert resource_exists(dataset_id=data["id"],
                            resource_name=dpath.name,
-                           resource_dict={
+                           check_resource_dict={
                                    "sp:chip:channel width": 21.0
                                },
                            api=api)

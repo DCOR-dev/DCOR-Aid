@@ -312,7 +312,7 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
         # Perform a sanity check to make sure that the dataset_id
         # actually exists.
         try:
-            api.get("package_show", id=dataset_id)
+            api.get("package_show", id=dataset_id, timeout=500)
         except APINotFoundError as e:
             # This means that the dataset does not exist. Give the
             # user a little help how to resolve this.

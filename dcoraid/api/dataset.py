@@ -433,7 +433,8 @@ def resource_add_upload_legacy_indirect_ckan(
 def resource_exists(dataset_id: str,
                     resource_name: str,
                     api: CKANAPI,
-                    resource_dict: Dict = None):
+                    check_resource_dict: Dict = None,
+                    dataset_dict: Dict = None):
     """Check whether a resource exists in a dataset on DCOR
 
     Parameters
@@ -444,19 +445,28 @@ def resource_exists(dataset_id: str,
         name of the resource
     api: dcoraid.api.CKANAPI
         API instance
-    resource_dict: dict
+    check_resource_dict: dict
         resource dictionary to check against (optional); If this is given,
         then this method returns False if there are discrepancies in the
         resource schema supplements (even if the resource exists).
+    dataset_dict: dict
+        dataset dictionary in which to search for the given resource; If
+        not specified, `api.get("package_show", id=dataset_id)` is used
+        to fetch the latest dataset dictionary. It makes sense to pass this
+        dictionary if you are intending to call `resource_exists` multiple
+        times for many resources consecutively.
     """
-    if resource_dict is None:
-        resource_dict = {}
-    pkg_dict = api.get("package_show", id=dataset_id)
-    for resource in pkg_dict.get("resources", []):
+    if check_resource_dict is None:
+        check_resource_dict = {}
+    if dataset_dict is None:
+        dataset_dict = api.get("package_show", id=dataset_id,
+                               timeout=500)
+    for resource in dataset_dict.get("resources", []):
         if resource["name"] == resource_name:
             # check that the resource dict matches
-            for key in resource_dict:
-                if key not in resource or resource[key] != resource_dict[key]:
+            for key in check_resource_dict:
+                if (key not in resource
+                        or resource[key] != check_resource_dict[key]):
                     # Either the resource schema supplement is missing
                     # or it is wrong.
                     return False
