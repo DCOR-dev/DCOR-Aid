@@ -17,11 +17,12 @@ from PyQt5 import uic, QtCore, QtGui, QtWidgets
 from ..api import APIOutdatedError
 from ..common import ConnectionTimeoutErrors
 from ..dbmodel import APIInterrogator, DBExtract
-from .._version import version as __version__
+from .._version import __version__
 
 from .api import get_ckan_api
 from .preferences import PreferencesDialog
 from .status_widget import StatusWidget
+from . import updater
 from .wizard import SetupWizard
 
 file_manager = ExitStack()
@@ -44,6 +45,9 @@ class DCORAid(QtWidgets.QMainWindow):
         application will print the version after initialization
         and exit.
         """
+        self._update_thread = None
+        self._update_worker = None
+
         # Settings are stored in the .ini file format. Even though
         # `self.settings` may return integer/bool in the same session,
         # in the next session, it will reliably return strings. Lists
@@ -115,6 +119,10 @@ class DCORAid(QtWidgets.QMainWindow):
             # User has not done anything yet
             self.on_wizard()
 
+        # check for updates
+        do_update = int(self.settings.value("check for updates", 1))
+        self.on_action_check_update(do_update)
+
         self.show()
         self.raise_()
 
@@ -147,6 +155,50 @@ class DCORAid(QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.about(self,
                                     "DCOR-Aid {}".format(__version__),
                                     about_text)
+
+    @QtCore.pyqtSlot(bool)
+    def on_action_check_update(self, b):
+        self.settings.setValue("check for updates", int(b))
+        if b and self._update_thread is None:
+            self._update_thread = QtCore.QThread()
+            self._update_worker = updater.UpdateWorker()
+            self._update_worker.moveToThread(self._update_thread)
+            self._update_worker.finished.connect(self._update_thread.quit)
+            self._update_worker.data_ready.connect(
+                self.on_action_check_update_finished)
+            self._update_thread.start()
+
+            ghrepo = "DCOR-dev/DCOR-Aid"
+
+            QtCore.QMetaObject.invokeMethod(
+                self._update_worker,
+                'processUpdate',
+                QtCore.Qt.ConnectionType.QueuedConnection,
+                QtCore.Q_ARG(str, __version__),
+                QtCore.Q_ARG(str, ghrepo),
+            )
+
+    def on_action_check_update_finished(self, mdict):
+        # cleanup
+        self._update_thread.quit()
+        self._update_thread.wait()
+        self._update_worker = None
+        self._update_thread = None
+        # display message box
+        ver = mdict["version"]
+        web = mdict["releases url"]
+        dlb = mdict["binary url"]
+        msg = QtWidgets.QMessageBox()
+        msg.setWindowTitle(f"DCOR-Aid {ver} available!")
+        msg.setTextFormat(QtCore.Qt.TextFormat.RichText)
+        text = f"You can install DCOR-Aid {ver} "
+        if dlb is not None:
+            text += 'from a <a href="{}">direct download</a>. '.format(dlb)
+        else:
+            text += 'by running `pip install --upgrade dcoraid`. '
+        text += 'Visit the <a href="{}">official release page</a>!'.format(web)
+        msg.setText(text)
+        msg.exec()
 
     @QtCore.pyqtSlot()
     def on_action_software(self):

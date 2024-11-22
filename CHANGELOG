@@ -1,4 +1,5 @@
-0.15.6
+0.16.0
+ - feat: check for updates when starting the DCOR-Aid GUI
  - fix: when checking resource existence for a dataset, do not call
    "package_show" for every single resource
  - fix: use `verifiable_files` instead of `verified_files` in error message
