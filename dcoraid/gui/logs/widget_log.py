@@ -1,5 +1,6 @@
 import subprocess
 from collections import deque
+import html
 from importlib import resources
 import logging
 import os
@@ -98,9 +99,10 @@ class WidgetLog(QtWidgets.QWidget):
             else:
                 style = ""
 
-            html = f"<div {style}>{msg}</div>"
+            html_text = f"<div {style}>{html.escape(msg)}</div>"
+            html_text = html_text.replace("\n", "<br>")
 
-            self.textEdit.append(html)
+            self.textEdit.append(html_text)
 
     def get_level(self, msg):
         try:
