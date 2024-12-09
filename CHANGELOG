@@ -1,5 +1,6 @@
 0.16.3
  - fix: fall-back to resource size estimation via S3 download header
+ - tests: fix tests that checked resource size after upload
 0.16.2
  - fix: convert resource file extensions to lower-case (#81)
  - fix: escape html characters in logging panel
