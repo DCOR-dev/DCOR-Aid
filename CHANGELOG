@@ -1,6 +1,7 @@
 0.16.2
  - fix: convert resource file extensions to lower-case (#81)
  - fix: escape html characters in logging panel
+ - fix: fall-back to resource size estimation via S3 download header
  - enh: improve error message when registered dataset ID does not exist (#82)
  - setup: bump dclab to 0.62.7
 0.16.1

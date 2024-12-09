@@ -114,7 +114,26 @@ class DownloadJob:
 
     @property
     def file_size(self):
-        return self.get_resource_dict()["size"]
+        size = None
+        if not self.condensed:
+            # Try to get the file size from the resource dictionary.
+            # Note that the file size is set only after upload. So, if you
+            # are downloading immediately after upload, the "size"
+            # attribute might not be set yet.
+            size = self.get_resource_dict()["size"]
+        if size is None:
+            # Fetch the file size from S3.
+            # This is the only option for condensed downloads (because they
+            # are not a resource) and the fall-back for actual resources.
+            url = self.get_resource_url()
+            req = requests.get(url,
+                               stream=True,
+                               headers=self.api.headers,
+                               verify=self.api.verify,
+                               timeout=29.9,
+                               )
+            size = int(req.headers["Content-length"])
+        return size
 
     @property
     def id(self):
@@ -323,19 +342,8 @@ class DownloadJob:
                 # set-up temporary path
                 self.path_temp = self.path.with_name(self.path.name + "~")
                 # check for disk space
-                if self.condensed:
-                    # get the size from the server
-                    url = self.get_resource_url()
-                    req = requests.get(url,
-                                       stream=True,
-                                       headers=self.api.headers,
-                                       verify=self.api.verify,
-                                       timeout=29.9,
-                                       )
-                    size = int(req.headers["Content-length"])
-                else:
-                    size = self.get_resource_dict()["size"]
-                if shutil.disk_usage(self.path_temp.parent).free < size:
+                if shutil.disk_usage(
+                        self.path_temp.parent).free < self.file_size:
                     # there is not enough space on disk for the download
                     self.set_state("wait-disk")
                     time.sleep(1)
