@@ -2,6 +2,7 @@
  - fix: convert resource file extensions to lower-case (#81)
  - fix: escape html characters in logging panel
  - enh: improve error message when registered dataset ID does not exist (#82)
+ - setup: bump dclab to 0.62.7
 0.16.1
  - fix: generally increase timeout for package_revise
 0.16.0
