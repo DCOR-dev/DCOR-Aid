@@ -106,7 +106,7 @@ def test_get_status():
     dj = job.DownloadJob(api=api,
                          resource_id=ds_dict["resources"][0]["id"],
                          download_path=td)
-    size = dj.get_resource_dict()["size"]
+    size = dj.file_size
     assert size != 0
     assert dj.get_status()["bytes total"] == size
     assert dj.get_status()["bytes downloaded"] == 0

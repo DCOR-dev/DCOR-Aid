@@ -2,6 +2,7 @@ import json
 import pathlib
 import shutil
 import tempfile
+import time
 import uuid
 
 import pytest
@@ -43,7 +44,13 @@ def test_create_task():
     uj.task_verify_resources()
     common.wait_for_job_no_queue(uj)
     # Now make sure that all the information is still there
-    ddict = api.get("package_show", id=uj.dataset_id)
+    for ii in range(10):
+        ddict = api.get("package_show", id=uj.dataset_id)
+        if ddict["resources"][1].get("size") is not None:
+            break
+        time.sleep(1)
+    else:
+        assert False, f"Resource upload not completed in {uj.dataset_id}"
     assert ddict["authors"] == "Bruce Banner"
     assert ddict["license_id"] == "CC0-1.0"
     assert ddict["resources"][0]["name"] == "hulk.rtdc"
