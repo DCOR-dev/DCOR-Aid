@@ -296,18 +296,29 @@ class UploadWidget(QtWidgets.QWidget):
                 # Give the user the option to create a new dataset.
                 ret = QtWidgets.QMessageBox.question(
                     self,
-                    "Dataset ID in task file not found on DCOR server",
-                    f"The dataset speficied in {pp} does not exist on "
-                    + f"{api.server}. Possible reasons:"
-                    + "<ul>"
-                    + "<li>You deleted an upload job or a draft dataset.</li>"
-                    + "<li>This task file was created by a different "
-                    + f"user on the {api.server} instance.</li>"
-                    + "<li>This task file was created using a different DCOR "
-                    + "instance.</li>"
-                    + "</ul>"
-                    + "Would you like to create a new dataset for this "
-                    + f"task file on {api.server} (select 'No' if in doubt)?"
+                    "Dataset not found on DCOR server",
+                    f"The dataset specified in, or inferred from '{pp}' does "
+                    f"not exist on '{api.server}'. "
+                    f"Possible reasons:"
+                    f"<ul>"
+                    f"<li>"
+                    f"<b>You deleted an upload job or a draft dataset</b>: "
+                    f"Creating a new dataset is safe in this case."
+                    f"</li>"
+                    f"<li>"
+                    f"<b>This task file was created by a different user</b> "
+                    f"on the '{api.server}' instance: You should not "
+                    f"continue and instead set the correct API token in the "
+                    f"settings."
+                    f"</li>"
+                    f"<li>"
+                    f"<b>This task file was created using a different "
+                    f"DCOR instance</b>: You should not continue and set the "
+                    f"correct DCOR server and API token in the settings."
+                    f"</li>"
+                    f"</ul>"
+                    f"Would you like to create a new dataset for this "
+                    f"task file on '{api.server}' (select 'No' if in doubt)?"
                 )
                 if ret == QtWidgets.QMessageBox.Yes:
                     # retry, this time forcing the creation of a new dataset
