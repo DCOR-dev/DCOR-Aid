@@ -1,4 +1,5 @@
 0.16.2
+ - fix: convert resource file extensions to lower-case (#81)
  - fix: escape html characters in logging panel
 0.16.1
  - fix: generally increase timeout for package_revise

@@ -112,6 +112,32 @@ def test_full_upload():
     common.wait_for_job_no_queue(uj)
 
 
+def test_full_upload_uppercase_extension_issue_81(tmp_path):
+    """When the file suffix is upper-case, DCOR-Aid shold .lower() it"""
+    shutil.copy2(rtdc_paths[0], tmp_path / "peter.RTDC")
+    shutil.copy2(rtdc_paths[1], tmp_path / "peter2BIG.rtdc")
+    api = common.get_api()
+    # create some metadata
+    bare_dict = common.make_dataset_dict(hint="create-with-resource")
+    # create dataset (to get the "id")
+    dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
+    uj = job.UploadJob(api=api,
+                       dataset_id=dataset_dict["id"],
+                       resource_paths=tmp_path.glob("peter*"))
+    assert uj.state == "init"
+    uj.task_compress_resources()
+    assert uj.state == "parcel"
+    uj.task_upload_resources()
+    assert uj.state == "online"
+    common.wait_for_job_no_queue(uj)
+
+    # make sure everything worked
+    ds = api.get("package_show", id=uj.dataset_id)
+    resources_act = sorted([r["name"] for r in ds["resources"]])
+    resources_exp = ["peter.rtdc", "peter2BIG.rtdc"]
+    assert resources_act == resources_exp
+
+
 def test_full_upload_with_file_with_spaces_in_name(tmp_path):
     rtdc_path_with_space = tmp_path / "name questö spaces.rtdc"
     shutil.copy2(rtdc_paths[1], rtdc_path_with_space)

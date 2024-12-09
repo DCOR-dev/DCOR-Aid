@@ -560,8 +560,16 @@ class UploadJob:
 
 def valid_resource_name(path_name):
     """Return a valid DCOR resource name, by replacing characters"""
+    # make resource suffix lower-case
+    if not path_name.count("."):
+        raise ValueError(
+            f"Resource names must have a suffix, got '{path_name}'")
+    stem, suffix = path_name.rsplit(".", 1)
+    path_name = f"{stem}.{suffix.lower()}"
+
     # convert spaces to underscores
     path_name = path_name.replace(" ", "_")
+
     # convert all other characters to dots
     new_name = ""
     for char in path_name:
@@ -569,4 +577,6 @@ def valid_resource_name(path_name):
             new_name += char
         else:
             new_name += "."
-    return new_name
+    path_name = new_name
+
+    return path_name
