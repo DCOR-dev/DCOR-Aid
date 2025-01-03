@@ -43,6 +43,10 @@ class WidgetLog(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(WidgetLog, self).__init__(*args, **kwargs)
+        self.logs_queued_max = 1000
+        self.logs_printed = 0
+        self.full_log = deque(maxlen=self.logs_queued_max)
+
         ref_ui = resources.files("dcoraid.gui.logs") / "widget_log.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
@@ -78,7 +82,6 @@ class WidgetLog(QtWidgets.QWidget):
             self.on_filter_changed)
         self.toolButton_dir.clicked.connect(self.on_log_dir_open)
         self.log_handler = StringSignalLogHandler(self.new_message)
-        self.full_log = deque(maxlen=5000)
 
     @QtCore.pyqtSlot(str)
     def add_colored_item(self, msg, append_global=True):
@@ -102,7 +105,12 @@ class WidgetLog(QtWidgets.QWidget):
             html_text = f"<div {style}>{html.escape(msg)}</div>"
             html_text = html_text.replace("\n", "<br>")
 
-            self.textEdit.append(html_text)
+            self.ui.textEdit.append(html_text)
+            self.logs_printed += 1
+
+            # Clean up every once in a while
+            if self.logs_printed >= 2 * self.logs_queued_max:
+                self.on_filter_changed()
 
     def get_level(self, msg):
         try:
@@ -127,6 +135,7 @@ class WidgetLog(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def on_filter_changed(self):
         self.textEdit.clear()
+        self.logs_printed = 0
         for msg in self.full_log:
             self.add_colored_item(msg, append_global=False)
 
