@@ -51,7 +51,7 @@ jobs:
       uses: signpath/github-action-submit-signing-request@v1
       with:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
-        organization-id: 'TODO'
+        organization-id: '29ae08d5-8472-4f2c-9808-11552bf815f2'
         project-slug: 'DCOR-Aid'
         signing-policy-slug: 'test-signing'
         github-artifact-id: '${{steps.uploadBinaryArtifact.outputs.artifact-id}}'
@@ -78,7 +78,7 @@ jobs:
       uses: signpath/github-action-submit-signing-request@v1
       with:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
-        organization-id: 'TODO'
+        organization-id: '29ae08d5-8472-4f2c-9808-11552bf815f2'
         project-slug: 'DCOR-Aid'
         signing-policy-slug: 'test-signing'
         github-artifact-id: '${{steps.uploadInstallerArtifact.outputs.artifact-id}}'
