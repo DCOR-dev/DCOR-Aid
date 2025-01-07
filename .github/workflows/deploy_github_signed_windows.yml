@@ -41,7 +41,7 @@ jobs:
       id: uploadBinaryArtifact
       uses: actions/upload-artifact@v4.4.3
       with:
-        name: pyjibe-executable
+        name: dcoraid-executable
         path: ./build-recipes/dist/DCOR-Aid/DCOR-Aid.exe
     - name: Remove unsigned windows binary
       shell: bash
@@ -63,12 +63,12 @@ jobs:
       working-directory: ./build-recipes
       run: |
         python win_make_iss.py
-        ISCC.exe /Q win_pyjibe.iss
+        ISCC.exe /Q win_dcoraid.iss
     - name: Upload windows installer
       id: uploadInstallerArtifact
       uses: actions/upload-artifact@v4.4.3
       with:
-        name: pyjibe-installer
+        name: dcoraid-installer
         path: ./build-recipes/Output/*.exe
     - name: Remove unsigned windows installer
       shell: bash

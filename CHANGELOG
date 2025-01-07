@@ -1,3 +1,5 @@
+0.16.5
+ - ci: maintenance release
 0.16.4
  - enh: limit logs printed to 2000
  - tests: wait for complete resource dict when uploading test data
