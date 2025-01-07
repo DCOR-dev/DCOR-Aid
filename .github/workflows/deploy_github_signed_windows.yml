@@ -1,5 +1,16 @@
 name: Deploy Signed Windows Installer to GitHub Releases
 
+# Note: The following SignPath Artifact Configuration must be set as default:
+#
+# <?xml version="1.0" encoding="utf-8"?>
+# <artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+# <zip-file>
+#   <pe-file path="*.exe">
+#     <authenticode-sign/>
+#   </pe-file>
+# </zip-file>
+# </artifact-configuration>
+
 on:
   push:
     tags:
