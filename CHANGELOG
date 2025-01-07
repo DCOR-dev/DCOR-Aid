@@ -1,5 +1,6 @@
 0.16.4
  - enh: limit logs printed to 2000
+ - tests: wait for complete resource dict when uploading test data
  - ci: introduce SignPath code signing for Windows executables
  - setup: bump dclab to 0.62.10
 0.16.3

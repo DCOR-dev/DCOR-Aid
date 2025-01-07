@@ -53,7 +53,7 @@ def make_dataset_dict(hint=""):
 
 
 @functools.lru_cache()
-def make_dataset_for_download(seed=0):
+def make_dataset_for_download(seed=0, wait_for_resource_metadata=False):
     """Set `seed` to get a new dataset (in case you need fresh resource ids)"""
     api = get_api()
     # create some metadata
@@ -63,7 +63,8 @@ def make_dataset_for_download(seed=0):
     joblist = UploadQueue(api=api)
     joblist.new_job(dataset_id=data["id"],
                     paths=[dpath])
-    wait_for_job(joblist, data["id"])
+    wait_for_job(joblist, data["id"],
+                 wait_for_resource_metadata=True)
     return api.get("package_show", id=data["id"])
 
 
@@ -115,19 +116,32 @@ def make_upload_task(task_id=True,  # tester may pass `None` to disable
     return str(taskp)
 
 
-def wait_for_job(upload_queue, dataset_id, wait_time=60):
+def wait_for_job(upload_queue, dataset_id, wait_time=60,
+                 wait_for_resource_metadata=False):
     uq = upload_queue
     uj = uq.get_job(dataset_id)
     # wait for the upload to finish
     for _ in range(wait_time*10):
         if uj.state == "done":
-            if uq.jobs_eternal:
-                # TODO:
-                # We do this manually here. Actually, a better solution would
-                # be to implement a signal-slot type of workflow where the
-                # job tells the queue when it is done.
-                uq.jobs_eternal.set_job_done(dataset_id)
-            break
+            complete = True
+            if wait_for_resource_metadata:
+                # make sure these keys are set in the resource dict
+                ds_dict = uq.api.get("package_show", id=dataset_id)
+                for key in ["sha256", "mimetype", "size"]:
+                    for res in ds_dict["resources"]:
+                        if key not in res:
+                            complete = False
+                            break
+                    if not complete:
+                        break
+            if complete:
+                if uq.jobs_eternal:
+                    # TODO:
+                    # We do this manually here. Actually, a better solution
+                    # would be to implement a signal-slot type of workflow
+                    # where the job tells the queue when it is done.
+                    uq.jobs_eternal.set_job_done(dataset_id)
+                break
         time.sleep(.1)
     else:
         assert False, f"Job '{uj}' not done in {wait_time}s, state {uj.state}!"
