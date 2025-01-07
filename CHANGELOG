@@ -1,5 +1,7 @@
 0.16.4
  - enh: limit logs printed to 2000
+ - ci: introduce SignPath code signing for Windows executables
+ - setup: bump dclab to 0.62.10
 0.16.3
  - fix: fall-back to resource size estimation via S3 download header
  - tests: fix tests that checked resource size after upload
