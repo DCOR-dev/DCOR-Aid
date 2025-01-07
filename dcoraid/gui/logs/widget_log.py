@@ -105,7 +105,7 @@ class WidgetLog(QtWidgets.QWidget):
             html_text = f"<div {style}>{html.escape(msg)}</div>"
             html_text = html_text.replace("\n", "<br>")
 
-            self.ui.textEdit.append(html_text)
+            self.textEdit.append(html_text)
             self.logs_printed += 1
 
             # Clean up every once in a while
