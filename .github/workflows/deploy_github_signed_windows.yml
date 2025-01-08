@@ -64,7 +64,7 @@ jobs:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
         organization-id: '29ae08d5-8472-4f2c-9808-11552bf815f2'
         project-slug: 'DCOR-Aid'
-        signing-policy-slug: 'test-signing'
+        signing-policy-slug: 'release-signing'
         github-artifact-id: '${{steps.uploadBinaryArtifact.outputs.artifact-id}}'
         wait-for-completion: true
         output-artifact-directory: 'build-recipes/dist/DCOR-Aid'
@@ -91,7 +91,7 @@ jobs:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
         organization-id: '29ae08d5-8472-4f2c-9808-11552bf815f2'
         project-slug: 'DCOR-Aid'
-        signing-policy-slug: 'test-signing'
+        signing-policy-slug: 'release-signing'
         github-artifact-id: '${{steps.uploadInstallerArtifact.outputs.artifact-id}}'
         wait-for-completion: true
         output-artifact-directory: 'build-recipes/Output'
