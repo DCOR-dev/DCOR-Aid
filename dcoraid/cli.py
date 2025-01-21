@@ -4,15 +4,16 @@ import argparse
 from argparse import RawTextHelpFormatter
 import logging
 import pathlib
+import sys
 import threading
 import time
 import traceback
-import sys
 
 import urllib3.exceptions
 import requests.exceptions
 
 from .api import CKANAPI
+from .loggers import setup_logging
 from .upload import task
 from ._version import version
 
@@ -156,11 +157,9 @@ def upload_task(path_task: str | pathlib.Path = None,
 
 
 def upload_task_parser():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(processName)s/%(threadName)s "
-               + "in %(name)s: %(message)s",
-        datefmt='%H:%M:%S')
+    setup_logging("dcoraid")
+    setup_logging("dclab")
+    setup_logging("requests", level=logging.INFO)
 
     descr = (
         "Upload a .dcoraid-task file to a DCOR instance. Example usage::\n"

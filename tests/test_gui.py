@@ -61,6 +61,7 @@ def test_gui_anonymous(qtbot):
     spath.write_text("\n".join([
         "[General]",
         "user%20scenario = anonymous",
+        "check for updates = 0",
         "[auth]",
         "api%20key =",
         "server = dcor.mpl.mpg.de",

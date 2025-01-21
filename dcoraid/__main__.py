@@ -4,13 +4,11 @@ def main(splash=True):
     import platform
     import sys
 
-    from ._version import version
+    from .loggers import setup_logging
 
-    logging.basicConfig(
-        level=logging.DEBUG if version.count("post") else logging.INFO,
-        format="%(asctime)s %(levelname)s %(processName)s/%(threadName)s "
-               + "in %(name)s: %(message)s",
-        datefmt='%H:%M:%S')
+    setup_logging("dcoraid")
+    setup_logging("dclab")
+    setup_logging("requests", level=logging.INFO)
 
     from PyQt5.QtWidgets import QApplication
 

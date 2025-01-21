@@ -70,6 +70,7 @@ class DCORAid(QtWidgets.QMainWindow):
 
         #: DCOR-Aid settings
         self.settings = QtCore.QSettings()
+        self.settings.setIniCodec("utf-8")
         ref_ui = resources.files("dcoraid.gui") / "main.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
@@ -120,7 +121,7 @@ class DCORAid(QtWidgets.QMainWindow):
             self.on_wizard()
 
         # check for updates
-        do_update = int(self.settings.value("check for updates", 1))
+        do_update = int(self.settings.value("check for updates", "1"))
         self.on_action_check_update(do_update)
 
         self.show()
@@ -158,7 +159,7 @@ class DCORAid(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def on_action_check_update(self, b):
-        self.settings.setValue("check for updates", int(b))
+        self.settings.setValue("check for updates", f"{int(b)}")
         if b and self._update_thread is None:
             self._update_thread = QtCore.QThread()
             self._update_worker = updater.UpdateWorker()

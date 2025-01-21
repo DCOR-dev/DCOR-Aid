@@ -1,3 +1,5 @@
+0.16.9
+ - tests: avoid update check in custom GUI test
 0.16.8
  - ci: maintenance release
 0.16.7

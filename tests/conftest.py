@@ -50,7 +50,7 @@ def pytest_configure(config):
     QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
     settings = QtCore.QSettings()
     settings.setIniCodec("utf-8")
-    settings.setValue("check for updates", 0)
+    settings.setValue("check for updates", "0")
     settings.setValue("user scenario", "dcor-dev")
     settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
     settings.setValue("auth/api key", common.get_api_key())
@@ -74,6 +74,7 @@ def pytest_unconfigure(config):
     settings = QtCore.QSettings()
     settings.setIniCodec("utf-8")
     settings.remove("debug/without timers")
+    settings.remove("check for updates")
     settings.sync()
     # cleanup
     cleanup_dcoraid_tasks()
