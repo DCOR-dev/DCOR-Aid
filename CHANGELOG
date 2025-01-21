@@ -1,4 +1,7 @@
 0.16.9
+ - enh: don't use global `logging.basicConfig`
+ - enh: setup INFO logging for `requests` (no more DEBUG logs)
+ - ref: setup DEBUG/INFO logging for `dcoraid` and `dclab`
  - tests: avoid update check in custom GUI test
 0.16.8
  - ci: maintenance release
