@@ -109,3 +109,5 @@ docs/*.bib.bak
 pytest-failures.txt
 
 _version.py
+
+_dev_*.py
