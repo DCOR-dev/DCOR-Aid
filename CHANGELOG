@@ -3,6 +3,7 @@
  - enh: setup INFO logging for `requests` (no more DEBUG logs)
  - ref: setup DEBUG/INFO logging for `dcoraid` and `dclab`
  - tests: avoid update check in custom GUI test
+ - setup: bump dclab to 0.62.11
 0.16.8
  - ci: maintenance release
 0.16.7
