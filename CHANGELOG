@@ -1,3 +1,5 @@
+0.16.10
+ - docs: consistently rename API key to API token (code unchanged)
 0.16.9
  - enh: don't use global `logging.basicConfig`
  - enh: setup INFO logging for `requests` (no more DEBUG logs)

@@ -352,7 +352,7 @@
     <item>
      <widget class="QLabel" name="label_3">
       <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Please visit &lt;a href=&quot;https://dcor.mpl.mpg.de/user/register&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://dcor.mpl.mpg.de/user/register&lt;/span&gt;&lt;/a&gt; and create a new user account. You should specify a valid email address in case you lose your password.&lt;/p&gt;&lt;p&gt;After registration, please go to your profile page (click on your name at the top of the page) and copy-paste your API key (located at the bottom of the left panel on your profile page) here:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Please visit &lt;a href=&quot;https://dcor.mpl.mpg.de/user/register&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://dcor.mpl.mpg.de/user/register&lt;/span&gt;&lt;/a&gt; and create a new user account. You should specify a valid email address in case you lose your password.&lt;/p&gt;&lt;p&gt;After registration, please go to your profile page (click on your name at the top of the page) and copy-paste your API token (located at the bottom of the left panel on your profile page) here:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="wordWrap">
        <bool>true</bool>
@@ -367,7 +367,7 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label_6">
         <property name="text">
-         <string>API key</string>
+         <string>API token</string>
         </property>
        </widget>
       </item>
@@ -405,7 +405,7 @@
       <item row="1" column="0">
        <widget class="QLabel" name="label_14">
         <property name="text">
-         <string>API key</string>
+         <string>API token</string>
         </property>
        </widget>
       </item>

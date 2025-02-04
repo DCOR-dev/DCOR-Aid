@@ -71,7 +71,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             'DCOR-Aid restart required',
             "Changing the server or API token requires a restart of "
             + "DCOR-Aid. If you choose 'No', then the original server "
-            + "and API key are NOT changed. Do you really want to quit "
+            + "and API token are NOT changed. Do you really want to quit "
             + "DCOR-Aid?",
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
             QtWidgets.QMessageBox.No)
@@ -239,7 +239,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             self.logger.error(tb.format_exc())
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Warning)
-            msg.setText("No connection or wrong server or invalid API key!")
+            msg.setText("No connection or wrong server or invalid API token!")
             msg.setWindowTitle("Warning")
             msg.setDetailedText(tb.format_exc())
             msg.exec_()
@@ -270,7 +270,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             self.logger.error(tb.format_exc())
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Warning)
-            msg.setText("No connection or wrong server or invalid API key!")
+            msg.setText("No connection or wrong server or invalid API token!")
             msg.setWindowTitle("Warning")
             msg.setDetailedText(tb.format_exc())
             msg.exec_()
@@ -309,7 +309,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             self.logger.error(tb.format_exc())
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Critical)
-            msg.setText("Bad server / API key combination!")
+            msg.setText("Bad server / API token combination!")
             msg.setWindowTitle("Error")
             msg.setDetailedText(tb.format_exc())
             msg.exec_()

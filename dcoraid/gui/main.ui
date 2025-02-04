@@ -415,7 +415,7 @@
   </action>
   <action name="actionSet_API_key">
    <property name="text">
-    <string>Set DCOR API key</string>
+    <string>Set DCOR API token</string>
    </property>
   </action>
   <action name="actionQuit">

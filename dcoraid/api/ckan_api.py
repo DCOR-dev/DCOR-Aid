@@ -360,8 +360,8 @@ class CKANAPI:
                         userdata = user
                         break
                 else:
-                    raise NoAPIKeyError(
-                        "Could not determine user data. Please check API key.")
+                    raise NoAPIKeyError("Could not determine user data. "
+                                        "Please check API token.")
         return userdata
 
     def post(self, api_call, data, dump_json=True, headers=None,

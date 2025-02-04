@@ -39,7 +39,7 @@ class APIOutdatedError(APIError):
 
 
 class NoAPIKeyError(APIError):
-    """DCOR does not have an API key"""
+    """DCOR does not have an API token"""
     pass
 
 

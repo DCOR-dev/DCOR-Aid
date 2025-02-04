@@ -111,7 +111,7 @@ class UploadQueue:
         self.logger = logging.getLogger(__name__)
         self.api = api.copy()
         if not api.api_key:
-            warnings.warn("No API key is set! Upload will not work!")
+            warnings.warn("No API token is set! Upload will not work!")
         self.cache_dir = cache_dir
         self.jobs = []
         if path_persistent_job_list is not None:

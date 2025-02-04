@@ -124,11 +124,11 @@ class StatusWidetUpdateWorker(QtCore.QRunnable):
             icon = "ban"
         elif not api.api_key:
             text = "Anonymous"
-            tip = "Click here to enter your API key."
+            tip = "Click here to enter your API token."
             icon = "user"
         elif not api.is_available(with_api_key=True):
             text = "API token incorrect"
-            tip = "Click here to update your API key."
+            tip = "Click here to update your API token."
             icon = "user-times"
         else:
             try:

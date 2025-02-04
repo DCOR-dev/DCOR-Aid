@@ -45,7 +45,8 @@ def mw(qtbot):
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
 
 
-@pytest.mark.filterwarnings("ignore::UserWarning", match="No API key is set!")
+@pytest.mark.filterwarnings("ignore::UserWarning",
+                            match="No API token is set!")
 def test_gui_anonymous(qtbot):
     """Start DCOR-Aid in anonymous mode"""
     QtCore.QCoreApplication.setOrganizationName("DCOR")

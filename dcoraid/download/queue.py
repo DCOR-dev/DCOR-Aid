@@ -78,7 +78,7 @@ class DownloadQueue:
         """
         self.api = api.copy()
         if not api.api_key:
-            warnings.warn("No API key is set! download may not work!")
+            warnings.warn("No API token is set! Download may not work!")
         self.jobs = []
         if path_persistent_job_list is not None:
             self.jobs_eternal = PersistentDownloadJobList(

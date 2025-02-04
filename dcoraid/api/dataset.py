@@ -128,7 +128,7 @@ def dataset_draft_remove_all(api, ignore_dataset_ids=None):
     """Remove all draft datasets
 
     Find and delete all draft datasets for a user. The user
-    ID is inferred from the API key.
+    ID is inferred from the API token.
 
     Parameters
     ----------

@@ -9,7 +9,7 @@ from ...api import NoAPIKeyError, APINotFoundError, CKANAPI
 
 
 def get_dcor_dev_api_key():
-    """Return a valid DCOR-dev user API key
+    """Return a valid DCOR-dev user API token
 
     If there are no credentials available in the settings file,
     then a new user is created on DCOR-dev.
@@ -90,10 +90,10 @@ class SetupWizard(QtWidgets.QWizard):
             or old_api_key != api_key
                 or old_server != server):
             if old_api_key:
-                msg = "Changing the server or API key requires a restart of " \
-                      + "DCOR-Aid. If you choose 'No', then the original " \
-                      + "server and API key are NOT changed. Do you really " \
-                      + "want to quit DCOR-Aid?"
+                msg = "Changing the server or API token requires a restart " \
+                      + "of DCOR-Aid. If you choose 'No', then the original " \
+                      + "server and API token are NOT changed. Do you " \
+                      + "really want to quit DCOR-Aid?"
                 button_reply = QtWidgets.QMessageBox.question(
                     self,
                     'DCOR-Aid restart required',
