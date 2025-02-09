@@ -1,4 +1,5 @@
 import logging
+import threading
 import traceback
 from functools import partial
 import os
@@ -40,7 +41,8 @@ class DownloadWidget(QtWidgets.QWidget):
             "persistent_download_jobs")
 
         #: DownloadQueue instance
-        self.jobs = None
+        self._jobs = None
+        self._jobs_init_lock = threading.Lock()
 
         self.setEnabled(False)
         self.init_timer = QtCore.QTimer(self)
@@ -49,19 +51,35 @@ class DownloadWidget(QtWidgets.QWidget):
         self.init_timer.timeout.connect(self.initialize)
         self.init_timer.start()
 
+    def _jobs_init(self):
+        with self._jobs_init_lock:
+            if self._jobs is None:
+                api = get_ckan_api()
+                if api.is_available(with_correct_version=True):
+                    self._jobs = DownloadQueue(
+                        api=api,
+                        path_persistent_job_list=self.shelf_path)
+                    self.widget_jobs.set_job_list(self._jobs)
+
+    @property
+    def jobs(self):
+        if self._jobs is None:
+            self._jobs_init()
+        if self._jobs is None:
+            logger.error("Could not fetch download job list. Please make "
+                         "sure a connection to DCOR is possible.")
+        return self._jobs
+
     @show_wait_cursor
     @QtCore.pyqtSlot()
     def initialize(self):
         api = get_ckan_api()
         if api.is_available(with_correct_version=True):
             self.setEnabled(True)
-            self.jobs = DownloadQueue(api=api,
-                                      path_persistent_job_list=self.shelf_path)
-            if self.parent().parent().isVisible():
-                self.widget_jobs.set_job_list(self.jobs)
+            self._jobs_init()
         else:
             # try again
-            self.init_timer.setInterval(3000)
+            self.init_timer.setInterval(1000)
             self.init_timer.start()
 
     @QtCore.pyqtSlot(str, bool)
