@@ -4,7 +4,7 @@ import warnings
 
 from ..worker import Daemon
 
-from .job import DownloadJob
+from .job import JOB_STATES, DownloadJob
 from .task import load_task, save_task
 
 
@@ -66,7 +66,7 @@ class PersistentDownloadJobList:
 
 class DownloadQueue:
     def __init__(self, api, path_persistent_job_list=None):
-        """Manager for running multiple downloadJobs in sequence
+        """Manager for running multiple DownloadJobs in sequence
 
         Parameters
         ----------
@@ -141,9 +141,33 @@ class DownloadQueue:
         else:
             raise KeyError("Job '{}' not found!".format(job_id))
 
-    def get_status(self, job_id):
-        """Return the status of an downloadJob"""
-        self.get_job(job_id).get_status()
+    def get_status(self):
+        """Return the status of a DownloadQueue"""
+        status = {
+            # dictionary of job states
+            "states": {},
+            "bytes total": 0,
+            "bytes downloaded": 0,
+            "current rate": 0,
+            "current file": "",
+            "job count": len(self.jobs),
+        }
+
+        # populate job states
+        for st in JOB_STATES:
+            status["states"][st] = 0
+
+        for job in self.jobs:
+            jst = job.get_status()
+            status["states"][jst["state"]] += 1
+            status["bytes total"] += jst["bytes total"]
+            status["bytes downloaded"] += jst["bytes downloaded"]
+
+            if jst["state"] == "transfer":
+                status["current rate"] = jst["rate"]
+                status["current file"] = job.path
+
+        return status
 
     def new_job(self, resource_id, download_path, condensed=False):
         """Create an downloadJob and add it to the download queue

@@ -60,6 +60,36 @@ def test_queue_condensed():
     assert dj2 in joblist
 
 
+def test_queue_get_status():
+    api = common.get_api()
+    td = tempfile.mkdtemp(prefix="test-download")
+    ds_dict = common.make_dataset_for_download()
+    joblist = DownloadQueue(api=api)
+    resource_id = ds_dict["resources"][0]["id"]
+
+    status0 = joblist.get_status()
+    assert status0["bytes total"] == 0
+    assert status0["job count"] == 0
+
+    joblist.new_job(resource_id=resource_id,
+                    download_path=td)
+
+    status = joblist.get_status()
+    assert status["bytes total"] == 899298
+    assert status["job count"] == 1
+
+    # wait until download is complete
+    for ii in range(100):
+        status = joblist.get_status()
+        if status["states"]["done"] == 1:
+            break
+        time.sleep(.5)
+
+    # make sure download completed
+    status = joblist.get_status()
+    assert status["bytes downloaded"] == 899298
+
+
 def test_queue_remove_job():
     """Remove a job from the queue and from the persistent list"""
     api = common.get_api()
