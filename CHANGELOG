@@ -1,4 +1,5 @@
 0.16.11
+ - docs: properly employ license GPL-3.0-or-later
  - fix: implement non-functional `DownloadQueue.get_status`
 0.16.10
  - enh: improve download job list initialization
