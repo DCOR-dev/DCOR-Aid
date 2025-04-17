@@ -12,12 +12,13 @@ Installation
 Installers for Windows and macOS are available at the
 `release page <https://github.com/DCOR-dev/DCOR-Aid/releases>`__.
 
-If you have Python 3 installed, you can install DCOR-Aid with
-
-::
+If you have Python 3 installed, you can install DCOR-Aid with::
 
     pip install dcoraid[GUI]
 
+After installation with pip, you can start DCOR-Aid with::
+
+    python -m dcoraid
 
 Testing
 -------
