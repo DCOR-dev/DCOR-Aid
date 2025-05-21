@@ -1,6 +1,7 @@
 0.16.11
- - docs: properly employ license GPL-3.0-or-later
+ - fix: support CKAN 2.11 (authorization and status_show)
  - fix: implement non-functional `DownloadQueue.get_status`
+ - docs: properly employ license GPL-3.0-or-later
 0.16.10
  - enh: improve download job list initialization
  - docs: consistently rename API key to API token (code unchanged)

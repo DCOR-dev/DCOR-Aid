@@ -63,6 +63,7 @@ class CKANAPI:
                         }
         if self.api_key:
             self.headers["X-CKAN-API-Key"] = self.api_key
+            self.headers["Authorization"] = self.api_key
 
         self.verify = ssl_verify
 
@@ -237,7 +238,7 @@ class CKANAPI:
         """
         # simply check whether we can access the site
         try:
-            self.get("site_read")
+            self.get("status_show")
         except BaseException:
             self.logger.error(traceback.format_exc())
             status = False
@@ -296,6 +297,7 @@ class CKANAPI:
             for kw in kwargs:
                 kwv.append(f"{kw}={kwargs[kw]}")
             api_call += "?" + "&".join(kwv)
+
         req = self.req_ses.get(self.api_url + api_call,
                                headers=self.headers,
                                verify=self.verify,

@@ -39,7 +39,7 @@ def check_release(ghrepo="user/repo", version=None, timeout=20):
     """Check GitHub repository for latest release"""
     url = "https://api.github.com/repos/{}/releases/latest".format(ghrepo)
     if "GITHUB_TOKEN" in os.environ:
-        hdr = {'authorization': os.environ["GITHUB_TOKEN"]}
+        hdr = {'Authorization': os.environ["GITHUB_TOKEN"]}
     else:
         hdr = {}
     web = "https://github.com/{}/releases".format(ghrepo)
