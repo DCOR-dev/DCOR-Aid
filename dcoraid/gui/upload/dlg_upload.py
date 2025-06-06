@@ -85,7 +85,7 @@ class UploadDialog(QtWidgets.QDialog):
             self.comboBox_vis.addItem("Private", "private")
 
         # Shortcut for testing
-        self.shortcut = QtWidgets.QShortcut(
+        self.shortcut = QtGui.QShortcut(
             QtGui.QKeySequence("Ctrl+Alt+Shift+E"), self)
         self.shortcut.activated.connect(self._autofill_for_testing)
 
