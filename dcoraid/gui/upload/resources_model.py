@@ -4,7 +4,7 @@ import copy
 from functools import lru_cache
 import pathlib
 
-from PyQt5 import QtCore, QtGui
+from PyQt6 import QtCore, QtGui
 
 from ...upload import job
 
@@ -31,9 +31,9 @@ class ResourcesModel(QtCore.QAbstractListModel):
                 self.resources[ff] = {}
                 self.layoutChanged.emit()
 
-    def data(self, index, role=QtCore.Qt.DisplayRole):
+    def data(self, index, role=QtCore.Qt.ItemDataRole.DisplayRole):
         """Return data for 'View'"""
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
             _, data = self.get_data_for_index(index)
             return data["file"]["filename"]
 

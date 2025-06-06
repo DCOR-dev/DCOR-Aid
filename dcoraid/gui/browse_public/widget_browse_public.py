@@ -2,7 +2,7 @@ import traceback as tb
 
 from importlib import resources
 
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 from ...common import ConnectionTimeoutErrors
 from ...dbmodel import APIInterrogator
@@ -29,7 +29,7 @@ class BrowsePublic(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_public_search(self):
-        self.setCursor(QtCore.Qt.WaitCursor)
+        self.setCursor(QtCore.Qt.CursorShape.WaitCursor)
         api = get_ckan_api(
             public=not self.checkBox_public_include_private.isChecked())
         try:
@@ -44,7 +44,7 @@ class BrowsePublic(QtWidgets.QWidget):
                 self,
                 f"Failed to connect to {api.server}",
                 tb.format_exc(limit=1))
-        self.setCursor(QtCore.Qt.ArrowCursor)
+        self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
 
     @staticmethod
     def find_main_window():

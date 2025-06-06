@@ -6,8 +6,9 @@ import socket
 import string
 import traceback as tb
 
-from PyQt5 import uic, QtCore, QtWidgets
-from PyQt5.QtCore import QStandardPaths
+from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6.QtCore import QStandardPaths
+from PyQt6.QtWidgets import QMessageBox
 
 from ...api import NoAPIKeyError, CKANAPI
 from ...common import ConnectionTimeoutErrors
@@ -66,16 +67,16 @@ class PreferencesDialog(QtWidgets.QMainWindow):
 
         ...because it implies a restart of DCOR-Aid.
         """
-        button_reply = QtWidgets.QMessageBox.question(
+        button_reply = QMessageBox.question(
             self,
             'DCOR-Aid restart required',
             "Changing the server or API token requires a restart of "
             + "DCOR-Aid. If you choose 'No', then the original server "
             + "and API token are NOT changed. Do you really want to quit "
             + "DCOR-Aid?",
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-            QtWidgets.QMessageBox.No)
-        if button_reply == QtWidgets.QMessageBox.Yes:
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No)
+        if button_reply == QMessageBox.StandardButton.Yes:
             return True
         else:
             return False
@@ -83,10 +84,10 @@ class PreferencesDialog(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def on_toggle_api_password_view(self):
         cur_em = self.lineEdit_api_key.echoMode()
-        if cur_em == QtWidgets.QLineEdit.Normal:
-            new_em = QtWidgets.QLineEdit.PasswordEchoOnEdit
+        if cur_em == QtWidgets.QLineEdit.EchoMode.Normal:
+            new_em = QtWidgets.QLineEdit.EchoMode.PasswordEchoOnEdit
         else:
-            new_em = QtWidgets.QLineEdit.Normal
+            new_em = QtWidgets.QLineEdit.EchoMode.Normal
         self.lineEdit_api_key.setEchoMode(new_em)
 
     @QtCore.pyqtSlot()
@@ -95,7 +96,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             api_key = self.settings.value("auth/api key")
             if len(api_key) == 36:
                 # deprecated API key
-                ret = QtWidgets.QMessageBox.question(
+                ret = QMessageBox.question(
                     self,
                     "Deprecated API key",
                     "You are using an API key instead of an API token. "
@@ -103,7 +104,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
                     + "DCOR-Aid can only remove it locally. A new API token "
                     + "will be created. Proceed?"
                 )
-                if ret != QtWidgets.QMessageBox.Yes:
+                if ret != QMessageBox.StandardButton.Yes:
                     # Abort
                     return
             # Create a new token
@@ -132,14 +133,14 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             api_key = self.settings.value("auth/api key")
             if len(api_key) == 36:
                 # deprecated API key
-                ret = QtWidgets.QMessageBox.question(
+                ret = QMessageBox.question(
                     self,
                     "Deprecated API key",
                     "You are using an API key instead of an API token. "
                     + "API keys are deprecated and cannot be invalidated. "
                     + "DCOR-Aid can only remove it locally. Proceed?"
                 )
-                if ret != QtWidgets.QMessageBox.Yes:
+                if ret != QMessageBox.StandardButton.Yes:
                     # Abort
                     return
             else:
@@ -167,7 +168,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
 
     def on_downloads_init(self):
         fallback = QStandardPaths.writableLocation(
-                      QStandardPaths.DownloadLocation)
+                      QStandardPaths.StandardLocation.DownloadLocation)
         dl_path = self.settings.value("downloads/default path", fallback)
         self.lineEdit_downloads_path.setText(dl_path)
 
@@ -180,12 +181,12 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         path_cache = self.lineEdit_uploads_cache.text()
         self.settings.setValue("uploads/cache path", path_cache)
         if path_cache != current:
-            msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
             msg.setText("In order for the new cache path to be used, please "
                         "restart DCOR-Aid!")
             msg.setWindowTitle("Please restart DCOR-Aid")
-            msg.exec_()
+            msg.exec()
 
     def on_uploads_browse(self):
         default = self.settings.value("uploads/cache path", ".")
@@ -199,7 +200,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def on_uploads_init(self):
         fallback = QStandardPaths.writableLocation(
-                      QStandardPaths.CacheLocation)
+                      QStandardPaths.StandardLocation.CacheLocation)
         cache_path = self.settings.value("uploads/cache path", fallback)
         if not pathlib.Path(cache_path).exists():
             cache_path = fallback
@@ -225,7 +226,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         self.lineEdit_api_key.setText(self.settings.value("auth/api key", ""))
         self.tabWidget.setCurrentIndex(0)  # server settings
         self.lineEdit_api_key.setEchoMode(
-            QtWidgets.QLineEdit.PasswordEchoOnEdit)
+            QtWidgets.QLineEdit.EchoMode.PasswordEchoOnEdit)
         self.show()
         self.activateWindow()
 
@@ -237,12 +238,12 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             user_dict = api.get_user_dict()
         except tuple(list(ConnectionTimeoutErrors) + [NoAPIKeyError]):
             self.logger.error(tb.format_exc())
-            msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
             msg.setText("No connection or wrong server or invalid API token!")
             msg.setWindowTitle("Warning")
             msg.setDetailedText(tb.format_exc())
-            msg.exec_()
+            msg.exec()
             self.on_show_server()
         else:
             self.lineEdit_user_id.setText(user_dict["name"])
@@ -268,12 +269,12 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             user_dict = api.get_user_dict()
         except (ConnectionError, NoAPIKeyError):
             self.logger.error(tb.format_exc())
-            msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
             msg.setText("No connection or wrong server or invalid API token!")
             msg.setWindowTitle("Warning")
             msg.setDetailedText(tb.format_exc())
-            msg.exec_()
+            msg.exec()
             self.on_show_server()
         update_dict = {}
         update_dict["id"] = user_dict["id"]
@@ -307,12 +308,12 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             api.get_user_dict()  # raises an exception if credentials are wrong
         except BaseException:
             self.logger.error(tb.format_exc())
-            msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Critical)
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Icon.Critical)
             msg.setText("Bad server / API token combination!")
             msg.setWindowTitle("Error")
             msg.setDetailedText(tb.format_exc())
-            msg.exec_()
+            msg.exec()
         else:
             if old_server != server or old_api_key != api_key:
                 if self.ask_change_server_or_api_key():

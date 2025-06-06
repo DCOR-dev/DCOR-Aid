@@ -9,7 +9,7 @@ import sys
 import time
 import traceback
 
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 from ..._version import version
 

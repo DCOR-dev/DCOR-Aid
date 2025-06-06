@@ -5,8 +5,8 @@ import shutil
 import tempfile
 import time
 
-from PyQt5 import QtCore
-from PyQt5.QtCore import QStandardPaths
+from PyQt6 import QtCore
+from PyQt6.QtCore import QStandardPaths
 import pytest
 
 from dcoraid.api import APIConflictError
@@ -28,13 +28,13 @@ def cleanup_dcoraid_tasks():
     # remove persistent upload jobs
     shelf_path = os_path.join(
         QStandardPaths.writableLocation(
-            QStandardPaths.AppLocalDataLocation),
+            QStandardPaths.StandardLocation.AppLocalDataLocation),
         "persistent_upload_jobs")
     shutil.rmtree(shelf_path, ignore_errors=True)
     # remove persistent upload id dict
     path_id_dict = os_path.join(
         QStandardPaths.writableLocation(
-            QStandardPaths.AppLocalDataLocation),
+            QStandardPaths.StandardLocation.AppLocalDataLocation),
         "map_task_to_dataset_id.txt")
     path_id_dict = pathlib.Path(path_id_dict)
     if path_id_dict.exists():
@@ -47,9 +47,8 @@ def pytest_configure(config):
     QtCore.QCoreApplication.setOrganizationName("DCOR")
     QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
     QtCore.QCoreApplication.setApplicationName("dcoraid")
-    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
-    settings.setIniCodec("utf-8")
     settings.setValue("check for updates", "0")
     settings.setValue("user scenario", "dcor-dev")
     settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
@@ -70,9 +69,8 @@ def pytest_unconfigure(config):
     QtCore.QCoreApplication.setOrganizationName("DCOR")
     QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
     QtCore.QCoreApplication.setApplicationName("dcoraid")
-    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
-    settings.setIniCodec("utf-8")
     settings.remove("debug/without timers")
     settings.remove("check for updates")
     settings.sync()

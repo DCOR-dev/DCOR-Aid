@@ -5,7 +5,7 @@ import pathlib
 import shutil
 import tempfile
 
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 
 from ..api import CKANAPI
 

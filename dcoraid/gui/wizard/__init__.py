@@ -3,7 +3,8 @@ import sys
 import uuid
 
 from dclab.rtdc_dataset.fmt_dcor import access_token
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6.QtWidgets import QMessageBox, QWizard
 
 from ...api import NoAPIKeyError, APINotFoundError, CKANAPI
 
@@ -73,7 +74,7 @@ class SetupWizard(QtWidgets.QWizard):
 
         self.pushButton_path_access_token.clicked.connect(
             self.on_browse_access_token)
-        self.button(QtWidgets.QWizard.FinishButton).clicked.connect(
+        self.button(QWizard.WizardButton.FinishButton).clicked.connect(
             self._finalize)
 
     @QtCore.pyqtSlot()
@@ -94,18 +95,19 @@ class SetupWizard(QtWidgets.QWizard):
                       + "of DCOR-Aid. If you choose 'No', then the original " \
                       + "server and API token are NOT changed. Do you " \
                       + "really want to quit DCOR-Aid?"
-                button_reply = QtWidgets.QMessageBox.question(
+                button_reply = QMessageBox.question(
                     self,
                     'DCOR-Aid restart required',
                     msg,
-                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                    QtWidgets.QMessageBox.No)
-                if button_reply == QtWidgets.QMessageBox.Yes:
+                    QMessageBox.StandardButton.Yes |
+                    QMessageBox.StandardButton.No,
+                    QMessageBox.StandardButton.No)
+                if button_reply == QMessageBox.StandardButton.Yes:
                     proceed = True
                 else:
                     proceed = False
             else:
-                QtWidgets.QMessageBox.information(
+                QMessageBox.information(
                     self,
                     "DCOR-Aid restart required",
                     "Please restart DCOR-Aid to proceed."
@@ -127,7 +129,7 @@ class SetupWizard(QtWidgets.QWizard):
                     settings.remove("auth/certificate")
                 settings.sync()
                 QtWidgets.QApplication.processEvents(
-                    QtCore.QEventLoop.AllEvents, 300)
+                    QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
                 QtWidgets.QApplication.quit()
                 sys.exit(0)  # if the above does not work
 

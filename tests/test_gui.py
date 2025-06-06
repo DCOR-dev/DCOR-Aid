@@ -11,8 +11,8 @@ from dcoraid.gui.upload.dlg_upload import UploadDialog
 from dcoraid.gui.upload import widget_upload
 
 import pytest
-from PyQt5 import QtCore, QtWidgets, QtTest
-from PyQt5.QtWidgets import QInputDialog, QMessageBox
+from PyQt6 import QtCore, QtGui, QtWidgets, QtTest
+from PyQt6.QtWidgets import QInputDialog, QMessageBox
 
 from . import common
 
@@ -24,25 +24,27 @@ def mw(qtbot):
     QtCore.QCoreApplication.setOrganizationName("DCOR")
     QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
     QtCore.QCoreApplication.setApplicationName("dcoraid")
-    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
-    settings.setIniCodec("utf-8")
     settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
     QtTest.QTest.qWait(100)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
     # Code that will run before your test
     mw = DCORAid()
     qtbot.addWidget(mw)
     QtWidgets.QApplication.setActiveWindow(mw)
     QtTest.QTest.qWait(100)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
     # Run test
     yield mw
     # Make sure that all daemons are gone
     mw.close()
     # It is extremely weird, but this seems to be important to avoid segfaults!
     QtTest.QTest.qWait(100)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
 
 
 @pytest.mark.filterwarnings("ignore::UserWarning",
@@ -52,7 +54,7 @@ def test_gui_anonymous(qtbot):
     QtCore.QCoreApplication.setOrganizationName("DCOR")
     QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
     QtCore.QCoreApplication.setApplicationName("dcoraid")
-    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
     spath = pathlib.Path(settings.fileName())
     # temporarily move settings to temporary location
@@ -73,7 +75,8 @@ def test_gui_anonymous(qtbot):
         mw = DCORAid()
         qtbot.addWidget(mw)
         QtWidgets.QApplication.setActiveWindow(mw)
-        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 3000)
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 3000)
         # sanity check
         assert mw.settings.value("user scenario") == "anonymous"
         assert mw.settings.value("auth/server") == "dcor.mpl.mpg.de"
@@ -87,7 +90,8 @@ def test_gui_anonymous(qtbot):
         shutil.copy2(stmp, spath)
     mw.close()
     QtTest.QTest.qWait(500)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 500)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
 
 def test_gui_mydata_dataset_add_to_collection(mw, qtbot):
@@ -144,22 +148,23 @@ def test_gui_start_with_bad_server(qtbot):
     QtCore.QCoreApplication.setOrganizationName("DCOR")
     QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
     QtCore.QCoreApplication.setApplicationName("dcoraid")
-    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
-    settings.setIniCodec("utf-8")
     settings.setValue("auth/server", "WRONG-dcor-dev.mpl.mpg.de")
     try:
         mw = DCORAid()
         qtbot.addWidget(mw)
         QtWidgets.QApplication.setActiveWindow(mw)
         QtTest.QTest.qWait(200)
-        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
         # just make sure that DCOR-Aid thinks it is offline
         assert not mw.panel_upload.isEnabled()
         assert not mw.panel_download.isEnabled()
         mw.close()
         QtTest.QTest.qWait(500)
-        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
     except BaseException:
         raise
     finally:
@@ -171,9 +176,8 @@ def test_gui_start_with_bad_api_key(qtbot):
     QtCore.QCoreApplication.setOrganizationName("DCOR")
     QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
     QtCore.QCoreApplication.setApplicationName("dcoraid")
-    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
-    settings.setIniCodec("utf-8")
     good_key = settings.value("auth/api key")
     bad_key = good_key[:-2] + "00"
     settings.setValue("auth/api key", bad_key)
@@ -182,14 +186,16 @@ def test_gui_start_with_bad_api_key(qtbot):
         qtbot.addWidget(mw)
         QtWidgets.QApplication.setActiveWindow(mw)
         QtTest.QTest.qWait(200)
-        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
         # just make sure that DCOR-Aid thinks it is offline
         assert not mw.panel_upload.isEnabled()
         # downloads should still be possible
         assert mw.panel_download.isEnabled()
         mw.close()
         QtTest.QTest.qWait(500)
-        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
     except BaseException:
         raise
     finally:
@@ -207,7 +213,7 @@ def test_gui_upload_simple(mw, qtbot):
     # Avoid message boxes
     with mock.patch.object(QMessageBox,
                            "question",
-                           return_value=QMessageBox.Yes):
+                           return_value=QMessageBox.StandardButton.Yes):
         # Commence upload
         dlg.on_proceed()
     assert dlg.dataset_id is not None
@@ -223,7 +229,7 @@ def test_gui_upload_task(mw, qtbot):
                            return_value=([tpath], None)):
         with mock.patch.object(QMessageBox, "information",
                                return_value=None):
-            act = QtWidgets.QAction("some unimportant text")
+            act = QtGui.QAction("some unimportant text")
             act.setData("single")
             mw.panel_upload.on_upload_task(action=act)
     uj = mw.panel_upload.jobs[-1]
@@ -242,9 +248,9 @@ def test_gui_upload_task_bad_dataset_id_no(mw, qtbot):
             QtWidgets.QFileDialog, "getOpenFileNames",
             return_value=([tpath], None)), \
          mock.patch.object(QMessageBox, "question",
-                           return_value=QMessageBox.No), \
+                           return_value=QMessageBox.StandardButton.No), \
          mock.patch.object(QMessageBox, "information", return_value=None):
-        act = QtWidgets.QAction("some unimportant text")
+        act = QtGui.QAction("some unimportant text")
         act.setData("single")
         mw.panel_upload.on_upload_task(action=act)
     if len(mw.panel_upload.jobs):
@@ -263,9 +269,9 @@ def test_gui_upload_task_bad_dataset_id_yes(mw, qtbot):
             QtWidgets.QFileDialog, "getOpenFileNames",
             return_value=([tpath], None)), \
          mock.patch.object(QMessageBox, "question",
-                           return_value=QMessageBox.Yes), \
+                           return_value=QMessageBox.StandardButton.Yes), \
          mock.patch.object(QMessageBox, "information", return_value=None):
-        act = QtWidgets.QAction("some unimportant text")
+        act = QtGui.QAction("some unimportant text")
         act.setData("single")
         mw.panel_upload.on_upload_task(action=act)
     uj = mw.panel_upload.jobs[-1]
@@ -299,7 +305,7 @@ def test_gui_upload_task_missing_circle_multiple(mw, qtbot):
          mock.patch.object(QtWidgets.QInputDialog, "getItem",
                            return_value=(common.CIRCLE, True)), \
          mock.patch.object(QMessageBox, "information", return_value=None):
-        act = QtWidgets.QAction("some unimportant text")
+        act = QtGui.QAction("some unimportant text")
         act.setData("bulk")
         request_circle = widget_upload.circle_mgr.request_circle
         with mock.patch.object(widget_upload.circle_mgr,
@@ -323,7 +329,7 @@ def test_gui_upload_private(mw, qtbot):
     dlg.comboBox_vis.setCurrentIndex(dlg.comboBox_vis.findData("private"))
     # Avoid message boxes
     with mock.patch.object(QMessageBox, "question",
-                           return_value=QMessageBox.Yes), \
+                           return_value=QMessageBox.StandardButton.Yes), \
          mock.patch.object(QMessageBox, "information", return_value=None):
         # Commence upload
         dlg.on_proceed()
@@ -347,14 +353,15 @@ def test_gui_upload_task_missing_circle(mw, qtbot):
     dataset_dict.pop("owner_org")
     tpath = common.make_upload_task(task_id=task_id,
                                     dataset_dict=dataset_dict)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
     with mock.patch.object(
             QtWidgets.QFileDialog, "getOpenFileNames",
             return_value=([tpath], None)), \
          mock.patch.object(QtWidgets.QInputDialog, "getItem",
                            return_value=(common.CIRCLE, True)), \
          mock.patch.object(QMessageBox, "information", return_value=None):
-        act = QtWidgets.QAction("some unimportant text")
+        act = QtGui.QAction("some unimportant text")
         act.setData("single")
         mw.panel_upload.on_upload_task(action=act)
     uj = mw.panel_upload.jobs[-1]

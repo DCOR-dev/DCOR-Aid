@@ -1,7 +1,7 @@
 from importlib import resources
 import webbrowser
 
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 
 class TableCellActions(QtWidgets.QWidget):
@@ -38,7 +38,7 @@ class TableCellActions(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def on_error(self):
         msg = QtWidgets.QMessageBox()
-        msg.setIcon(QtWidgets.QMessageBox.Critical)
+        msg.setIcon(QtWidgets.QMessageBox.Icon.Critical)
         msg.setText("There was an error during data transfer. If this happens "
                     + "often or with a particular type of dataset, please "
                     + "<a href='https://github.com/DCOR-dev/DCOR-Aid/issues'>"
@@ -46,7 +46,7 @@ class TableCellActions(QtWidgets.QWidget):
                       "to see details required for fixing the problem.")
         msg.setWindowTitle(f"Job {self.job.dataset_id[:5]} error")
         msg.setDetailedText(self.job.traceback)
-        msg.exec_()
+        msg.exec()
 
     @QtCore.pyqtSlot()
     def on_retry(self):

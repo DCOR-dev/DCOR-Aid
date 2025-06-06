@@ -3,7 +3,7 @@ import pathlib
 import requests
 import traceback
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui, QtWidgets
 
 from ..common import ConnectionTimeoutErrors
 
@@ -26,7 +26,7 @@ class StatusWidget(QtWidgets.QWidget):
         self.toolButton_user = QtWidgets.QToolButton()
         self.toolButton_user.setText("Initialization...")
         self.toolButton_user.setToolButtonStyle(
-            QtCore.Qt.ToolButtonTextBesideIcon)
+            QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         self.toolButton_user.setAutoRaise(True)
         self.layout.addWidget(self.toolButton_user)
         self.toolButton_user.clicked.connect(self.clicked)
@@ -56,7 +56,8 @@ class StatusWidget(QtWidgets.QWidget):
     def get_favicon(server):
         dldir = pathlib.Path(
             QtCore.QStandardPaths.writableLocation(
-                QtCore.QStandardPaths.AppDataLocation)) / "favicons"
+                QtCore.QStandardPaths.StandardLocation.AppDataLocation)
+            ) / "favicons"
 
         dldir.mkdir(exist_ok=True, parents=True)
         favname = dldir / (server.split("://")[1] + "_favicon.ico")

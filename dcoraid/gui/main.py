@@ -12,7 +12,7 @@ import requests_cache
 import requests_toolbelt
 import urllib3
 
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
+from PyQt6 import uic, QtCore, QtGui, QtWidgets
 
 from ..api import APIOutdatedError
 from ..common import ConnectionTimeoutErrors
@@ -57,20 +57,19 @@ class DCORAid(QtWidgets.QMainWindow):
         QtCore.QCoreApplication.setOrganizationName("DCOR")
         QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
         QtCore.QCoreApplication.setApplicationName("dcoraid")
-        QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+        QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
 
         super(DCORAid, self).__init__(*args, **kwargs)
 
         # if "--version" was specified, print the version and exit
         if "--version" in sys.argv:
             print(__version__)
-            QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                                 300)
+            QtWidgets.QApplication.processEvents(
+                QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
             sys.exit(0)
 
         #: DCOR-Aid settings
         self.settings = QtCore.QSettings()
-        self.settings.setIniCodec("utf-8")
         ref_ui = resources.files("dcoraid.gui") / "main.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
@@ -111,8 +110,8 @@ class DCORAid(QtWidgets.QMainWindow):
         self.user_filter_chain.download_resource.connect(
             self.panel_download.download_resource)
 
-        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                             300)
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
         # Run wizard if necessary
         if ((self.settings.value("user scenario", "") != "anonymous")
@@ -137,8 +136,8 @@ class DCORAid(QtWidgets.QMainWindow):
         self.panel_upload.prepare_quit()
         self.panel_download.prepare_quit()
         self.status_widget.prepare_quit()
-        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                             300)
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
         event.accept()
 
     @QtCore.pyqtSlot()
@@ -214,7 +213,7 @@ class DCORAid(QtWidgets.QMainWindow):
         sw_text += "Modules:\n"
         for lib in libs:
             sw_text += "- {} {}\n".format(lib.__name__, lib.__version__)
-        sw_text += "- PyQt5 {}\n".format(QtCore.QT_VERSION_STR)
+        sw_text += "- PyQt6 {}\n".format(QtCore.QT_VERSION_STR)
         sw_text += "\n Breeze icon theme by the KDE Community (LGPL)."
         sw_text += "\n Font-Awesome icons by Fort Awesome (CC BY 4.0)."
         if hasattr(sys, 'frozen'):
@@ -225,7 +224,7 @@ class DCORAid(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def on_refresh_private_data(self):
-        self.tab_user.setCursor(QtCore.Qt.WaitCursor)
+        self.tab_user.setCursor(QtCore.Qt.CursorShape.WaitCursor)
         api = get_ckan_api()
         data = DBExtract()
         if api.is_available() and api.api_key:
@@ -244,12 +243,12 @@ class DCORAid(QtWidgets.QMainWindow):
                     self,
                     f"Failed to connect to {api.server}",
                     tb.format_exc(limit=1))
-        self.tab_user.setCursor(QtCore.Qt.ArrowCursor)
+        self.tab_user.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
 
     @QtCore.pyqtSlot()
     def on_wizard(self):
         self.wizard = SetupWizard(self)
-        self.wizard.exec_()
+        self.wizard.exec()
 
 
 def excepthook(etype, value, trace):
@@ -283,13 +282,13 @@ def excepthook(etype, value, trace):
         )
 
     errorbox = QtWidgets.QMessageBox()
-    errorbox.setIcon(QtWidgets.QMessageBox.Critical)
+    errorbox.setIcon(QtWidgets.QMessageBox.Icon.Critical)
     errorbox.addButton(QtWidgets.QPushButton('Close'),
-                       QtWidgets.QMessageBox.YesRole)
+                       QtWidgets.QMessageBox.ButtonRole.YesRole)
     errorbox.addButton(QtWidgets.QPushButton(
-        'Copy text && Close'), QtWidgets.QMessageBox.NoRole)
+        'Copy text && Close'), QtWidgets.QMessageBox.ButtonRole.NoRole)
     errorbox.setText(exception)
-    ret = errorbox.exec_()
+    ret = errorbox.exec()
     if ret == 1:
         cb = QtWidgets.QApplication.clipboard()
         cb.clear(mode=cb.Clipboard)

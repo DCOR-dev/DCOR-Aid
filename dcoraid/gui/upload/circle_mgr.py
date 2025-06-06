@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 
 from ..api import get_ckan_api
 
@@ -40,7 +40,7 @@ def ask_for_new_circle(parent_widget):
         + "a colleague to add you to a Circle (Your user name is "
         + "'{}').".format(ud["name"])
         + "\n\nTo proceed with Circle creation, please choose a name:",
-        QtWidgets.QLineEdit.Normal,
+        QtWidgets.QLineEdit.EchoMode.Normal,
         "{}'s Circle".format(name))
     if ok_pressed and text != '':
         cname = "user-circle-{}".format(ud["name"])

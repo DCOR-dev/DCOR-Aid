@@ -3,7 +3,7 @@ import pathlib
 from importlib import resources
 import traceback as tb
 
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
+from PyQt6 import uic, QtCore, QtGui, QtWidgets
 
 
 from ...api import dataset_create
@@ -38,10 +38,10 @@ class UploadDialog(QtWidgets.QDialog):
 
         # Dialog box buttons
         self.pushButton_proceed = self.buttonBox.button(
-            QtWidgets.QDialogButtonBox.Apply)
+            QtWidgets.QDialogButtonBox.StandardButton.Apply)
         self.pushButton_proceed.setText("Proceed with upload / Enqueue job")
         self.pushButton_cancel = self.buttonBox.button(
-            QtWidgets.QDialogButtonBox.Cancel)
+            QtWidgets.QDialogButtonBox.StandardButton.Cancel)
 
         # Keep identifier
         self.identifier = self.instance_counter
@@ -322,7 +322,7 @@ class UploadDialog(QtWidgets.QDialog):
                 + "Please select 'No' if you would like to change things. "
                 + "Select 'Yes' to proceed without changes - be aware that "
                 + "you will not be able to change anything later on.")
-            if choice != QtWidgets.QMessageBox.Yes:
+            if choice != QtWidgets.QMessageBox.StandardButton.Yes:
                 return
         if not self.rvmodel.supplements_were_edited():
             choice = QtWidgets.QMessageBox.question(
@@ -333,7 +333,7 @@ class UploadDialog(QtWidgets.QDialog):
                 + "appear when you click on a resource. Please select 'No' "
                 + "if you would like to go back (recommended). Select 'Yes' "
                 + "to proceed without changes (no future changes possible).")
-            if choice != QtWidgets.QMessageBox.Yes:
+            if choice != QtWidgets.QMessageBox.StandardButton.Yes:
                 return
 
         # Try to create the dataset and display any issues with the metadata
@@ -343,7 +343,7 @@ class UploadDialog(QtWidgets.QDialog):
         except BaseException:
             self.logger.error(tb.format_exc())
             msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Critical)
+            msg.setIcon(QtWidgets.QMessageBox.Icon.Critical)
             msg.setText("It was not possible to create a dataset draft. "
                         "If this is not a connection problem, please consider "
                         "creating an <a href='"
@@ -351,7 +351,7 @@ class UploadDialog(QtWidgets.QDialog):
                         "'>issue on GitHub</a>.")
             msg.setWindowTitle("Dataset creation failed")
             msg.setDetailedText(tb.format_exc())
-            msg.exec_()
+            msg.exec()
             return
         self.setHidden(True)
         # Remember the dataset identifier
