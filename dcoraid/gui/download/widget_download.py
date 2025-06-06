@@ -219,9 +219,11 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
             horz_layout = QtWidgets.QHBoxLayout(widact)
             horz_layout.setContentsMargins(2, 0, 2, 0)
 
-            spacer = QtWidgets.QSpacerItem(0, 0,
-                                           QtWidgets.QSizePolicy.Expanding,
-                                           QtWidgets.QSizePolicy.Minimum)
+            spacer = QtWidgets.QSpacerItem(
+                0, 0,
+                QtWidgets.QSizePolicy.Policy.Expanding,
+                QtWidgets.QSizePolicy.Policy.Minimum
+                )
             horz_layout.addItem(spacer)
             if job.state == "error":
                 actions = [

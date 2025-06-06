@@ -113,9 +113,11 @@ class SchemaWidget(QtWidgets.QWidget):
             self.schema_widgets[sec] = widget_list
         # Finally add a stretch spacer in case there are not enough
         # items.
-        spacer_item = QtWidgets.QSpacerItem(20, 0,
-                                            QtWidgets.QSizePolicy.Minimum,
-                                            QtWidgets.QSizePolicy.Expanding)
+        spacer_item = QtWidgets.QSpacerItem(
+            20, 0,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.Expanding
+            )
         self.verticalLayout.addItem(spacer_item)
 
     def set_schema(self, schema_dict):

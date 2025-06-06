@@ -89,8 +89,8 @@ class FilterBase(QtWidgets.QWidget):
         horz_layout.setContentsMargins(2, 0, 2, 0)
 
         spacer = QtWidgets.QSpacerItem(0, 0,
-                                       QtWidgets.QSizePolicy.Expanding,
-                                       QtWidgets.QSizePolicy.Minimum)
+                                       QtWidgets.QSizePolicy.Policy.Expanding,
+                                       QtWidgets.QSizePolicy.Policy.Minimum)
         horz_layout.addItem(spacer)
 
         for action in self.get_entry_actions(row, entry):
