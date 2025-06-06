@@ -36,7 +36,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
-GUI = ["pyqt5"]
+GUI = ["PyQt6"]
 
 [project.scripts]
 dcoraid = "dcoraid.__main__:main"
