@@ -102,8 +102,8 @@ class UploadDialog(QtWidgets.QDialog):
         self.comboBox_preset.addItems(sorted(self.presets.keys()))
 
         # Restrict characters for line edit
-        regex = QtCore.QRegExp(job.VALID_RESOURCE_REGEXP)
-        validator = QtGui.QRegExpValidator(regex)
+        regex = QtCore.QRegularExpression(job.VALID_RESOURCE_REGEXP)
+        validator = QtGui.QRegularExpressionValidator(regex)
         self.lineEdit_res_filename.setValidator(validator)
 
         # Signals and slots
