@@ -172,4 +172,4 @@ class FilterResources(filter_base.FilterBase):
         item = self.tableWidget.item(row, 0)
         api = get_ckan_api()
         dcor_url = f"{api.server}/api/3/action/dcserv?id={entry['id']}"
-        item.setData(Qt.UserRole + 1, dcor_url)
+        item.setData(Qt.ItemDataRole.UserRole + 1, dcor_url)

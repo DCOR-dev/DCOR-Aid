@@ -9,7 +9,7 @@ class DragTableWidget(QtWidgets.QTableWidget):
 
         urls = []
         for item in self.selectedItems():
-            data = item.data(Qt.UserRole + 1)
+            data = item.data(Qt.ItemDataRole.UserRole + 1)
             urls.append(QtCore.QUrl(data))
 
         mime_data = QtCore.QMimeData()
