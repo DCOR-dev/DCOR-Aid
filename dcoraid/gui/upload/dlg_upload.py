@@ -235,7 +235,7 @@ class UploadDialog(QtWidgets.QDialog):
             # Select the first item
             ix = self.rvmodel.index(0, 0)
             sm = self.listView_resources.selectionModel()
-            sm.select(ix, QtCore.QItemSelectionModel.Select)
+            sm.select(ix, QtCore.QItemSelectionModel.SelectionFlag.Select)
 
     @QtCore.pyqtSlot()
     def on_preset_load(self):
