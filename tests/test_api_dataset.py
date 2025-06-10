@@ -70,9 +70,10 @@ def test_dataset_creation():
     data = dataset_create(dataset_dict=dataset_dict,
                           api=api,
                           )
+    defaults = common.get_test_defaults()
     # simple test
     assert "authors" in data
-    assert data["authors"] == common.USER_NAME
+    assert data["authors"] == defaults["user_name"]
     assert data["state"] == "draft"
     # remove draft dataset
     dataset_draft_remove(dataset_id=data["id"],

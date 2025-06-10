@@ -1,5 +1,8 @@
 0.17.0
  - BREAKING CHANGE: migrate codebase from PyQt5 to PyQt6
+0.16.12
+ - tests: allow to use different DCOR instance for testing
+ - tests: make tests independent of testing user
 0.16.11
  - fix: support CKAN 2.11 (authorization and status_show)
  - fix: implement non-functional `DownloadQueue.get_status`
