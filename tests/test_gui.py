@@ -27,7 +27,7 @@ def mw(qtbot):
     QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
     settings = QtCore.QSettings()
     settings.setIniCodec("utf-8")
-    settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
+    settings.setValue("auth/server", common.SERVER)
     QtTest.QTest.qWait(100)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
     # Code that will run before your test
@@ -165,7 +165,7 @@ def test_gui_start_with_bad_server(qtbot):
         raise
     finally:
         # reset to testing defaults
-        settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
+        settings.setValue("auth/server", common.SERVER)
 
 
 def test_gui_start_with_bad_api_key(qtbot):

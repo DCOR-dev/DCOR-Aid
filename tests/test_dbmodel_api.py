@@ -38,14 +38,13 @@ def test_get_collections():
 
 
 def test_get_users_anonymous():
-    api = CKANAPI(server="dcor-dev.mpl.mpg.de")
+    api = common.get_api()
     db = db_api.APIInterrogator(api=api)
     with pytest.raises(errors.APIAuthorizationError, match="Access denied"):
         db.get_users()
 
 
 def test_public_api_interrogator():
-    """This test uses the figshare datasets on SERVER"""
     api = common.get_api()
     db = db_api.APIInterrogator(api=api)
     defaults = common.get_test_defaults()

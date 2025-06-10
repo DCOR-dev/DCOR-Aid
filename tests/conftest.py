@@ -52,7 +52,7 @@ def pytest_configure(config):
     settings.setIniCodec("utf-8")
     settings.setValue("check for updates", "0")
     settings.setValue("user scenario", "dcor-dev")
-    settings.setValue("auth/server", "dcor-dev.mpl.mpg.de")
+    settings.setValue("auth/server", common.SERVER)
     settings.setValue("auth/api key", common.get_api_key())
     settings.setValue("debug/without timers", "1")
     settings.sync()

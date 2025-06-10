@@ -13,7 +13,10 @@ from dcoraid.api import CKANAPI, dataset_create
 from dcoraid.upload import UploadQueue
 
 
-SERVER = "dcor-dev.mpl.mpg.de"
+# You can run e.g. tests on a local DCOR instance with
+# export DCORAID_TEST_SERVER="http://192.168.122.143"
+SERVER = os.environ.get("DCORAID_TEST_SERVER", "dcor-dev.mpl.mpg.de")
+
 dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
 
 
