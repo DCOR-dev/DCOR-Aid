@@ -86,17 +86,17 @@ def pytest_sessionstart(session):
     before performing collection and entering the run test loop.
     """
     api = common.get_api()
-    api.get("group_show", id=common.COLLECTION)
+    defaults = common.get_test_defaults()
     try:
-        api.post("group_create", {"name": common.COLLECTION})
+        api.post("group_create", {"name": defaults["collection"]})
     except APIConflictError:
         pass
     try:
-        api.post("organization_create", {"name": common.CIRCLE})
+        api.post("organization_create", {"name": defaults["circle"]})
     except APIConflictError:
         pass
-    user_dict = api.get("user_show", id=common.USER)
-    user_dict["fullname"] = common.USER_NAME
+    user_dict = api.get("user_show")
+    user_dict["fullname"] = defaults["user_name"]
     api.post("user_update", user_dict)
 
 

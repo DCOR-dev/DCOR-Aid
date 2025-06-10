@@ -13,14 +13,7 @@ from dcoraid.api import CKANAPI, dataset_create
 from dcoraid.upload import UploadQueue
 
 
-CIRCLE = "dcoraid-circle"
-COLLECTION = "dcoraid-collection"
-DATASET = "dcoraid-dataset"
 SERVER = "dcor-dev.mpl.mpg.de"
-USER = "dcoraid"
-USER_NAME = "DCOR-Aid tester"
-TITLE = "DCOR-Aid test dataset"
-
 dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
 
 
@@ -40,14 +33,32 @@ def get_api_key():
     return key
 
 
+@functools.lru_cache()
+def get_test_defaults():
+    api = get_api()
+    user_dict = api.get("user_show")
+    name = user_dict["name"]
+    return {
+        "circle": f"{name}-circle",
+        "collection": f"{name}-collection",
+        "dataset": f"{name}-dataset",
+        "user": name,
+        "user_name": f"DCOR-Aid Tester {name.capitalize()}",
+        "user_dict": user_dict,
+        "title": "DCOR-Aid test dataset",
+        "server": SERVER,
+    }
+
+
 def make_dataset_dict(hint=""):
+    defaults = get_test_defaults()
     space = " " if hint else ""
     dataset_dict = {
         "title": f"A test dataset {hint}{space}{time.time()}",
         "private": True,
         "license_id": "CC0-1.0",
-        "owner_org": CIRCLE,
-        "authors": USER_NAME,
+        "owner_org": defaults["circle"],
+        "authors": defaults["user_name"],
     }
     return dataset_dict
 

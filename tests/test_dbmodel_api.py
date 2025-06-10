@@ -10,22 +10,30 @@ from . import common
 
 dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
 
+HAS_FIGSHARE_ACCESS = common.get_test_defaults()["user"] == "dcoraid"
 
+
+@pytest.mark.skipif(not HAS_FIGSHARE_ACCESS,
+                    reason="No access to figshare-import circle")
 def test_get_circles():
     api = common.get_api()
     db = db_api.APIInterrogator(api=api)
     circles = db.get_circles()
-    assert common.CIRCLE in circles
+    defaults = common.get_test_defaults()
+    assert defaults["circle"] in circles
     # requires that the "dcoraid" user is in the figshare-import circle
     assert "figshare-import" in circles
 
 
+@pytest.mark.skipif(not HAS_FIGSHARE_ACCESS,
+                    reason="No access to figshare-import circle")
 def test_get_collections():
     api = common.get_api()
     db = db_api.APIInterrogator(api=api)
     collections = db.get_collections()
-    assert common.COLLECTION in collections
-    # requires that the "dcoraid" user is in the figshare-collection collection
+    defaults = common.get_test_defaults()
+    assert defaults["collection"] in collections
+    # requires that the "dcoraid" user is in figshare-collection collection
     assert "figshare-collection" in collections
 
 
@@ -40,9 +48,10 @@ def test_public_api_interrogator():
     """This test uses the figshare datasets on SERVER"""
     api = common.get_api()
     db = db_api.APIInterrogator(api=api)
-    assert common.CIRCLE in db.get_circles()
-    assert common.COLLECTION in db.get_collections()
-    assert common.USER in db.get_users()
+    defaults = common.get_test_defaults()
+    assert defaults["circle"] in db.get_circles()
+    assert defaults["collection"] in db.get_collections()
+    assert defaults["user"] in db.get_users()
 
 
 def test_user_data():
@@ -50,18 +59,20 @@ def test_user_data():
     api = common.get_api()
     db = db_api.APIInterrogator(api=api)
     data = db.user_data
-    assert data["fullname"] == common.USER_NAME, "fullname not correct"
+    defaults = common.get_test_defaults()
+    assert data["fullname"] == defaults["user_name"], "fullname not correct"
 
 
 def test_search_dataset_basic():
     api = common.get_api()
     ranstr = ''.join(random.choice("0123456789") for _i in range(10))
+    defaults = common.get_test_defaults()
     # Create a test dataset
-    dataset_create({"title": "{} {}".format(common.TITLE, ranstr),
-                    "owner_org": common.CIRCLE,
-                    "authors": common.USER_NAME,
+    dataset_create({"title": "{} {}".format(defaults["title"], ranstr),
+                    "owner_org": defaults["circle"],
+                    "authors": defaults["user_name"],
                     "license_id": "CC0-1.0",
-                    "groups": [{"name": common.COLLECTION}],
+                    "groups": [{"name": defaults["collection"]}],
                     },
                    api=api,
                    resources=[dpath],
@@ -69,19 +80,19 @@ def test_search_dataset_basic():
     db = db_api.APIInterrogator(api=api)
     # Positive test
     data = db.search_dataset(query="dcoraid",
-                             circles=[common.CIRCLE],
-                             collections=[common.COLLECTION],
+                             circles=[defaults["circle"]],
+                             collections=[defaults["collection"]],
                              )
     assert len(data) >= 1
     for dd in data:
         if dd["name"].endswith(ranstr):
             break
     else:
-        assert False, "{} not found!".format(common.DATASET)
+        assert False, "{} not found!".format(defaults["dataset"])
     # Negative test
     data = db.search_dataset(query="cliauwenlc_should_never_exist",
-                             circles=[common.CIRCLE],
-                             collections=[common.COLLECTION],
+                             circles=[defaults["circle"]],
+                             collections=[defaults["collection"]],
                              )
     assert len(data) == 0, "search result for non-existent dataset?"
 
@@ -89,15 +100,16 @@ def test_search_dataset_basic():
 def test_search_dataset_limit():
     api = common.get_api()
     ranstr = ''.join(random.choice("0123456789") for _i in range(10))
+    defaults = common.get_test_defaults()
     dataset_ids = []
     # Create three test datasets
     for _ in range(3):
         ds_dict = dataset_create(
-            {"title": "{} {}".format(common.TITLE, ranstr),
-             "owner_org": common.CIRCLE,
-             "authors": common.USER_NAME,
+            {"title": "{} {}".format(defaults["title"], ranstr),
+             "owner_org": defaults["circle"],
+             "authors": defaults["user_name"],
              "license_id": "CC0-1.0",
-             "groups": [{"name": common.COLLECTION}],
+             "groups": [{"name": defaults["collection"]}],
              },
             api=api,
             resources=[dpath],
@@ -105,15 +117,15 @@ def test_search_dataset_limit():
         dataset_ids.append(ds_dict["id"])
     db = db_api.APIInterrogator(api=api)
     data_limited = db.search_dataset(query=ranstr,
-                                     circles=[common.CIRCLE],
-                                     collections=[common.COLLECTION],
+                                     circles=[defaults["circle"]],
+                                     collections=[defaults["collection"]],
                                      circle_collection_union=True,
                                      limit=2
                                      )
     assert len(data_limited) == 2
     data_unlimited = db.search_dataset(query=ranstr,
-                                       circles=[common.CIRCLE],
-                                       collections=[common.COLLECTION],
+                                       circles=[defaults["circle"]],
+                                       collections=[defaults["collection"]],
                                        circle_collection_union=True,
                                        limit=0
                                        )
@@ -123,13 +135,14 @@ def test_search_dataset_limit():
 def test_search_dataset_limit_negative_error():
     api = common.get_api()
     ranstr = ''.join(random.choice("0123456789") for _i in range(10))
+    defaults = common.get_test_defaults()
     # Create three test datasets
     dataset_create(
-        {"title": "{} {}".format(common.TITLE, ranstr),
-         "owner_org": common.CIRCLE,
-         "authors": common.USER_NAME,
+        {"title": "{} {}".format(defaults["title"], ranstr),
+         "owner_org": defaults["circle"],
+         "authors": defaults["user_name"],
          "license_id": "CC0-1.0",
-         "groups": [{"name": common.COLLECTION}],
+         "groups": [{"name": defaults["collection"]}],
          },
         api=api,
         resources=[dpath],
@@ -137,14 +150,17 @@ def test_search_dataset_limit_negative_error():
     db = db_api.APIInterrogator(api=api)
     with pytest.raises(ValueError, match="must be 0 or >0"):
         db.search_dataset(query=ranstr,
-                          circles=[common.CIRCLE],
-                          collections=[common.COLLECTION],
+                          circles=[defaults["circle"]],
+                          collections=[defaults["collection"]],
                           circle_collection_union=True,
                           limit=-1
                           )
 
 
+@pytest.mark.skipif(not HAS_FIGSHARE_ACCESS,
+                    reason="No access to figshare-import circle")
 def test_search_dataset_only_one_filter_query():
+    # The figshare circle must have the testing user as a member
     api = common.get_api()
     db = db_api.APIInterrogator(api=api)
     ds = db.search_dataset(filter_queries=[f"-creator_user_id:{api.user_id}"])
@@ -155,9 +171,10 @@ def test_search_dataset_only_one_filter_query():
         assert False, "Search did not return figshare-7771184-v2!"
 
 
+@pytest.mark.skipif(not HAS_FIGSHARE_ACCESS,
+                    reason="No access to figshare-import circle")
 def test_get_datasets_user_shared_figshare():
-    """The figshare circle must have the user "dcoraid" as a member
-    """
+    # The figshare circle must have the testing user as a member
     api = common.get_api()
     db = db_api.APIInterrogator(api=api)
     datasets = db.get_datasets_user_shared()
@@ -166,11 +183,3 @@ def test_get_datasets_user_shared_figshare():
             break
     else:
         assert False, "Search did not return figshare-7771184-v2!"
-
-
-if __name__ == "__main__":
-    # Run all tests
-    loc = locals()
-    for key in list(loc.keys()):
-        if key.startswith("test_") and hasattr(loc[key], "_call_"):
-            loc[key]()

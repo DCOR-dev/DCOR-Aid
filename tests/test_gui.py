@@ -123,11 +123,12 @@ def test_gui_mydata_dataset_add_to_collection(mw, qtbot):
     api = get_ckan_api()
     grps = api.get("group_list_authz")
     grps = sorted(grps, key=lambda x: x["display_name"])
+    defaults = common.get_test_defaults()
     for ii, item in enumerate(grps):
-        if item["name"] == "dcoraid-collection":
+        if item["name"] == defaults["collection"]:
             break
     else:
-        assert False, "could not find dcoraid-collection"
+        assert False, f"could not find {defaults['collection']}"
     with mock.patch.object(
             QInputDialog, "getItem",
             return_value=(f"{ii}: {item['display_name']}", True)):
@@ -137,7 +138,7 @@ def test_gui_mydata_dataset_add_to_collection(mw, qtbot):
     ds_dict = api.get("package_show", id=ds_id)
     assert "groups" in ds_dict
     assert len(ds_dict["groups"]) == 1
-    assert ds_dict["groups"][0]["name"] == "dcoraid-collection"
+    assert ds_dict["groups"][0]["name"] == defaults["collection"]
 
 
 def test_gui_start_with_bad_server(qtbot):
@@ -293,11 +294,12 @@ def test_gui_upload_task_missing_circle_multiple(mw, qtbot):
     tdir = pathlib.Path(tempfile.mkdtemp(prefix="recursive_task_"))
     shutil.copytree(tpath1.parent, tdir / tpath1.parent.name)
     shutil.copytree(tpath2.parent, tdir / tpath2.parent.name)
+    defaults = common.get_test_defaults()
     with mock.patch.object(
             QtWidgets.QFileDialog, "getExistingDirectory",
             return_value=str(tdir)), \
          mock.patch.object(QtWidgets.QInputDialog, "getItem",
-                           return_value=(common.CIRCLE, True)), \
+                           return_value=(defaults["circle"], True)), \
          mock.patch.object(QMessageBox, "information", return_value=None):
         act = QtWidgets.QAction("some unimportant text")
         act.setData("bulk")
@@ -348,11 +350,12 @@ def test_gui_upload_task_missing_circle(mw, qtbot):
     tpath = common.make_upload_task(task_id=task_id,
                                     dataset_dict=dataset_dict)
     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+    defaults = common.get_test_defaults()
     with mock.patch.object(
             QtWidgets.QFileDialog, "getOpenFileNames",
             return_value=([tpath], None)), \
          mock.patch.object(QtWidgets.QInputDialog, "getItem",
-                           return_value=(common.CIRCLE, True)), \
+                           return_value=(defaults["circle"], True)), \
          mock.patch.object(QMessageBox, "information", return_value=None):
         act = QtWidgets.QAction("some unimportant text")
         act.setData("single")

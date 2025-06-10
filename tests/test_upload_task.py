@@ -29,7 +29,7 @@ def test_create_task():
         path=path_task,
         dataset_dict={"authors": "Bruce Banner",
                       "license_id": "CC0-1.0",
-                      "owner_org": common.CIRCLE},
+                      "owner_org": common.get_test_defaults()["circle"]},
         resource_dicts=[{"path": path_rtdc,
                          "name": "hulk.rtdc",
                          "supplements": {"chip": {"comments": "Loki bash"}}},
@@ -550,11 +550,3 @@ def test_wrong_ids():
                        match="I got the following IDs: from upload job "
                              + "state: hans; from dataset dict: peter"):
         task.load_task(task_path, api=api)
-
-
-if __name__ == "__main__":
-    # Run all tests
-    loc = locals()
-    for key in list(loc.keys()):
-        if key.startswith("test_") and hasattr(loc[key], "__call__"):
-            loc[key]()
