@@ -38,7 +38,7 @@ def test_get_collections():
 
 
 def test_get_users_anonymous():
-    api = common.get_api()
+    api = CKANAPI(server=common.SERVER)  # anonymous access
     db = db_api.APIInterrogator(api=api)
     with pytest.raises(errors.APIAuthorizationError, match="Access denied"):
         db.get_users()
