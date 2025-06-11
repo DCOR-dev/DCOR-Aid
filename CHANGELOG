@@ -1,6 +1,5 @@
 0.17.0
  - BREAKING CHANGE: migrate codebase from PyQt5 to PyQt6
-0.16.12
  - tests: allow to use different DCOR instance for testing
  - tests: make tests independent of testing user
 0.16.11
