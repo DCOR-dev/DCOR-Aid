@@ -1,6 +1,6 @@
 from importlib import resources
 
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 
 class TitleItem(QtWidgets.QWidget):

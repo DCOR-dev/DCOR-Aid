@@ -1,7 +1,7 @@
 import copy
 from importlib import resources
 
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
 
 class FilterBase(QtWidgets.QWidget):
@@ -22,7 +22,8 @@ class FilterBase(QtWidgets.QWidget):
 
         # resize first column
         header = self.tableWidget.horizontalHeader()
-        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(0,
+                                    QtWidgets.QHeaderView.ResizeMode.Stretch)
 
         # trigger user selection change signal
         self.tableWidget.itemSelectionChanged.connect(self.on_entry_selected)
@@ -38,9 +39,10 @@ class FilterBase(QtWidgets.QWidget):
         self.tableWidget.setDragEnabled(False)  # disable drag
         self.tableWidget.setDragDropOverwriteMode(False)  # don't overwrite
         self.tableWidget.setDragDropMode(
-            QtWidgets.QAbstractItemView.NoDragDrop)  # drag & drop disabled
+            # drag & drop disabled
+            QtWidgets.QAbstractItemView.DragDropMode.NoDragDrop)
         self.tableWidget.setDefaultDropAction(
-            QtCore.Qt.IgnoreAction)  # no drop by default
+            QtCore.Qt.DropAction.IgnoreAction)  # no drop by default
 
     def get_entry_actions(self, row, entry):
         """This is defined in the subclasses (Circle, Collection, etc)"""
@@ -87,8 +89,8 @@ class FilterBase(QtWidgets.QWidget):
         horz_layout.setContentsMargins(2, 0, 2, 0)
 
         spacer = QtWidgets.QSpacerItem(0, 0,
-                                       QtWidgets.QSizePolicy.Expanding,
-                                       QtWidgets.QSizePolicy.Minimum)
+                                       QtWidgets.QSizePolicy.Policy.Expanding,
+                                       QtWidgets.QSizePolicy.Policy.Minimum)
         horz_layout.addItem(spacer)
 
         for action in self.get_entry_actions(row, entry):

@@ -9,8 +9,8 @@ import platform
 import subprocess
 import webbrowser
 
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QStandardPaths
+from PyQt6 import uic, QtCore, QtGui, QtWidgets
+from PyQt6.QtCore import QStandardPaths
 
 from ...download import DownloadQueue
 
@@ -37,7 +37,7 @@ class DownloadWidget(QtWidgets.QWidget):
         #: path to persistent shelf to be able to resume uploads on startup
         self.shelf_path = os_path.join(
             QStandardPaths.writableLocation(
-                QStandardPaths.AppLocalDataLocation),
+                QStandardPaths.StandardLocation.AppLocalDataLocation),
             "persistent_download_jobs")
 
         #: DownloadQueue instance
@@ -85,7 +85,7 @@ class DownloadWidget(QtWidgets.QWidget):
     @QtCore.pyqtSlot(str, bool)
     def download_resource(self, resource_id, condensed=False):
         fallback = QStandardPaths.writableLocation(
-                      QStandardPaths.DownloadLocation)
+                      QStandardPaths.StandardLocation.DownloadLocation)
         dl_path = self.settings.value("downloads/default path", fallback)
         self.widget_jobs.jobs.new_job(resource_id, dl_path, condensed)
 
@@ -182,14 +182,14 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
                 job.traceback = traceback.format_exc()
 
             QtWidgets.QApplication.processEvents(
-                QtCore.QEventLoop.AllEvents,
-                300)
+                QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
         # spacing (did not work in __init__)
         header = self.horizontalHeader()
         header.setSectionResizeMode(
-            0, QtWidgets.QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
+            0, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(
+            1, QtWidgets.QHeaderView.ResizeMode.Stretch)
 
         self._busy_updating_widgets = False
 
@@ -219,9 +219,11 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
             horz_layout = QtWidgets.QHBoxLayout(widact)
             horz_layout.setContentsMargins(2, 0, 2, 0)
 
-            spacer = QtWidgets.QSpacerItem(0, 0,
-                                           QtWidgets.QSizePolicy.Expanding,
-                                           QtWidgets.QSizePolicy.Minimum)
+            spacer = QtWidgets.QSpacerItem(
+                0, 0,
+                QtWidgets.QSizePolicy.Policy.Expanding,
+                QtWidgets.QSizePolicy.Policy.Minimum
+                )
             horz_layout.addItem(spacer)
             if job.state == "error":
                 actions = [

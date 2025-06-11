@@ -1,5 +1,5 @@
-from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import Qt
+from PyQt6 import QtWidgets, QtCore, QtGui
+from PyQt6.QtCore import Qt
 
 
 class DragTableWidget(QtWidgets.QTableWidget):
@@ -9,7 +9,7 @@ class DragTableWidget(QtWidgets.QTableWidget):
 
         urls = []
         for item in self.selectedItems():
-            data = item.data(Qt.UserRole + 1)
+            data = item.data(Qt.ItemDataRole.UserRole + 1)
             urls.append(QtCore.QUrl(data))
 
         mime_data = QtCore.QMimeData()
@@ -20,4 +20,4 @@ class DragTableWidget(QtWidgets.QTableWidget):
         drag.setHotSpot(e.pos() - self.rect().topLeft())
 
         # This magic is somehow required to get drag working.
-        dropAction = drag.exec_(Qt.CopyAction)  # noqa: F841
+        dropAction = drag.exec(Qt.CopyAction)  # noqa: F841

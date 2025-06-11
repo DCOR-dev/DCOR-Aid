@@ -6,7 +6,7 @@ import traceback
 import urllib.request
 
 from dclab.external.packaging import parse as parse_version
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 
 
 class UpdateWorker(QtCore.QObject):

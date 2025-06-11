@@ -1,8 +1,8 @@
 from functools import partial
 import webbrowser
 
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtCore import Qt
+from PyQt6 import QtCore, QtWidgets
+from PyQt6.QtCore import Qt
 
 from ..api import get_ckan_api
 from ..tools import ShowWaitCursor
@@ -64,7 +64,7 @@ class FilterCollections(filter_base.FilterBase):
                 for res_dict in ds_dict.get("resources", []):
                     self.download_resource.emit(res_dict["id"], condensed)
                     QtWidgets.QApplication.processEvents(
-                        QtCore.QEventLoop.AllEvents,
+                        QtCore.QEventLoop.ProcessEventsFlag.AllEvents,
                         300)
 
     def get_entry_actions(self, row, entry):
@@ -108,7 +108,7 @@ class FilterDatasets(filter_base.FilterBase):
         for res_dict in ds_dict.get("resources", []):
             self.download_resource.emit(res_dict["id"], condensed)
             QtWidgets.QApplication.processEvents(
-                QtCore.QEventLoop.AllEvents,
+                QtCore.QEventLoop.ProcessEventsFlag.AllEvents,
                 300)
 
     def get_entry_actions(self, row, entry):
@@ -139,7 +139,7 @@ class FilterResources(filter_base.FilterBase):
         self.checkBox.setChecked(True)
         self.tableWidget.setDragEnabled(True)
         self.tableWidget.setDragDropMode(
-            QtWidgets.QAbstractItemView.DragOnly)
+            QtWidgets.QAbstractItemView.DragDropMode.DragOnly)
         self.label_info.setText("<i>Tip: You can drag and drop your selection "
                                 "from the resources list to Shape-Out!</i>")
 
@@ -172,4 +172,4 @@ class FilterResources(filter_base.FilterBase):
         item = self.tableWidget.item(row, 0)
         api = get_ckan_api()
         dcor_url = f"{api.server}/api/3/action/dcserv?id={entry['id']}"
-        item.setData(Qt.UserRole + 1, dcor_url)
+        item.setData(Qt.ItemDataRole.UserRole + 1, dcor_url)

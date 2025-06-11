@@ -3,8 +3,8 @@ import shutil
 
 from importlib import resources
 
-from PyQt5 import uic, QtCore, QtWidgets
-from PyQt5.QtCore import QStandardPaths
+from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6.QtCore import QStandardPaths
 
 from ...api import dataset_draft_remove_all
 from ...upload import PersistentUploadJobList
@@ -43,7 +43,7 @@ class MaintenanceWidget(QtWidgets.QWidget):
         queue = mw.panel_upload.jobs
         dirs = queue.find_zombie_caches()
         msg = QtWidgets.QMessageBox()
-        msg.setIcon(QtWidgets.QMessageBox.Information)
+        msg.setIcon(QtWidgets.QMessageBox.Icon.Information)
         if dirs:
             [shutil.rmtree(pp, ignore_errors=True) for pp in dirs]
             details = [f"- {pp}" for pp in dirs]
@@ -53,7 +53,7 @@ class MaintenanceWidget(QtWidgets.QWidget):
         else:
             msg.setText("No zombie cache data found.")
             msg.setWindowTitle("Nothing to do")
-        msg.exec_()
+        msg.exec()
 
     @QtCore.pyqtSlot()
     def on_remove_drafts(self):
@@ -61,7 +61,7 @@ class MaintenanceWidget(QtWidgets.QWidget):
             # get all dataset IDs that should not be removed
             pers_job_path = os_path.join(
                 QStandardPaths.writableLocation(
-                    QStandardPaths.AppLocalDataLocation),
+                    QStandardPaths.StandardLocation.AppLocalDataLocation),
                 "persistent_upload_jobs")
             pers_datasets = PersistentUploadJobList(pers_job_path)
             # perform deletion
@@ -69,7 +69,7 @@ class MaintenanceWidget(QtWidgets.QWidget):
                 api=get_ckan_api(),
                 ignore_dataset_ids=pers_datasets)
         msg = QtWidgets.QMessageBox()
-        msg.setIcon(QtWidgets.QMessageBox.Information)
+        msg.setIcon(QtWidgets.QMessageBox.Icon.Information)
         del_titles = [f"{d['name']}" for d in deleted]
         ign_titles = [f"{d['name']}" for d in ignored]
         if del_titles + ign_titles:
@@ -83,4 +83,4 @@ class MaintenanceWidget(QtWidgets.QWidget):
         else:
             msg.setText("No drafts found.")
             msg.setWindowTitle("Nothing to do")
-        msg.exec_()
+        msg.exec()

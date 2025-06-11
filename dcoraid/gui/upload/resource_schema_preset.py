@@ -1,7 +1,7 @@
 import json
 import pathlib
 
-from PyQt5.QtCore import QStandardPaths
+from PyQt6.QtCore import QStandardPaths
 
 
 class PersistentResourceSchemaPresets:
@@ -10,7 +10,8 @@ class PersistentResourceSchemaPresets:
         self._presets = {}
         # This is a roaming path on Windows
         self.path = pathlib.Path(QStandardPaths.writableLocation(
-            QStandardPaths.AppDataLocation)) / "upload_resource_schema_presets"
+            QStandardPaths.StandardLocation.AppDataLocation)
+            ) / "upload_resource_schema_presets"
         self.path.mkdir(exist_ok=True, parents=True)
         for pp in self.path.glob("*.json"):
             with pp.open() as fd:

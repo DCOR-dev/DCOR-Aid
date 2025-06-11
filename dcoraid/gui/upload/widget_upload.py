@@ -9,8 +9,8 @@ from importlib import resources
 import time
 import traceback as tb
 
-from PyQt5 import uic, QtCore, QtWidgets
-from PyQt5.QtCore import QStandardPaths
+from PyQt6 import uic, QtCore, QtGui, QtWidgets
+from PyQt6.QtCore import QStandardPaths
 
 from ...api import APINotFoundError
 from ...upload import queue, task
@@ -44,10 +44,10 @@ class UploadWidget(QtWidgets.QWidget):
 
         # menu button for adding tasks
         menu = QtWidgets.QMenu()
-        act1 = QtWidgets.QAction("Select task files from disk", self)
+        act1 = QtGui.QAction("Select task files from disk", self)
         act1.setData("single")
         menu.addAction(act1)
-        act2 = QtWidgets.QAction(
+        act2 = QtGui.QAction(
             "Recursively find and load task files from a folder", self)
         act2.setData("bulk")
         menu.addAction(act2)
@@ -57,7 +57,7 @@ class UploadWidget(QtWidgets.QWidget):
         #: path to persistent shelf to be able to resume uploads on startup
         self.shelf_path = os_path.join(
             QStandardPaths.writableLocation(
-                QStandardPaths.AppLocalDataLocation),
+                QStandardPaths.StandardLocation.AppLocalDataLocation),
             "persistent_upload_jobs")
 
         # UploadQueue instance
@@ -80,7 +80,7 @@ class UploadWidget(QtWidgets.QWidget):
     def cache_dir(self):
         """path to cache directory (compression)"""
         fallback = QStandardPaths.writableLocation(
-            QStandardPaths.CacheLocation)
+            QStandardPaths.StandardLocation.CacheLocation)
         settings = QtCore.QSettings()
         cache_path = settings.value("uploads/cache path", fallback)
         return cache_path
@@ -138,7 +138,7 @@ class UploadWidget(QtWidgets.QWidget):
                                    queue.DCORAidQueueMissingResourceWarning)]
                 if w:
                     msg = QtWidgets.QMessageBox()
-                    msg.setIcon(QtWidgets.QMessageBox.Information)
+                    msg.setIcon(QtWidgets.QMessageBox.Icon.Information)
                     msg.setText(
                         "You have created upload jobs in a previous session "
                         + "and some of the resources cannot be located on "
@@ -153,7 +153,7 @@ class UploadWidget(QtWidgets.QWidget):
                     msg.setDetailedText(
                         "\n\n".join([str(wi.message) for wi in w]))
                     msg.setWindowTitle("Resources for uploads missing")
-                    msg.exec_()
+                    msg.exec()
             if self.parent().parent().isVisible():
                 self.widget_jobs.set_job_list(self.jobs)
                 # upload finished signal
@@ -221,10 +221,10 @@ class UploadWidget(QtWidgets.QWidget):
                           resource_names=names,
                           supplements=supps)
 
-    @QtCore.pyqtSlot(QtWidgets.QAction)
+    @QtCore.pyqtSlot(QtGui.QAction)
     def on_upload_task(
             self,
-            action: QtWidgets.QAction | pathlib.Path | list[pathlib.Path]):
+            action: QtGui.QAction | pathlib.Path | list[pathlib.Path]):
         """Import an UploadJob task file and add it to the queue
 
         This functionality is mainly used for automation. Another
@@ -249,14 +249,14 @@ class UploadWidget(QtWidgets.QWidget):
                 self,
                 "Select folder to search for DCOR-Aid task files",
                 ".",
-                QtWidgets.QFileDialog.ShowDirsOnly,
+                QtWidgets.QFileDialog.Option.ShowDirsOnly,
             )
             files = pathlib.Path(tdir).rglob("*.dcoraid-task")
 
         # Keep track of a persistent task ID to dataset ID dictionary
         path_id_dict = os_path.join(
             QStandardPaths.writableLocation(
-                QStandardPaths.AppLocalDataLocation),
+                QStandardPaths.StandardLocation.AppLocalDataLocation),
             "map_task_to_dataset_id.txt")
         map_task_to_dataset_id = task.PersistentTaskDatasetIDDict(path_id_dict)
         api = get_ckan_api()
@@ -320,7 +320,7 @@ class UploadWidget(QtWidgets.QWidget):
                     f"Would you like to create a new dataset for this "
                     f"task file on '{api.server}' (select 'No' if in doubt)?"
                 )
-                if ret == QtWidgets.QMessageBox.Yes:
+                if ret == QtWidgets.QMessageBox.StandardButton.Yes:
                     # retry, this time forcing the creation of a new dataset
                     upload_job = task.load_task(force_dataset_creation=True,
                                                 **load_kw)
@@ -375,8 +375,10 @@ class UploadTableWidget(QtWidgets.QTableWidget):
     def __init__(self, *args, **kwargs):
         super(UploadTableWidget, self).__init__(*args, **kwargs)
         self.logger = logging.getLogger(__name__).getChild("UploadTableWidget")
-        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(
+            QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
+        self.setSelectionBehavior(
+            QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
 
         self._jobs = None
 
@@ -476,8 +478,9 @@ class UploadTableWidget(QtWidgets.QTableWidget):
             # spacing (did not work in __init__)
             header = self.horizontalHeader()
             header.setSectionResizeMode(
-                0, QtWidgets.QHeaderView.ResizeToContents)
-            header.setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
+                0, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+            header.setSectionResizeMode(
+                1, QtWidgets.QHeaderView.ResizeMode.Stretch)
         # enable updates again
         self.setUpdatesEnabled(True)
 

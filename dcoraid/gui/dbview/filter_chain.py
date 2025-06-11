@@ -2,7 +2,7 @@ import copy
 
 from importlib import resources
 
-from PyQt5 import QtCore, QtWidgets, uic
+from PyQt6 import QtCore, QtWidgets, uic
 
 from ..tools import ShowWaitCursor
 from ..api import get_ckan_api
