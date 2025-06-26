@@ -116,8 +116,12 @@ class StatusWidetUpdateWorker(QtCore.QRunnable):
         api = get_ckan_api()
 
         if not api.is_available():
-            text = "No connection"
-            tip = f"Can you access {api.server} via a browser?"
+            if api.is_under_maintenance():
+                text = "Under Maintenance"
+                tip = "Please wait until maintenance is complete"
+            else:
+                text = "No connection"
+                tip = f"Can you access {api.server} via a browser?"
             icon = "hourglass"
         elif not api.is_available(with_correct_version=True):
             text = "Server out of date"

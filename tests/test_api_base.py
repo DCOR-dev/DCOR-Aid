@@ -7,6 +7,12 @@ from dcoraid.api import ckan_api
 from . import common
 
 
+def test_api_no_maintenance():
+    """Normally, the DCOR instance should not be under maintenance"""
+    api = common.get_api()
+    assert not api.is_under_maintenance()
+
+
 def test_api_requests_cache_no_parameters():
     """Test the requests_cache for an API call *without* parameters"""
     api = common.get_api()

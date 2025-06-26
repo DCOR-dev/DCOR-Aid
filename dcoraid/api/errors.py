@@ -49,5 +49,10 @@ class NoS3UploadAvailableError(BaseException):
 
 
 class S3UploadError(BaseException):
-    """raised when an upload to S3 failed"""
+    """Raised when an upload to S3 failed"""
+    pass
+
+
+class ServerUnderMaintenanceError(BaseException):
+    """Raised when the DCOR server is under maintenance"""
     pass

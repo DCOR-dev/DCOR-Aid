@@ -16,7 +16,8 @@ from .._version import version
 
 from .errors import (APIConflictError, APINotFoundError, NoAPIKeyError,
                      APIBadGatewayError, APIBadRequest, APIGatewayTimeoutError,
-                     APIAuthorizationError, APIOutdatedError)
+                     APIAuthorizationError, APIOutdatedError,
+                     ServerUnderMaintenanceError)
 
 #: Minimum required CKAN version on the server side
 MIN_CKAN_VERSION = "2.9.4"
@@ -267,6 +268,17 @@ class CKANAPI:
                 status = True
         return status
 
+    def is_under_maintenance(self):
+        """Check whether DCOR is under maintenance"""
+        maintenance = False
+        try:
+            self.get("status_show")
+        except ServerUnderMaintenanceError:
+            maintenance = True
+        except BaseException:
+            pass
+        return maintenance
+
     def get(self,
             api_call: str,
             timeout: float = 27.9,
@@ -302,6 +314,10 @@ class CKANAPI:
                                headers=self.headers,
                                verify=self.verify,
                                timeout=timeout)
+
+        if req.status_code == 503:
+            raise ServerUnderMaintenanceError(
+                "DCOR under maintenance. Please try again later.")
         rdata = self.handle_response(req, api_call)
         return rdata["result"]
 
