@@ -37,7 +37,7 @@ class ResourcesModel(QtCore.QAbstractListModel):
             _, data = self.get_data_for_index(index)
             return data["file"]["filename"]
 
-        if role == QtCore.Qt.DecorationRole:
+        if role == QtCore.Qt.ItemDataRole.DecorationRole:
             if self.index_has_edits(index):
                 return get_icon("tag")
             else:

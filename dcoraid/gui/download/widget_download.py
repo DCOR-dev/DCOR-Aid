@@ -202,7 +202,7 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
         item = self.item(row, col)
         if item is None:
             item = QtWidgets.QTableWidgetItem(label)
-            item.setFlags(QtCore.Qt.ItemIsEnabled)
+            item.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.setItem(row, col, item)
         else:
             if item.text() != label:

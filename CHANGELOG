@@ -1,3 +1,5 @@
+0.17.1
+ - reg: invalid use PyQt6 namespace after migration from PyQt5
 0.17.0
  - BREAKING CHANGE: migrate codebase from PyQt5 to PyQt6
  - fix: automated user sign-up did not work for DCOR Playground
