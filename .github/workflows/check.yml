@@ -55,17 +55,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DCOR_API_KEY: ${{ secrets.DCOR_API_KEY }}
-      # Tests always pass but pytest sometimes fails with 138 or 139 due to
-      # threading issues. We check in the next step whether any tests failed.
       run: |
-        coverage run --source=dcoraid -m pytest tests --ignore tests/test_gui.py -x
-        # The GUI tests segfault randomly (test in next step whether it worked)
-        coverage run --source=dcoraid -m pytest tests/test_gui.py -x || exit 0
-    - name: Test whether test passed
-        # check if pytest wrote failures to the "pytest-failures.txt" file
-        # (exits 0 if the file does not exist)
-      run: |
-        test ! -f "pytest-failures.txt"
+        coverage run --source=dcoraid -m pytest tests
     - name: Lint with flake8
       run: |
         flake8 --exclude _version.py .
