@@ -1,4 +1,5 @@
 0.17.1
+ - fix: found culprit of regular segmentation faults (#14)
  - reg: invalid use PyQt6 namespace after migration from PyQt5
 0.17.0
  - BREAKING CHANGE: migrate codebase from PyQt5 to PyQt6

@@ -15,7 +15,6 @@ class FilterChain(QtWidgets.QWidget):
         """Filter chain widget with multiple filter views
         """
         super(FilterChain, self).__init__(*args, **kwargs)
-        QtWidgets.QMainWindow.__init__(self)
         ref_ui = resources.files("dcoraid.gui.dbview") / "filter_chain.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
