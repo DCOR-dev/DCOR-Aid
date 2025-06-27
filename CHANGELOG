@@ -1,5 +1,6 @@
 0.17.0
  - BREAKING CHANGE: migrate codebase from PyQt5 to PyQt6
+ - fix: automated user sign-up did not work for DCOR Playground
  - enh: detect DCOR maintenance mode
  - tests: allow to use different DCOR instance for testing
  - tests: make tests independent of testing user

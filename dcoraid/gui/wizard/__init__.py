@@ -6,7 +6,8 @@ from dclab.rtdc_dataset.fmt_dcor import access_token
 from PyQt6 import uic, QtCore, QtWidgets
 from PyQt6.QtWidgets import QMessageBox, QWizard
 
-from ...api import NoAPIKeyError, APINotFoundError, CKANAPI
+from ...api import (
+    APIAuthorizationError, APINotFoundError, NoAPIKeyError, CKANAPI)
 
 
 def get_dcor_dev_api_key():
@@ -22,45 +23,21 @@ def get_dcor_dev_api_key():
                   ssl_verify=True)
     try:
         api.get_user_dict()
-    except (NoAPIKeyError, APINotFoundError):
+    except (APIAuthorizationError, APINotFoundError, NoAPIKeyError):
         # create a new user
         rstr = str(uuid.uuid4())
         pwd = str(uuid.uuid4())[:8]
         usr = "dcoraid-{}".format(rstr[:5])
-        api.post(
+        user_dict = api.post(
             "user_create",
             data={"name": usr,
                   "fullname": "Player {}".format(rstr[:5]),
-                  "email": "{}@dcor-dev.mpl.mpg.de".format(usr),
+                  "email": f"{usr}@dcor-dev.mpl.mpg.de",
                   "password": pwd,
+                  "with_apitoken": True,
                   })
-        # Ask the user to create an access token via the web interface, since
-        # CKAN does not support API token generation via API:
-        # https://github.com/ckan/ckan/issues/7836
-        api_dlg = APITokenRequestDCORDev(parent=None,
-                                         user=usr,
-                                         password=pwd)
-        if api_dlg.exec():
-            api_key = api_dlg.get_api_key()
-        else:
-            api_key = ""
+        api_key = user_dict["token"]
     return api_key
-
-
-class APITokenRequestDCORDev(QtWidgets.QDialog):
-    def __init__(self, parent, user, password):
-        super(APITokenRequestDCORDev, self).__init__(parent)
-        ref_ui = resources.files("dcoraid.gui.wizard") / "dcordevapi.ui"
-        with resources.as_file(ref_ui) as path_ui:
-            uic.loadUi(path_ui, self)
-
-        self.label_user.setText(user)
-        url = f"https://dcor-dev.mpl.mpg.de/user/{user}/api-tokens"
-        self.label_url.setText(f"<a href='{url}'>{url}</a>")
-        self.label_password.setText(password)
-
-    def get_api_key(self):
-        return self.lineEdit_token.text().strip()
 
 
 class SetupWizard(QtWidgets.QWizard):
