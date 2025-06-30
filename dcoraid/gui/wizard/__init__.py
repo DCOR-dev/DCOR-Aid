@@ -27,11 +27,11 @@ def get_dcor_dev_api_key():
         # create a new user
         rstr = str(uuid.uuid4())
         pwd = str(uuid.uuid4())[:8]
-        usr = "dcoraid-{}".format(rstr[:5])
+        usr = f"dcoraid-{rstr[:5]}"
         user_dict = api.post(
             "user_create",
             data={"name": usr,
-                  "fullname": "Player {}".format(rstr[:5]),
+                  "fullname": f"Player {rstr[:5]}",
                   "email": f"{usr}@dcor-dev.mpl.mpg.de",
                   "password": pwd,
                   "with_apitoken": True,

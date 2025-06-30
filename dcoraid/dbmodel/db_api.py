@@ -123,7 +123,7 @@ class APIInterrogator(DBInterrogator):
             filter_queries = []
         # https://docs.ckan.org/en/latest/user-guide.html#search-in-detail
         if circles:
-            solr_circles = ["organization:{}".format(ci) for ci in circles]
+            solr_circles = [f"organization:{ci}" for ci in circles]
             if len(circles) == 1:
                 solr_circle_query = solr_circles[0]
             else:
@@ -132,7 +132,7 @@ class APIInterrogator(DBInterrogator):
             solr_circle_query = None
 
         if collections:
-            solr_collections = ["groups:{}".format(co) for co in collections]
+            solr_collections = [f"groups:{co}" for co in collections]
             if len(collections) == 1:
                 solr_collections_query = solr_collections[0]
             else:

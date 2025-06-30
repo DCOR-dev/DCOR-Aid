@@ -216,9 +216,9 @@ class UploadJob:
             rate_label = "-- kB/s"
         else:
             if rate > 1e6:
-                rate_label = "{:.1f} MB/s".format(rate/1e6)
+                rate_label = f"{rate/1e6:.1f} MB/s"
             else:
-                rate_label = "{:.0f} kB/s".format(rate/1e3)
+                rate_label = f"{rate/1e3:.0f} kB/s"
             if state != "transfer":
                 rate_label = "⌀ " + rate_label
         return rate_label
@@ -310,7 +310,7 @@ class UploadJob:
         The state is checked against :const:`JOB_STATES`
         """
         if state not in JOB_STATES:
-            raise ValueError("Unknown state: '{}'".format(state))
+            raise ValueError(f"Unknown state: '{state}'")
         if state != self.state:
             logger.info(f"New state: {state}")
             self.state = state
@@ -470,9 +470,9 @@ class UploadJob:
             self.end_time = time.perf_counter()
             self.set_state("online")
         else:
-            warnings.warn("Starting an upload only possible when state is "
-                          + "'parcel', but current state is "
-                          + "'{}'!".format(self.state))
+            warnings.warn(f"Starting an upload only possible when state is "
+                          f"'parcel', but current state is "
+                          f"'{self.state}'!")
 
     def task_verify_resources(self):
         """Perform ETag or SHA256 verification"""
@@ -553,9 +553,9 @@ class UploadJob:
                     self.set_state("done")
         elif self.state != "done":  # ignore state "done" [sic!]
             # Only issue this warning if the upload is not already done.
-            warnings.warn("Resource verification is only possible when state "
-                          + "is 'online', but current state is "
-                          + "'{}'!".format(self.state))
+            warnings.warn(f"Resource verification is only possible when state "
+                          f"is 'online', but current state is "
+                          f"'{self.state}'!")
 
 
 def valid_resource_name(path_name):

@@ -1,3 +1,5 @@
+0.17.2
+ - ref: use more f-strings
 0.17.1
  - fix: found culprit of regular segmentation faults (#14)
  - reg: invalid use PyQt6 namespace after migration from PyQt5

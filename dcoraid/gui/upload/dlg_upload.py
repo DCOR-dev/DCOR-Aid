@@ -51,7 +51,7 @@ class UploadDialog(QtWidgets.QDialog):
         #: by DCOR. It is important for later uploading the resources.
         self.dataset_id = None
 
-        self.setWindowTitle("DCOR Upload {}".format(self.identifier))
+        self.setWindowTitle(f"DCOR Upload {self.identifier}")
 
         # Initialize api
         self.api = get_ckan_api()
@@ -228,7 +228,7 @@ class UploadDialog(QtWidgets.QDialog):
             files, _ = QtWidgets.QFileDialog.getOpenFileNames(
                 self, "Resources to upload", ".",
                 "Supported file types ({})".format(
-                    " ".join(["*{}".format(s) for s in suffixes])))
+                    " ".join([f"*{s}" for s in suffixes])))
         files = [str(ff) for ff in files]  # make sure files are strings
         self.rvmodel.add_resources(files)
         if not self.listView_resources.selectedIndexes():

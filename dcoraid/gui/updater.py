@@ -37,12 +37,12 @@ def check_for_update(version, ghrepo):
 
 def check_release(ghrepo="user/repo", version=None, timeout=20):
     """Check GitHub repository for latest release"""
-    url = "https://api.github.com/repos/{}/releases/latest".format(ghrepo)
+    url = f"https://api.github.com/repos/{ghrepo}/releases/latest"
     if "GITHUB_TOKEN" in os.environ:
         hdr = {'Authorization': os.environ["GITHUB_TOKEN"]}
     else:
         hdr = {}
-    web = "https://github.com/{}/releases".format(ghrepo)
+    web = f"https://github.com/{ghrepo}/releases"
     errors = None  # error messages (str)
     update = False  # whether an update is available
     binary = None  # download link to binary file

@@ -198,7 +198,7 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
 
         User has to make sure that row and column count are set
         """
-        label = "{}".format(label)
+        label = f"{label}"
         item = self.item(row, col)
         if item is None:
             item = QtWidgets.QTableWidgetItem(label)

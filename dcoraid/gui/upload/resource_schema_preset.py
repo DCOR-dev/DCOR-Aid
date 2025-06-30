@@ -25,7 +25,7 @@ class PersistentResourceSchemaPresets:
 
     def __setitem__(self, key, value):
         self._presets[key] = value
-        with (self.path / "{}.json".format(key)).open("w") as fd:
+        with (self.path / f"{key}.json").open("w") as fd:
             json.dump(value, fd, indent=2)
 
     def keys(self):

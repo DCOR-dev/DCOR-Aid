@@ -41,7 +41,7 @@ def ask_for_new_circle(parent_widget):
         + "'{}').".format(ud["name"])
         + "\n\nTo proceed with Circle creation, please choose a name:",
         QtWidgets.QLineEdit.EchoMode.Normal,
-        "{}'s Circle".format(name))
+        f"{name}'s Circle")
     if ok_pressed and text != '':
         cname = "user-circle-{}".format(ud["name"])
         cdict = api.post("organization_create",

@@ -19,7 +19,7 @@ class TitleItem(QtWidgets.QWidget):
         self.verticalLayout = QtWidgets.QVBoxLayout(self)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
 
-        self.label = QtWidgets.QLabel("<b>{}</b>".format(title))
+        self.label = QtWidgets.QLabel(f"<b>{title}</b>")
         self.verticalLayout.addWidget(self.label)
 
         self.requires = requires
@@ -194,7 +194,7 @@ class RSSItem(RSSItemBase):
         else:
             example = rss_dict.get("example", None)
             if example and hasattr(widget, "setPlaceholderText"):
-                widget.setPlaceholderText("e.g. {}".format(example))
+                widget.setPlaceholderText(f"e.g. {example}")
         if "unit" in rss_dict:
             self.doubleSpinBox.setSuffix(" " + rss_dict["unit"])
 
@@ -256,7 +256,7 @@ class RSSItem(RSSItemBase):
                 widget = self.lineEdit
                 value = self.lineEdit.text()
             else:
-                raise ValueError("No rule to process item {}".format(rss_dict))
+                raise ValueError(f"No rule to process item {rss_dict}")
         self.blockSignals(False)
         if retval:
             return widget, value

@@ -145,15 +145,16 @@ class DCORAid(QtWidgets.QMainWindow):
         dcor = "https://dcor.mpl.mpg.de"
         gh = "DCOR-dev/DCOR-Aid"
         rtd = "dc.readthedocs.io"
-        about_text = "This is the client for the <a href='{}'>".format(dcor) \
-            + "Deformability Cytometry Open Repository (DCOR)</a>.<br><br>" \
-            + "Author: Paul Müller<br>" \
-            + "GitHub: " \
-            + "<a href='https://github.com/{gh}'>{gh}</a><br>".format(gh=gh) \
-            + "Documentation: " \
-            + "<a href='https://{rtd}'>{rtd}</a><br>".format(rtd=rtd)
+        about_text = (
+            f"This is the client for the <a href='{dcor}'>"
+            f"Deformability Cytometry Open Repository (DCOR)</a>.<br><br>"
+            f"Author: Paul Müller<br>"
+            f"GitHub: "
+            f"<a href='https://github.com/{gh}'>{gh}</a><br>"
+            f"Documentation: "
+            f"<a href='https://{rtd}'>{rtd}</a><br>")
         QtWidgets.QMessageBox.about(self,
-                                    "DCOR-Aid {}".format(__version__),
+                                    f"DCOR-Aid {__version__}",
                                     about_text)
 
     @QtCore.pyqtSlot(bool)
@@ -193,10 +194,10 @@ class DCORAid(QtWidgets.QMainWindow):
         msg.setTextFormat(QtCore.Qt.TextFormat.RichText)
         text = f"You can install DCOR-Aid {ver} "
         if dlb is not None:
-            text += 'from a <a href="{}">direct download</a>. '.format(dlb)
+            text += f'from a <a href="{dlb}">direct download</a>. '
         else:
             text += 'by running `pip install --upgrade dcoraid`. '
-        text += 'Visit the <a href="{}">official release page</a>!'.format(web)
+        text += f'Visit the <a href="{web}">official release page</a>!'
         msg.setText(text)
         msg.exec()
 
@@ -208,12 +209,12 @@ class DCORAid(QtWidgets.QMainWindow):
                 requests_toolbelt,
                 urllib3,
                 ]
-        sw_text = "DCOR-Aid {}\n\n".format(__version__)
-        sw_text += "Python {}\n\n".format(sys.version)
+        sw_text = f"DCOR-Aid {__version__}\n\n"
+        sw_text += f"Python {sys.version}\n\n"
         sw_text += "Modules:\n"
         for lib in libs:
-            sw_text += "- {} {}\n".format(lib.__name__, lib.__version__)
-        sw_text += "- PyQt6 {}\n".format(QtCore.QT_VERSION_STR)
+            sw_text += f"- {lib.__name__} {lib.__version__}\n"
+        sw_text += f"- PyQt6 {QtCore.QT_VERSION_STR}\n"
         sw_text += "\n Breeze icon theme by the KDE Community (LGPL)."
         sw_text += "\n Font-Awesome icons by Fort Awesome (CC BY 4.0)."
         if hasattr(sys, 'frozen'):
@@ -263,8 +264,7 @@ def excepthook(etype, value, trace):
         prints the standard Python header: ``Traceback (most recent
         call last)``.
     """
-    vinfo = "Unhandled exception in DCOR-Aid version {}:\n".format(
-        __version__)
+    vinfo = f"Unhandled exception in DCOR-Aid version {__version__}:\n"
     tmp = tb.format_exception(etype, value, trace)
     exception = "".join([vinfo] + tmp)
 

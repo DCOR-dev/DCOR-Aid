@@ -57,8 +57,7 @@ class SchemaWidget(QtWidgets.QWidget):
                     key = widget.rss_dict["key"]
                     # We extract all relevant information from magic items
                     if sec in MAGIC_ITEMS and key in MAGIC_ITEMS[sec]:
-                        schema[sec]["MAGIC_{}".format(
-                            key)] = widget.get_value()
+                        schema[sec][f"MAGIC_{key}"] = widget.get_value()
                         for sr in MAGIC_ITEMS[sec][key]["setters"]:
                             fc = getattr(widget, sr["func"])
                             schema[sr["section"]][sr["key"]] = fc()
@@ -138,7 +137,7 @@ class SchemaWidget(QtWidgets.QWidget):
                     # Note that hidden items don't show up here since
                     # we iterate over the widgets.
                     if sec in MAGIC_ITEMS and key in MAGIC_ITEMS[sec]:
-                        value = schema_dict[sec]["MAGIC_{}".format(key)]
+                        value = schema_dict[sec][f"MAGIC_{key}"]
                     else:
                         value = schema_dict[sec][key]
                     wrss.set_value(value)

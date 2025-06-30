@@ -180,8 +180,7 @@ class CKANAPI:
             if rdata.startswith("Bad request"):
                 raise APIBadRequest(rdata)
             else:
-                raise ValueError(
-                    "Command did not succeed, output: '{}'".format(rdata))
+                raise ValueError(f"Command did not succeed, output: '{rdata}'")
 
         if not req.ok:
             error = rdata.get("error", {})
@@ -189,11 +188,11 @@ class CKANAPI:
             etext = ""
             for key in error:
                 if not key.startswith("_"):
-                    etext += "{}: {}".format(key, error[key])
+                    etext += f"{key}: {error[key]}"
             if not etext and len(req.reason) < 100:
                 # Skip large html output, only use small error messages
                 etext = req.content.decode("utf-8")
-            msg = "{}: {} (for '{}')".format(e_type, etext, api_call)
+            msg = f"{e_type}: {etext} (for '{api_call}')"
             if req.reason == "NOT FOUND":
                 raise APINotFoundError(msg)
             elif req.reason == "CONFLICT":
@@ -211,8 +210,8 @@ class CKANAPI:
         elif not rdata["success"]:
             url_call = self.api_url + api_call
             raise ConnectionError(
-                "Could not run API call '{}'! ".format(url_call)
-                + "Reason: {} ({})".format(req.reason, rdata["error"]))
+                f"Could not run API call '{url_call}'! "
+                f"Reason: {req.reason} ({rdata['error']})")
         return rdata
 
     def copy(self):

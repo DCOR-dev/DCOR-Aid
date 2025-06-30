@@ -221,9 +221,9 @@ class DownloadJob:
             rate_label = "-- kB/s"
         else:
             if rate > 1e6:
-                rate_label = "{:.1f} MB/s".format(rate / 1e6)
+                rate_label = f"{rate / 1e6:.1f} MB/s"
             else:
-                rate_label = "{:.0f} kB/s".format(rate / 1e3)
+                rate_label = f"{rate / 1e3:.0f} kB/s"
             if state != "transfer":
                 rate_label = "⌀ " + rate_label
         return rate_label
@@ -318,7 +318,7 @@ class DownloadJob:
         The state is checked against :const:`JOB_STATES`
         """
         if state not in JOB_STATES:
-            raise ValueError("Unknown state: '{}'".format(state))
+            raise ValueError(f"Unknown state: '{state}'")
         if state == "error":
             logger.error("Entered error state")
             if self.traceback:
@@ -406,9 +406,9 @@ class DownloadJob:
                     self.end_time = time.perf_counter()
                     self.set_state("downloaded")
         else:
-            warnings.warn("Starting a download only possible when state is "
-                          + "'init' or 'wait-disk', but current state is "
-                          + "'{}'!".format(self.state))
+            warnings.warn(f"Starting a download only possible when state is "
+                          f"'init' or 'wait-disk', but current state is "
+                          f"'{self.state}'!")
 
     def task_verify_resource(self):
         """Perform ETag/SHA256 verification"""
@@ -479,6 +479,6 @@ class DownloadJob:
                             self.set_state("done")
         elif self.state != "done":  # ignore state "done" [sic!]
             # Only issue this warning if the download is not already done.
-            warnings.warn("Resource verification is only possible when state "
-                          + "is 'downloaded', but current state is "
-                          + "'{}'!".format(self.state))
+            warnings.warn(f"Resource verification is only possible when state "
+                          f"is 'downloaded', but current state is "
+                          f"'{self.state}'!")

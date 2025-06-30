@@ -142,8 +142,8 @@ def find_icons(name, theme):
                 cands.append([path, relp])
                 break  # we only need one icon
     else:  # use local icons
-        svgs = sorted((local_root / theme).rglob("{}.svg".format(name)))
-        pngs = sorted((local_root / theme).rglob("{}.png".format(name)))
+        svgs = sorted((local_root / theme).rglob(f"{name}.svg"))
+        pngs = sorted((local_root / theme).rglob(f"{name}.png"))
         for path in svgs + pngs:
             relp = path.parent.relative_to(local_root)
             cands.append([path, relp])

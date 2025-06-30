@@ -148,8 +148,8 @@ class StatusWidetUpdateWorker(QtCore.QRunnable):
                 name = user_data["name"]
                 if not fullname:
                     fullname = name
-                text = "{}".format(fullname)
-                tip = "user '{}'".format(name)
+                text = f"{fullname}"
+                tip = f"user '{name}'"
                 icon = "user-lock"
         self.logger.info(text)
         self.signal.state_signal.emit(text, tip, icon, api.server)
