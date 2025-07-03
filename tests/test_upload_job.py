@@ -184,6 +184,93 @@ def test_saveload():
     assert state2["task_id"] == "hanspeter"
 
 
+def test_sort_resources_according_to_basin_hierarchy(tmp_path):
+    """Make sure resources are sorted by honoring run identifiers"""
+    api = common.get_api()
+
+    # Create base paths
+    input_paths = [tmp_path / "p1.rtdc",
+                   tmp_path / "p2.rtdc",
+                   tmp_path / "p3.rtdc",
+                   tmp_path / "p4.rtdc"]
+    for pp in input_paths:
+        shutil.copy2(rtdc_paths[0], pp)
+
+    # Export some of the files
+    with dclab.new_dataset(tmp_path / "p3.rtdc") as ds:
+        ds.export.hdf5(tmp_path / "ba3.rtdc", basins=True)
+
+    with dclab.new_dataset(tmp_path / "p4.rtdc") as ds:
+        ds.export.hdf5(tmp_path / "bb4.rtdc", basins=True)
+
+    # Create a deep hierarchy
+    with dclab.new_dataset(tmp_path / "ba3.rtdc") as ds:
+        ds.export.hdf5(tmp_path / "b03.rtdc", basins=True)
+
+    # this is how we give it to dcoraid
+    input_paths = [
+        tmp_path / "b03.rtdc",
+        tmp_path / "p3.rtdc",
+        tmp_path / "p1.rtdc",
+        tmp_path / "ba3.rtdc",
+        tmp_path / "p2.rtdc",
+        tmp_path / "bb4.rtdc",
+        tmp_path / "p4.rtdc",
+    ]
+
+    # this is what we would expect based on the sorting algorithm
+    sorted_paths = [
+        tmp_path / "p3.rtdc",
+        tmp_path / "p1.rtdc",
+        tmp_path / "ba3.rtdc",
+        tmp_path / "b03.rtdc",
+        tmp_path / "p2.rtdc",
+        tmp_path / "p4.rtdc",
+        tmp_path / "bb4.rtdc",
+    ]
+
+    # create some metadata
+    bare_dict = common.make_dataset_dict(hint="create-with-resource")
+    # create dataset (to get the "id")
+    dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
+    uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
+                       resource_paths=input_paths, task_id="hanspeter")
+
+    # test this
+    assert uj.paths == sorted_paths
+
+    # Let's do a second test with a different order
+    input_paths_2 = [
+        tmp_path / "p2.rtdc",
+        tmp_path / "b03.rtdc",
+        tmp_path / "p1.rtdc",
+        tmp_path / "ba3.rtdc",
+        tmp_path / "bb4.rtdc",
+        tmp_path / "p4.rtdc",
+        tmp_path / "p3.rtdc",
+    ]
+
+    sorted_paths_2 = [
+        tmp_path / "p2.rtdc",
+        tmp_path / "p1.rtdc",
+        tmp_path / "p4.rtdc",
+        tmp_path / "bb4.rtdc",
+        tmp_path / "p3.rtdc",
+        tmp_path / "ba3.rtdc",
+        tmp_path / "b03.rtdc",
+    ]
+
+    # create some metadata
+    bare_dict = common.make_dataset_dict(hint="create-with-resource")
+    # create dataset (to get the "id")
+    dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
+    uj = job.UploadJob(api=api, dataset_id=dataset_dict["id"],
+                       resource_paths=input_paths_2, task_id="hanspeter2")
+
+    # test this
+    assert uj.paths == sorted_paths_2
+
+
 @mock.patch.object(job.shutil, "disk_usage")
 def test_state_compress_disk_wait(disk_usage_mock):
     """If not space left on disk, upload job goes to state "disk-wait"""""

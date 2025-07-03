@@ -4,8 +4,10 @@ import tempfile
 import pathlib
 import shutil
 import time
+import traceback
 import warnings
 
+import dclab
 from dclab.rtdc_dataset.check import IntegrityChecker
 from dclab.cli import compress
 
@@ -78,16 +80,25 @@ class UploadJob:
         self.dataset_id = dataset_id
         # make sure the dataset_id is valid
         self.api.get("package_show", id=self.dataset_id, timeout=500)
-        self.paths = [pathlib.Path(pp).resolve() for pp in resource_paths]
+        resolved_paths = [pathlib.Path(pp).resolve() for pp in resource_paths]
         if resource_names is None:
-            resource_names = [pp.name for pp in self.paths]
+            resource_names = [pp.name for pp in resolved_paths]
         # make sure that only valid characters are used as resource names
         resource_names = [valid_resource_name(rn) for rn in resource_names]
+
+        # sort everything according to the basins hierarchy
+        so = self.sort_resources_according_to_basin_hierarchy(resolved_paths)
+        resolved_paths = [resolved_paths[ii] for ii in so]
+        resource_names = [resource_names[ii] for ii in so]
+        if resource_supplements is not None:
+            resource_supplements = [resource_supplements[ii] for ii in so]
+
+        self.paths = resolved_paths
+        self.resource_names = resource_names
         #: Important supplementary resource schema metadata that will
         #: be formatted to composite {"sp:section:key" = value} an appended
         #: to the resource metadata.
         self.supplements = resource_supplements
-        self.resource_names = resource_names
         self._resources_uploaded = [False] * len(resource_names)
         self.task_id = task_id
         self.paths_uploaded = []
@@ -138,6 +149,92 @@ class UploadJob:
             "task_id": self.task_id,
         }
         return uj_state
+
+    @staticmethod
+    def sort_resources_according_to_basin_hierarchy(paths) -> list[int]:
+        """Sort resources so that basins come first
+
+        DCOR has the capability to identify basin resources
+        that are in the same CKAN dataset. It will then add
+        this basin as a DCOR basin (with the DCOR URL) to the
+        condensed file. This makes the following possible.
+
+        - You have a raw dataset ``orig.rtdc`` and a processed
+          dataset ``orig_dcn.rtdc`` (which does not contain image data).
+        - During processing, ``orig.rtdc`` was added as a file-type
+          basin to ``orig_dcn.rtdc``.
+        - Both resources are uploaded to the same CKAN dataset.
+        - You open ``orig_dcn.rtdc`` on DCOR and the image data
+          are accessible, because DCOR added a DCOR-type basin to the
+          condensed file for ``orig_dcn.rtdc``. The condensed file
+          is the file which is accessed by the DCOR-type basin.
+
+        For this to work, the ``orig.rtdc`` resource *must* be
+        uploaded **before** ``orig_dcn.rtdc``. Otherwise, DCOR will
+        not be able to recognize the file during the condense step
+        and not append the basin.
+
+        Parameters
+        ----------
+        paths: list
+            Paths to look for basin dependencies
+
+        Returns
+        -------
+        order: list of ints
+            The correct ordering indices. I.e. ``paths[order]`` will
+            sort the paths in the correct order.
+        """
+        # create list of path strings
+        path_strings = [str(pp.resolve()) for pp in paths]
+
+        # create dictionary of basins each path refers to
+        paths_basins = {}
+        for pp in path_strings:
+            basins = []
+            try:
+                with dclab.new_dataset(pp) as ds:
+                    for bn in ds.basins:
+                        if (bn.basin_type == "file"
+                                and bn.basin_format == "hdf5"):
+                            bpath = str(bn.location.resolve())
+                            if bpath in path_strings:
+                                basins.append(bpath)
+            except BaseException:
+                logger.error(f"Failed to get basin info for {pp}. Traceback"
+                             f"follows.")
+                logger.error(traceback.format_exc())
+            paths_basins[pp] = basins
+
+        # edit path_strings in-place and populate paths_sort_order
+        paths_sort_order = list(range(len(path_strings)))
+        for ii, pp in enumerate(list(path_strings)):  # create a copy
+            if not paths_basins[pp]:
+                # no basins, do nothing
+                pass
+            else:
+                # Find the highest index of the basins
+                basins = paths_basins[pp]
+                idx_max = max([path_strings.index(bpath) for bpath in basins])
+                cidx = path_strings.index(pp)
+                if idx_max > cidx:
+                    # insert the current resource behind the max index
+                    # remove the current path
+                    # (after this, idx_max is effectively decremented by one,
+                    # which is exactly where we have to put pp)
+                    path_strings.pop(cidx)
+                    path_strings.insert(idx_max, pp)
+                    # same for the indexing list
+                    psort = paths_sort_order.pop(cidx)
+                    paths_sort_order.insert(idx_max, psort)
+
+        # Sanity check. This case should never be True, because we are
+        # only changing the order. But keep this in here to safeguard
+        # against future refactoring.
+        if sorted(paths_sort_order) != list(range(len(paths))):
+            raise RuntimeError("Unexpected state while sortin resources!")
+
+        return paths_sort_order
 
     @staticmethod
     def from_upload_job_state(uj_state, api, cache_dir=None):

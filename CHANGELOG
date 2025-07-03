@@ -1,4 +1,5 @@
 0.17.2
+ - enh: sort resources according to internal basin dependencies (#79)
  - ref: use more f-strings
 0.17.1
  - fix: found culprit of regular segmentation faults (#14)
