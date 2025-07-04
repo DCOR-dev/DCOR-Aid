@@ -121,7 +121,7 @@ class UploadDialog(QtWidgets.QDialog):
         # do not allow to proceed without a title
         self.lineEdit_authors.textChanged.connect(self.on_authors_edited)
         self.on_authors_edited("")  # initial state
-        # if the user changes the preset combobox text, offer him
+        # if the user changes the preset combobox text, offer them
         # to save it as a preset
         self.comboBox_preset.editTextChanged.connect(
             self.on_preset_text_edited)
@@ -313,6 +313,24 @@ class UploadDialog(QtWidgets.QDialog):
                 "Please add at least one deformability cytometry "
                 "resource.")
             return
+
+        # If the user uploads A LOT of resources in a dataset, we should
+        # warn them about possible performance penalties.
+        max_num_res = 100
+        if len(paths) > max_num_res:
+            choice = QtWidgets.QMessageBox.question(
+                self, "Unusually large number of resources specified",
+                f"You are attempting to upload {len(paths)} resources "
+                f"in one single dataset. Be advised that adding more than "
+                f"{max_num_res} resources to a dataset might affect DCOR "
+                f"performance (listing the resources can be slow).\n\n"
+                f"Too many resources in one dataset may also impair the "
+                f"ability of a human to grasp what you are attempting to "
+                f"share.\n\n"
+                f"Are you sure you want to upload {len(paths)} resources to "
+                f"this dataset? Select 'Yes' to continue with the upload.")
+            if choice != QtWidgets.QMessageBox.StandardButton.Yes:
+                return
 
         # Checking for duplicate resources is the responsibility of
         # DCOR-Aid, because we are skipping existing resources in
