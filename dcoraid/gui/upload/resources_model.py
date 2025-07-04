@@ -6,6 +6,7 @@ import pathlib
 
 from PyQt6 import QtCore, QtGui
 
+from ...common import is_dc_file
 from ...upload import job
 
 
@@ -61,10 +62,7 @@ class ResourcesModel(QtCore.QAbstractListModel):
     def index_is_dc(self, index):
         """Does the given index instance belong to an RT-DC file?"""
         path = pathlib.Path(self.get_file_list()[index.row()])
-        if path.suffix in [".dc", ".rtdc"]:
-            return True
-        else:
-            return False
+        return is_dc_file(path, test_open=False)
 
     def index_has_edits(self, index):
         """Is there a modification of the list entry of this index instance?"""

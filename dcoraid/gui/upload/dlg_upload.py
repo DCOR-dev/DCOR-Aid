@@ -7,6 +7,7 @@ from PyQt6 import uic, QtCore, QtGui, QtWidgets
 
 
 from ...api import dataset_create
+from ...common import is_dc_file
 from ...upload import job
 
 from ..tools import ShowWaitCursor
@@ -297,11 +298,22 @@ class UploadDialog(QtWidgets.QDialog):
         This will first trigger a creation of the draft dataset
         on DCOR. Then, the job is enqueued in the parent
         """
-        # We should only proceed if we have resources
+        # We should only proceed when we have resources
         if self.rvmodel.rowCount() == 0:
             QtWidgets.QMessageBox.critical(self, "No resources selected",
                                            "Please add at least one resource.")
             return
+
+        # In addition, we should only proceed when we have at least one
+        # DC resource.
+        paths = self.rvmodel.get_file_list()
+        if sum([is_dc_file(pp, test_open=False) for pp in paths]) == 0:
+            QtWidgets.QMessageBox.critical(
+                self, "No DC resources specified",
+                "Please add at least one deformability cytometry "
+                "resource.")
+            return
+
         # Checking for duplicate resources is the responsibility of
         # DCOR-Aid, because we are skipping existing resources in
         # dcoraid.upload.job.UploadJob.task_upload_resources.

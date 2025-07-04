@@ -18,6 +18,7 @@ import threading
 import uuid
 
 from ..api import dataset_create, APINotFoundError
+from ..common import is_dc_file
 
 from .job import UploadJob
 
@@ -271,7 +272,7 @@ def load_task(path, api, dataset_kwargs=None, map_task_to_dataset_id=None,
             raise ValueError("Number of resource paths does not match number "
                              f"of resource supplements in '{path}'!")
         for ii, pp in enumerate(uj_state["resource_paths"]):
-            if (not str(pp).endswith(".rtdc")
+            if (not is_dc_file(pp, test_open=False)
                     and uj_state["resource_supplements"][ii]):
                 raise ValueError("Resource supplements must be empty for "
                                  f"non-RT-DC datasets in '{path}'!")

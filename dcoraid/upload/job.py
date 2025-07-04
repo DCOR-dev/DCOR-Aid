@@ -12,7 +12,12 @@ from dclab.rtdc_dataset.check import IntegrityChecker
 from dclab.cli import compress
 
 from ..api import dataset_activate, resource_add, resource_exists
-from ..common import sha256sum
+from ..common import is_dc_file, sha256sum
+
+
+class AtLeastOneDCResourceRequiredPerDatasetError(BaseException):
+    """Raised when an upload does not contain at least one DC resource"""
+    pass
 
 
 logger = logging.getLogger(__name__)
@@ -76,10 +81,28 @@ class UploadJob:
             Multiple upload jobs may share the same cache dir,
             since each job creates its own subdirectory.
         """
+        # Ensure resource_paths is a list in case somebody passed an iterator.
+        resource_paths = list(resource_paths)
+
         self.api = api.copy()  # create a copy of the API
         self.dataset_id = dataset_id
+
+        # Check whether at least one DC resource is present in the list.
+        # This is a hard DCOR requirement.
+        for pp in resource_paths:
+            if is_dc_file(pp):
+                break
+        else:
+            raise AtLeastOneDCResourceRequiredPerDatasetError(
+                f"DCOR requires at least one valid deformability cytometry "
+                f"file per dataset upload. Please make sure that this "
+                f"condition is met and all of these files exist: "
+                f"{resource_paths}")
+
         # make sure the dataset_id is valid
         self.api.get("package_show", id=self.dataset_id, timeout=500)
+
+        # resolve paths and set resource names
         resolved_paths = [pathlib.Path(pp).resolve() for pp in resource_paths]
         if resource_names is None:
             resource_names = [pp.name for pp in resolved_paths]
@@ -192,18 +215,19 @@ class UploadJob:
         paths_basins = {}
         for pp in path_strings:
             basins = []
-            try:
-                with dclab.new_dataset(pp) as ds:
-                    for bn in ds.basins:
-                        if (bn.basin_type == "file"
-                                and bn.basin_format == "hdf5"):
-                            bpath = str(bn.location.resolve())
-                            if bpath in path_strings:
-                                basins.append(bpath)
-            except BaseException:
-                logger.error(f"Failed to get basin info for {pp}. Traceback"
-                             f"follows.")
-                logger.error(traceback.format_exc())
+            if is_dc_file(pp, test_open=False):
+                try:
+                    with dclab.new_dataset(pp) as ds:
+                        for bn in ds.basins:
+                            if (bn.basin_type == "file"
+                                    and bn.basin_format == "hdf5"):
+                                bpath = str(bn.location.resolve())
+                                if bpath in path_strings:
+                                    basins.append(bpath)
+                except BaseException:
+                    logger.error(f"Failed to get basin info for {pp}. "
+                                 f"Traceback follows.")
+                    logger.error(traceback.format_exc())
             paths_basins[pp] = basins
 
         # edit path_strings in-place and populate paths_sort_order
@@ -418,14 +442,12 @@ class UploadJob:
         Data are stored in the user's cache directory and
         deleted after upload is complete.
         """
-        # make sure that we have .rtdc or .dc files
-        dc_files = [pp for pp in self.paths if pp.suffix in [".rtdc", ".dc"]]
-        if not dc_files:
-            raise ValueError("There are no RT-DC files in this dataset!")
         self.set_state("compress")
         ds_dict = self.api.get("package_show", id=self.dataset_id, timeout=500)
         for ii, path in enumerate(self.paths):
-            if path.suffix in [".rtdc", ".dc"]:  # do we have a DC file?
+            # We check EVERY DC file. So `test_open=False`. Integrity checker
+            # will open it and make sure it is a valid DC instance.
+            if is_dc_file(path, test_open=False):
                 if resource_exists(
                         dataset_id=self.dataset_id,
                         resource_name=self.resource_names[ii],
@@ -434,7 +456,7 @@ class UploadJob:
                         dataset_dict=ds_dict
                         ):
                     # There is no need to compress resources that have
-                    # already been upladed to DCOR. The same check is done
+                    # already been uploaded to DCOR. The same check is done
                     # in task_upload_resources, so there is no danger that
                     # an uncompressed resource would be uploaded.
                     continue

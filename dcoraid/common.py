@@ -3,6 +3,7 @@ import hashlib
 import pathlib
 import weakref
 
+import dclab
 import requests
 
 from .api import s3_api
@@ -57,6 +58,27 @@ def etagsum(path):
         etag = f"{hasher.hexdigest()}-{len(md5_sums)}"
 
     return etag
+
+
+@functools.lru_cache(maxsize=2000)
+def is_dc_file(path, test_open=True):
+    """Return True when the file is a valid DC dataset
+
+    Performs a path suffix check.
+    If `test_open` is True (default), attempt to open the file with dclab.
+    """
+    is_dc = False
+    path = pathlib.Path(path)
+    if path.suffix.lower() in [".rtdc", ".dc"]:
+        if test_open:
+            try:
+                with dclab.new_dataset(path):
+                    is_dc = True
+            except BaseException:
+                pass
+        else:
+            is_dc = True
+    return is_dc
 
 
 @functools.lru_cache(maxsize=2000)

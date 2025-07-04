@@ -24,6 +24,56 @@ rtdc_paths = [data_path / "calibration_beads_47.rtdc",
               ]
 
 
+def test_check_existence_for_dc_resource_1(tmp_path):
+    (tmp_path / "test.csv").write_text("This is not a DC resource")
+    (tmp_path / "test.txt").write_text("This is not a DC resource as well")
+
+    api = common.get_api()
+
+    # create some metadata
+    bare_dict = common.make_dataset_dict(hint="create-with-resource")
+    # create dataset (to get the "id")
+    dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
+    with pytest.raises(job.AtLeastOneDCResourceRequiredPerDatasetError,
+                       match="test.csv"):
+        job.UploadJob(api=api,
+                      dataset_id=dataset_dict["id"],
+                      resource_paths=list(tmp_path.glob("*")))
+
+
+def test_check_existence_for_dc_resource_2(tmp_path):
+    (tmp_path / "test.rtdc").write_text("This is not a DC resource")
+
+    api = common.get_api()
+
+    # create some metadata
+    bare_dict = common.make_dataset_dict(hint="create-with-resource")
+    # create dataset (to get the "id")
+    dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
+    with pytest.raises(job.AtLeastOneDCResourceRequiredPerDatasetError):
+        job.UploadJob(api=api,
+                      dataset_id=dataset_dict["id"],
+                      resource_paths=list(tmp_path.glob("*")))
+
+
+def test_check_existence_for_dc_resource_control(tmp_path):
+    (tmp_path / "test.rtdc").write_text(
+        "This is not a DC resource and running the upload job would fail,"
+        "but we are only checking UploadJob instantiation here.")
+    shutil.copy2(rtdc_paths[0], tmp_path / "test2.rtdc")
+
+    api = common.get_api()
+
+    # create some metadata
+    bare_dict = common.make_dataset_dict(hint="create-with-resource")
+    # create dataset (to get the "id")
+    dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
+    uj = job.UploadJob(api=api,
+                       dataset_id=dataset_dict["id"],
+                       resource_paths=list(tmp_path.glob("*")))
+    assert len(uj.paths) == 2
+
+
 def test_resource_name_characters():
     assert re.match(job.VALID_RESOURCE_REGEXP, job.VALID_RESOURCE_CHARS)
     assert re.match(job.VALID_RESOURCE_REGEXP, job.VALID_RESOURCE_CHARS)

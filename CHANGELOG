@@ -1,6 +1,8 @@
 0.17.2
+ - fix: check for existence of DC resources before starting uploads (#85)
  - enh: sort resources according to internal basin dependencies (#79)
  - ref: use more f-strings
+ - ref: add `common.is_dc_file` for consistent resource checks
 0.17.1
  - fix: found culprit of regular segmentation faults (#14)
  - reg: invalid use PyQt6 namespace after migration from PyQt5
