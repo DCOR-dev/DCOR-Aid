@@ -170,7 +170,7 @@ class RSSItem(RSSItemBase):
         self.checkBox.clicked.connect(self.on_value_changed)
         self.spinBox.valueChanged.connect(self.on_value_changed)
         self.doubleSpinBox.valueChanged.connect(self.on_value_changed)
-        self.lineEdit.textChanged.connect(self.on_value_changed)
+        self.lineEdit.textEdited.connect(self.on_value_changed)
         self.plainTextEdit.textChanged.connect(self.on_value_changed)
         self.comboBox.currentTextChanged.connect(self.on_value_changed)
         self.radioButton_yes.clicked.connect(self.on_value_changed)

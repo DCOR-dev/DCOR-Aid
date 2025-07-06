@@ -77,7 +77,7 @@ class WidgetLog(QtWidgets.QWidget):
         self.comboBox_level.setCurrentIndex(0 if is_dev_version else 1)
 
         self.new_message.connect(self.add_colored_item)
-        self.lineEdit_filter.textChanged.connect(self.on_filter_changed)
+        self.lineEdit_filter.textEdited.connect(self.on_filter_changed)
         self.comboBox_level.currentIndexChanged.connect(
             self.on_filter_changed)
         self.toolButton_dir.clicked.connect(self.on_log_dir_open)

@@ -1,4 +1,5 @@
 0.17.2
+ - fix: not all resource name edits were recognized in upload dialog (#84)
  - fix: check for existence of DC resources before starting uploads (#85)
  - enh: sort resources according to internal basin dependencies (#79)
  - enh: warn user about too many resources in a dataset (#86)

@@ -113,13 +113,13 @@ class UploadDialog(QtWidgets.QDialog):
         self.toolButton_rem.clicked.connect(self.on_rem_resources)
         self.pushButton_proceed.clicked.connect(self.on_proceed)
         # resource-related signals
-        self.lineEdit_res_filename.textChanged.connect(
+        self.lineEdit_res_filename.textEdited.connect(
             self.on_update_resources_model)
         self.widget_schema.schema_changed.connect(
             self.on_update_resources_model)
         self.selModel.selectionChanged.connect(self.on_selection_changed)
         # do not allow to proceed without a title
-        self.lineEdit_authors.textChanged.connect(self.on_authors_edited)
+        self.lineEdit_authors.textEdited.connect(self.on_authors_edited)
         self.on_authors_edited("")  # initial state
         # if the user changes the preset combobox text, offer them
         # to save it as a preset
@@ -408,9 +408,7 @@ class UploadDialog(QtWidgets.QDialog):
             self.groupBox_res_info.show()
             # populate
             path, data = self.rvmodel.get_data_for_index(sel[0])
-            self.lineEdit_res_filename.blockSignals(True)
             self.lineEdit_res_filename.setText(data["file"]["filename"])
-            self.lineEdit_res_filename.blockSignals(False)
             self.lineEdit_res_path.setText(path)
         else:  # hide resource options
             self.groupBox_res_info.hide()
@@ -440,11 +438,18 @@ class UploadDialog(QtWidgets.QDialog):
             fn = self.lineEdit_res_filename.text()
             if not fn.endswith(suffix):
                 fn += suffix
-                self.lineEdit_res_filename.blockSignals(True)
                 self.lineEdit_res_filename.setText(fn)
-                self.lineEdit_res_filename.blockSignals(False)
-            if fn != path.name:  # only update filename if user changed it
-                data_dict["file"] = {"filename": fn}
+            # In DCOR-Aid <= 0.17.1, we had an additional check for whether
+            # the `path` in the model is different to `fn`. There probably
+            # were race conditions which caused the model to be updated
+            # while we were checking this here. So the solution is to not
+            # check for changes and always pass through the user input. We
+            # also moved away from `textChanged` signals to `textEdited`
+            # signals. `textEdited` means user-edited while `textChanged`
+            # also includes programmatical changes (we used to block signals
+            # for the lineEdit which we now don't have to do anymore).
+            # See issue #84.
+            data_dict["file"] = {"filename": fn}
         # collect supplementary resource data
         schema = self.widget_schema.get_current_schema()
         if schema:  # only update supplement if user made changes
