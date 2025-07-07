@@ -115,6 +115,7 @@ class UploadDialog(QtWidgets.QDialog):
         # resource-related signals
         self.lineEdit_res_filename.textEdited.connect(
             self.on_update_resources_model)
+        self.toolButton_res_filename.clicked.connect(self.on_reset_filename)
         self.widget_schema.schema_changed.connect(
             self.on_update_resources_model)
         self.selModel.selectionChanged.connect(self.on_selection_changed)
@@ -397,6 +398,14 @@ class UploadDialog(QtWidgets.QDialog):
         sel = self.listView_resources.selectedIndexes()
         self.rvmodel.rem_resources(sel)
         self.listView_resources.clearSelection()
+
+    @QtCore.pyqtSlot()
+    def on_reset_filename(self):
+        """Reset the filename of the current resource"""
+        sel = self.listView_resources.selectedIndexes()
+        self.rvmodel.reset_filenames(sel)
+        # update lineEdit_res_filename
+        self.on_selection_changed()
 
     @QtCore.pyqtSlot()
     def on_selection_changed(self):

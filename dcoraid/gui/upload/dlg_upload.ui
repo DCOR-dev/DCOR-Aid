@@ -296,10 +296,10 @@
              <bool>false</bool>
             </property>
             <property name="selectionMode">
-             <enum>QAbstractItemView::ExtendedSelection</enum>
+             <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
             </property>
             <property name="selectionBehavior">
-             <enum>QAbstractItemView::SelectRows</enum>
+             <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
             </property>
            </widget>
           </item>
@@ -377,10 +377,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QToolButton" name="toolButton">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
+                <widget class="QToolButton" name="toolButton_res_filename">
                  <property name="acceptDrops">
                   <bool>false</bool>
                  </property>
@@ -531,10 +528,10 @@
                    <string notr="true">color:#888</string>
                   </property>
                   <property name="frameShadow">
-                   <enum>QFrame::Plain</enum>
+                   <enum>QFrame::Shadow::Plain</enum>
                   </property>
                   <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
+                   <enum>Qt::Orientation::Horizontal</enum>
                   </property>
                  </widget>
                 </item>
@@ -550,10 +547,10 @@
                    <bool>false</bool>
                   </property>
                   <property name="frameShape">
-                   <enum>QFrame::NoFrame</enum>
+                   <enum>QFrame::Shape::NoFrame</enum>
                   </property>
                   <property name="frameShadow">
-                   <enum>QFrame::Plain</enum>
+                   <enum>QFrame::Shadow::Plain</enum>
                   </property>
                   <property name="lineWidth">
                    <number>0</number>
@@ -566,8 +563,8 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>494</width>
-                     <height>575</height>
+                     <width>509</width>
+                     <height>557</height>
                     </rect>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -616,10 +613,10 @@
       <bool>false</bool>
      </property>
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel</set>
+      <set>QDialogButtonBox::StandardButton::Apply|QDialogButtonBox::StandardButton::Cancel</set>
      </property>
     </widget>
    </item>

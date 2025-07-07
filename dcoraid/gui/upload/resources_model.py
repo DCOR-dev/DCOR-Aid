@@ -1,3 +1,4 @@
+import collections
 import re
 from collections import OrderedDict
 import copy
@@ -29,7 +30,18 @@ class ResourcesModel(QtCore.QAbstractListModel):
         """
         for ff in rslist:
             if ff not in self.resources:  # avoid adding the same file twice
-                self.resources[ff] = {}
+                # initialize file metadata
+                data = {"file": {}}
+                path = pathlib.Path(ff)
+                fname = path.name
+                if re.match("M[0-9]*_data.rtdc", fname):
+                    # We have M0001_data.rtdc. Get the file name from the
+                    # directory above so the user does not have to manually
+                    # rename everything
+                    fname = f"{path.parent.name}_{fname}"
+                data["file"]["filename"] = job.valid_resource_name(fname)
+                data["file"]["filename_init"] = data["file"]["filename"]
+                self.resources[ff] = data
                 self.layoutChanged.emit()
 
     def data(self, index, role=QtCore.Qt.ItemDataRole.DisplayRole):
@@ -80,7 +92,7 @@ class ResourcesModel(QtCore.QAbstractListModel):
 
     def get_all_data(self, magic_keys=True):
         """Return dictionary with complete information for all resources"""
-        data = {}
+        data = collections.OrderedDict()
         for ii, path in enumerate(self.resources.keys()):
             data[path] = self.get_data_for_row(ii, magic_keys=magic_keys)[1]
         return data
@@ -111,17 +123,6 @@ class ResourcesModel(QtCore.QAbstractListModel):
         """Return the complete information dictionary for this row index"""
         rfile = self.get_file_list()[row]
         data = copy.deepcopy(self.resources[rfile])
-        if "file" not in data:
-            data["file"] = {}
-        if "filename" not in data["file"]:
-            path = pathlib.Path(rfile)
-            fname = path.name
-            if re.match("M[0-9]*_data.rtdc", "M0001_data.rtdc"):
-                # We have M0001_data.rtdc. Get the file name from the
-                # directory above so the user does not have to manually
-                # rename everything
-                fname = f"{path.parent.name}_{fname}"
-            data["file"]["filename"] = job.valid_resource_name(fname)
         if "supplement" not in data:
             data["supplement"] = {}
         if not magic_keys:
@@ -169,6 +170,16 @@ class ResourcesModel(QtCore.QAbstractListModel):
                 self.resources.pop(pp)
         self.layoutChanged.emit()
 
+    def reset_filenames(self, indexes):
+        """Reset the file names of the resources in list of index instances"""
+        resource_keys = list(self.resources.keys())
+        ids = [idx.row() for idx in indexes]
+        for index in ids:
+            key = resource_keys[index]
+            self.resources[key]["file"]["filename"] = \
+                self.resources[key]["file"]["filename_init"]
+        self.layoutChanged.emit()
+
     def rowCount(self, index=None):
         """Return number of resources"""
         return len(self.resources)
@@ -181,7 +192,7 @@ class ResourcesModel(QtCore.QAbstractListModel):
         elif len(indexes) == 1 and "file" in data_dict:
             # update the name
             pp = self.get_filename_from_index(indexes[0])
-            self.resources[pp].update({"file": data_dict["file"]})
+            self.resources[pp]["file"].update(data_dict["file"])
 
         if "supplement" in data_dict:
             for idx in indexes:
