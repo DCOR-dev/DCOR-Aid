@@ -1,3 +1,6 @@
+0.17.3
+ - docs: increase warning threshold for max number of resources to 1000
+   (CKAN 2.11.3 handles datasets with many resources much better)
 0.17.2
  - fix: not all resource name edits were recognized in upload dialog (#84)
  - fix: check for existence of DC resources before starting uploads (#85)

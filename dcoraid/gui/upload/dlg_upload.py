@@ -317,7 +317,7 @@ class UploadDialog(QtWidgets.QDialog):
 
         # If the user uploads A LOT of resources in a dataset, we should
         # warn them about possible performance penalties.
-        max_num_res = 100
+        max_num_res = 1000
         if len(paths) > max_num_res:
             choice = QtWidgets.QMessageBox.question(
                 self, "Unusually large number of resources specified",
