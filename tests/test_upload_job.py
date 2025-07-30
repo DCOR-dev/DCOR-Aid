@@ -5,6 +5,7 @@ import shutil
 import tempfile
 import time
 from unittest import mock
+import uuid
 import warnings
 
 import pytest
@@ -72,6 +73,31 @@ def test_check_existence_for_dc_resource_control(tmp_path):
                        dataset_id=dataset_dict["id"],
                        resource_paths=list(tmp_path.glob("*")))
     assert len(uj.paths) == 2
+
+
+def test_collection():
+    api = common.get_api()
+    # create some metadata
+    collection = f"test-collection-{uuid.uuid4()}"
+    bare_dict = common.make_dataset_dict(hint="create-with-resource"
+                                         )
+    # create dataset (to get the "id")
+    dataset_dict = dataset_create(dataset_dict=bare_dict, api=api)
+    uj = job.UploadJob(api=api,
+                       dataset_id=dataset_dict["id"],
+                       resource_paths=rtdc_paths,
+                       collections=[collection],
+                       )
+    assert uj.state == "init"
+    uj.task_compress_resources()
+    assert uj.state == "parcel"
+    uj.task_upload_resources()
+    assert uj.state == "online"
+
+    common.wait_for_job_no_queue(uj)
+
+    ds_dict = api.get("package_show", id=uj.dataset_id)
+    assert ds_dict["groups"][0]["name"] == collection
 
 
 def test_resource_name_characters():

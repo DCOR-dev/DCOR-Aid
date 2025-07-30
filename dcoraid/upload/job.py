@@ -11,7 +11,7 @@ import dclab
 from dclab.rtdc_dataset.check import IntegrityChecker
 from dclab.cli import compress
 
-from ..api import dataset_activate, resource_add, resource_exists
+from ..api import CKANAPI, dataset_activate, resource_add, resource_exists
 from ..common import is_dc_file, sha256sum
 
 
@@ -48,9 +48,15 @@ VALID_RESOURCE_REGEXP = r"^[a-zA-Z0-9\.,\-_\+\(\)\[\]]+$"
 
 
 class UploadJob:
-    def __init__(self, api, dataset_id, resource_paths,
-                 resource_names=None, resource_supplements=None,
-                 task_id=None, cache_dir=None):
+    def __init__(self,
+                 api: CKANAPI,
+                 dataset_id: str,
+                 resource_paths: list[str | pathlib.Path],
+                 resource_names: list[str] = None,
+                 resource_supplements: list[dict] = None,
+                 collections: list[str] = None,
+                 task_id: str = None,
+                 cache_dir: str | pathlib.Path = None):
         """Wrapper for resource uploads
 
         This job is meant to be run from a separate thread.
@@ -73,6 +79,9 @@ class UploadJob:
             on DCOR
         resource_supplements: list of dict
             Supplementary resource information
+        collections: list of strings
+            List of unique identifiers of collections that this
+            dataset should be appended to
         task_id: str
             Unique task ID (used for identifying jobs uploaded already)
         cache_dir: str or pathlib.Path
@@ -86,6 +95,16 @@ class UploadJob:
 
         self.api = api.copy()  # create a copy of the API
         self.dataset_id = dataset_id
+        self.collections = []
+        # add dataset to collections
+        for col in collections or []:
+            col_dict = self.api.require_collection(col)
+            self.collections.append(col_dict)
+        if self.collections:
+            revise_dict = {
+                "match": {"id": dataset_id},
+                "update": {"groups": self.collections}}
+            api.post("package_revise", revise_dict)
 
         # Check whether at least one DC resource is present in the list.
         # This is a hard DCOR requirement.

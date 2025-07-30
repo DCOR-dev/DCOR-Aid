@@ -88,6 +88,7 @@ def make_upload_task(task_id=True,  # tester may pass `None` to disable
                      resource_paths=None,
                      resource_names=None,
                      resource_supplements=None,
+                     collections=None,
                      ):
     """Return path to example task file"""
     if resource_paths is None:
@@ -100,6 +101,8 @@ def make_upload_task(task_id=True,  # tester may pass `None` to disable
         dataset_dict = make_dataset_dict(hint="task_test")
     if dataset_dict and dataset_id is None:
         dataset_id = dataset_dict.get("id")
+    if collections is None:
+        collections = []
     td = pathlib.Path(tempfile.mkdtemp(prefix="task_"))
     # copy resources there
     new_resource_paths = []
@@ -117,6 +120,7 @@ def make_upload_task(task_id=True,  # tester may pass `None` to disable
         "resource_paths": [str(pp) for pp in new_resource_paths],
         "resource_names": resource_names,
         "resource_supplements": resource_supplements,
+        "collections": collections,
     }
     data = {"upload_job": uj_state}
     if dataset_dict:

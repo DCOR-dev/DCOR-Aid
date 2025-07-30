@@ -430,3 +430,23 @@ class CKANAPI:
                             timeout=timeout)
         resp = self.handle_response(req, api_call)
         return resp["result"]
+
+    def require_collection(self,
+                           name: str,
+                           title: str = None):
+        """Return a collection dict with the given name and optional title
+
+        The collection is created if it does not exist already. If the
+        collection already exists, `title` is ignored.
+        """
+        # check whether the group exists
+        try:
+            col_dict = self.get("group_show", id=name)
+        except APINotFoundError:
+            # Create non-existent group
+            self.post("group_create",
+                      data={"name": name,
+                            "title": title or name,
+                            })
+            col_dict = self.get("group_show", id=name)
+        return col_dict

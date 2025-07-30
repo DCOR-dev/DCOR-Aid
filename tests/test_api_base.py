@@ -1,4 +1,5 @@
 import time
+import uuid
 
 import pytest
 
@@ -35,6 +36,23 @@ def test_api_requests_cache_with_parameters():
         api.get("organization_list_for_user", permission="create_dataset")
     t2 = time.perf_counter()
     assert (t1 - t0) > (t2 - t1)
+
+
+def test_require_collection():
+    """Test creating a collection"""
+    api = common.get_api()
+    name = f"test-collection-{uuid.uuid4()}"
+    title = f"Test Collection {name[-5:]}"
+
+    # create collection
+    col_dict = api.require_collection(name=name, title=title)
+    assert col_dict["name"] == name
+    assert col_dict["title"] == title
+
+    # retrieve collection, title is ignored
+    col_dict2 = api.require_collection(name=name, title="RANDOM")
+    assert col_dict2["name"] == name
+    assert col_dict2["title"] == title
 
 
 @pytest.mark.parametrize("server,api_server", [

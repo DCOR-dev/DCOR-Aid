@@ -59,6 +59,30 @@ def test_create_task():
     assert ddict["resources"][1]["size"] == 6
 
 
+def test_collection():
+    api = common.get_api()
+    collection = f"test-collection-{uuid.uuid4()}"
+    # post dataset creation request
+    task_path = common.make_upload_task(
+        resource_paths=[str(dpath)],
+        resource_names=[dpath.name],
+        collections=[collection],
+    )
+    uj = task.load_task(task_path, api=api)
+    uj.task_compress_resources()
+    uj.task_upload_resources()
+    uj.task_verify_resources()
+    common.wait_for_job_no_queue(uj)
+
+    # now make sure the collection was set correctly
+    ds_dict = api.get("package_show", id=uj.dataset_id)
+    assert ds_dict["groups"][0]["name"] == collection
+    # TODO: There is a bug in CKAN that does not allow listing group datasets
+    # https://github.com/ckan/ckan/issues/9052
+    # col_dict = api.get("group_show", id=collection, include_datasets=True)
+    # assert col_dict["packages"][0]["id"] == ds_dict["id"]
+
+
 def test_custom_dataset_dict():
     api = common.get_api()
     # post dataset creation request
@@ -111,7 +135,7 @@ def test_dataset_id_already_exists_active_fails():
     uj.task_compress_resources()
     assert uj.state == "parcel"
     with pytest.raises(dcoraid.api.APIAuthorizationError,
-                       match=""):
+                       match=None):
         uj.task_upload_resources()
 
 
