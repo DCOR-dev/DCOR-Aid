@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt
 
 class DragTableWidget(QtWidgets.QTableWidget):
     def mouseMoveEvent(self, e):
-        if e.buttons() != Qt.LeftButton:
+        if e.buttons() != Qt.MouseButton.LeftButton:
             return
 
         urls = []
