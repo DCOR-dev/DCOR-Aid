@@ -141,7 +141,7 @@ class FilterResources(filter_base.FilterBase):
         self.tableWidget.setDragDropMode(
             QtWidgets.QAbstractItemView.DragDropMode.DragOnly)
         self.label_info.setText("<i>Tip: You can drag and drop your selection "
-                                "from the resources list to Shape-Out!</i>")
+                                "from the resources list to DCscope!</i>")
 
     def get_entry_actions(self, row, entry):
         api = get_ckan_api()

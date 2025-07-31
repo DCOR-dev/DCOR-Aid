@@ -169,7 +169,7 @@ if __name__ == "__main__":
         directories = sorted(set(directories))
         fd.write(index.format(directories=",".join(
             ["dcoraid"] + directories)))
-        # Shape-Out icons
+        # DCOR-Aid icons
         fd.write(index_item.format(directory="dcoraid", res="16"))
         # theme icons
         for dd in directories:
