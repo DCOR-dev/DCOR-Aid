@@ -6,7 +6,7 @@
 #define MyzmAppName "DCOR-Aid"
 #define MyAppVersion "0.1.0"
 #define MyAppPublisher "DCOR Developers"
-#define MyAppURL "https://dcor.mpl.mpg.de"
+#define MyAppURL "https://dc-cosmos.org"
 #define MyAppPlatform "win32"
 #define MyAppExeName "DCOR-Aid.exe"
 #define MyAppDir = SourcePath + "dist\DCOR-Aid\"

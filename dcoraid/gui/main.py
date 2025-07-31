@@ -55,7 +55,7 @@ class DCORAid(QtWidgets.QMainWindow):
         # Some promoted widgets need the below constants set in order
         # to access the settings upon initialization.
         QtCore.QCoreApplication.setOrganizationName("DCOR")
-        QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+        QtCore.QCoreApplication.setOrganizationDomain("dc-cosmos.org")
         QtCore.QCoreApplication.setApplicationName("dcoraid")
         QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
 

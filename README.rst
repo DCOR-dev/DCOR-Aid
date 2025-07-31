@@ -4,7 +4,7 @@
 |PyPI Version| |Build Status| |Coverage Status|
 
 
-DCOR-Aid is a GUI for managing data on DCOR (https://dcor.mpl.mpg.de).
+DCOR-Aid is a GUI for managing data on DCOR (https://dc.readthedocs.io).
 
 
 Installation
