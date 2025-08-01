@@ -20,4 +20,4 @@ class DragTableWidget(QtWidgets.QTableWidget):
         drag.setHotSpot(e.pos() - self.rect().topLeft())
 
         # This magic is somehow required to get drag working.
-        dropAction = drag.exec(Qt.CopyAction)  # noqa: F841
+        dropAction = drag.exec(Qt.DropAction.CopyAction)  # noqa: F841
