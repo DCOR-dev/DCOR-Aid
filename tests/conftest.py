@@ -23,7 +23,7 @@ pytest_plugins = ["pytest-qt"]
 def cleanup_dcoraid_tasks():
     # disable update checking
     QtCore.QCoreApplication.setOrganizationName("DCOR")
-    QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+    QtCore.QCoreApplication.setOrganizationDomain("dc-cosmos.org")
     QtCore.QCoreApplication.setApplicationName("dcoraid")
     # remove persistent upload jobs
     shelf_path = os_path.join(
@@ -45,7 +45,7 @@ def pytest_configure(config):
     """This is run before all tests"""
     # disable update checking
     QtCore.QCoreApplication.setOrganizationName("DCOR")
-    QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+    QtCore.QCoreApplication.setOrganizationDomain("dc-cosmos.org")
     QtCore.QCoreApplication.setApplicationName("dcoraid")
     QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
@@ -67,7 +67,7 @@ def pytest_unconfigure(config):
     called before test process is exited.
     """
     QtCore.QCoreApplication.setOrganizationName("DCOR")
-    QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+    QtCore.QCoreApplication.setOrganizationDomain("dc-cosmos.org")
     QtCore.QCoreApplication.setApplicationName("dcoraid")
     QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()

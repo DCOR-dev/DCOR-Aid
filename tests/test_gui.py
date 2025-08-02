@@ -22,7 +22,7 @@ def mw(qtbot):
     # Always set server correctly, because there is a test that
     # makes sure DCOR-Aid starts with a wrong server.
     QtCore.QCoreApplication.setOrganizationName("DCOR")
-    QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+    QtCore.QCoreApplication.setOrganizationDomain("dc-cosmos.org")
     QtCore.QCoreApplication.setApplicationName("dcoraid")
     QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
@@ -55,7 +55,7 @@ def mw(qtbot):
 def test_gui_anonymous(qtbot):
     """Start DCOR-Aid in anonymous mode"""
     QtCore.QCoreApplication.setOrganizationName("DCOR")
-    QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+    QtCore.QCoreApplication.setOrganizationDomain("dc-cosmos.org")
     QtCore.QCoreApplication.setApplicationName("dcoraid")
     QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
@@ -152,7 +152,7 @@ def test_gui_mydata_dataset_add_to_collection(mw, qtbot):
 
 def test_gui_start_with_bad_server(qtbot):
     QtCore.QCoreApplication.setOrganizationName("DCOR")
-    QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+    QtCore.QCoreApplication.setOrganizationDomain("dc-cosmos.org")
     QtCore.QCoreApplication.setApplicationName("dcoraid")
     QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
@@ -182,7 +182,7 @@ def test_gui_start_with_bad_server(qtbot):
 
 def test_gui_start_with_bad_api_key(qtbot):
     QtCore.QCoreApplication.setOrganizationName("DCOR")
-    QtCore.QCoreApplication.setOrganizationDomain("dcor.mpl.mpg.de")
+    QtCore.QCoreApplication.setOrganizationDomain("dc-cosmos.org")
     QtCore.QCoreApplication.setApplicationName("dcoraid")
     QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
