@@ -1,6 +1,8 @@
 0.17.3
- - fix: Drag'n'Drop to DCscope broken since 0.17.0 (#88)
+ - fix: drag'n'drop to DCscope broken since 0.17.0 (#88)
  - fix: show long resource names with elide-middle and tool tip (#89)
+ - fix: error message dialog limited to traceback length of three
+ - fix: copy error text to clipboard did not work in error message dialog
  - enh: allow specifying collections in upload task files and via the API
  - docs: increase warning threshold for max number of resources to 1000
    (CKAN 2.11.3 handles datasets with many resources much better)

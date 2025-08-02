@@ -265,12 +265,13 @@ def excepthook(etype, value, trace):
         call last)``.
     """
     vinfo = f"Unhandled exception in DCOR-Aid version {__version__}:\n"
-    tmp = tb.format_exception(etype, value, trace)
-    exception = "".join([vinfo] + tmp)
+    exc_long = "".join([vinfo] + tb.format_exception(etype, value, trace))
+    exc_short = "".join([vinfo] + tb.format_exception(
+        etype, value, trace, limit=3))
 
     # log the exception
     logger = logging.getLogger(__name__)
-    logger.error(exception)
+    logger.error(exc_long)
 
     # Test connectivity
     if etype is APIOutdatedError:
@@ -283,16 +284,20 @@ def excepthook(etype, value, trace):
 
     errorbox = QtWidgets.QMessageBox()
     errorbox.setIcon(QtWidgets.QMessageBox.Icon.Critical)
+    copy_button = QtWidgets.QPushButton('Copy message to clipboard and close')
+    copy_button.clicked.connect(lambda: copy_text_to_clipboard(exc_long))
     errorbox.addButton(QtWidgets.QPushButton('Close'),
                        QtWidgets.QMessageBox.ButtonRole.YesRole)
-    errorbox.addButton(QtWidgets.QPushButton(
-        'Copy text && Close'), QtWidgets.QMessageBox.ButtonRole.NoRole)
-    errorbox.setText(exception)
-    ret = errorbox.exec()
-    if ret == 1:
-        cb = QtWidgets.QApplication.clipboard()
-        cb.clear(mode=cb.Clipboard)
-        cb.setText(exception)
+    errorbox.addButton(copy_button, QtWidgets.QMessageBox.ButtonRole.NoRole)
+    errorbox.setDetailedText(exc_long)
+    errorbox.setText(exc_short)
+    errorbox.exec()
+
+
+def copy_text_to_clipboard(text):
+    cb = QtWidgets.QApplication.clipboard()
+    cb.clear()
+    cb.setText(text)
 
 
 # Make Ctr+C close the app
