@@ -1,6 +1,7 @@
 0.17.3
  - fix: upadte Qt.CopyAction usage for PyQt6 (#88)
  - fix: update Qt.LeftButton usage for PyQt6 (#88)
+ - fix: show long resource names with elide-middle and tool tip (#89)
  - enh: allow specifying collections in upload task files and via the API
  - docs: increase warning threshold for max number of resources to 1000
    (CKAN 2.11.3 handles datasets with many resources much better)

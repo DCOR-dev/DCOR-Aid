@@ -43,6 +43,8 @@ class FilterBase(QtWidgets.QWidget):
             QtWidgets.QAbstractItemView.DragDropMode.NoDragDrop)
         self.tableWidget.setDefaultDropAction(
             QtCore.Qt.DropAction.IgnoreAction)  # no drop by default
+        self.tableWidget.horizontalHeader().setSectionResizeMode(
+            0, QtWidgets.QHeaderView.ResizeMode.Stretch)
 
     def get_entry_actions(self, row, entry):
         """This is defined in the subclasses (Circle, Collection, etc)"""
@@ -88,11 +90,6 @@ class FilterBase(QtWidgets.QWidget):
         horz_layout = QtWidgets.QHBoxLayout(widact)
         horz_layout.setContentsMargins(2, 0, 2, 0)
 
-        spacer = QtWidgets.QSpacerItem(0, 0,
-                                       QtWidgets.QSizePolicy.Policy.Expanding,
-                                       QtWidgets.QSizePolicy.Policy.Minimum)
-        horz_layout.addItem(spacer)
-
         for action in self.get_entry_actions(row, entry):
             tbact = QtWidgets.QToolButton(widact)
             icon = QtGui.QIcon.fromTheme(action["icon"])
@@ -115,4 +112,6 @@ class FilterBase(QtWidgets.QWidget):
         """
         item = QtWidgets.QTableWidgetItem()
         item.setText(entry.get("title") or entry["name"])
+        item.setToolTip(entry.get("title") or entry["name"])
+        item.setStatusTip(entry.get("title") or entry["name"])
         self.tableWidget.setItem(row, 0, item)
