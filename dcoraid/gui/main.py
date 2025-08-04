@@ -128,6 +128,7 @@ class DCORAid(QtWidgets.QMainWindow):
 
         self.status_widget.request_status_update()
 
+    @QtCore.pyqtSlot(QtCore.QEvent)
     def closeEvent(self, event):
         root_logger = logging.getLogger()
         while len(root_logger.handlers) > 0:
@@ -179,6 +180,7 @@ class DCORAid(QtWidgets.QMainWindow):
                 QtCore.Q_ARG(str, ghrepo),
             )
 
+    @QtCore.pyqtSlot(dict)
     def on_action_check_update_finished(self, mdict):
         # cleanup
         self._update_thread.quit()
