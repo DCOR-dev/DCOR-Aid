@@ -38,20 +38,16 @@ class DBExtract:
             The dataset dictionary or the name or the id of the dataset
         """
         if isinstance(item, dict):
-            id_name = item["id"]
+            name_or_id = item["id"]
         else:
-            id_name = item
-        if len(id_name) == 36:  # minor optimization
-            # we probably have a UUID
-            return id_name in self.registry_id or id_name in self.registry
-        else:
-            return id_name in self.registry
+            name_or_id = item
+        return name_or_id in self.registry_id or name_or_id in self.registry
 
-    def __getitem__(self, idx_or_name):
-        if isinstance(idx_or_name, numbers.Integral):
-            return self.datasets[idx_or_name]
+    def __getitem__(self, idx_or_name_or_id):
+        if isinstance(idx_or_name_or_id, numbers.Integral):
+            return self.datasets[idx_or_name_or_id]
         else:
-            return self.get_dataset_dict(idx_or_name)
+            return self.get_dataset_dict(idx_or_name_or_id)
 
     def __len__(self):
         return len(self.datasets)
@@ -59,11 +55,11 @@ class DBExtract:
     def __iter__(self):
         return iter(self.datasets)
 
-    def add_datasets(self, datasets):
+    def add_datasets(self, datasets: list[dict]):
         for dd in datasets:
-            name = dd["name"]
-            if name not in self.registry:  # datasets must only be added once
-                self.registry[name] = dd
+            if dd not in self:  # dataset must only be added once
+                self.registry_id[dd["id"]] = dd
+                self.registry[dd["name"]] = dd
                 self.datasets.append(dd)
 
     @property
@@ -97,5 +93,10 @@ class DBExtract:
                 coll_list, key=lambda x: x.get("title") or x["name"])
         return self._collections
 
-    def get_dataset_dict(self, dataset_name):
-        return self.registry[dataset_name]
+    def get_dataset_dict(self, name_or_id):
+        if name_or_id in self.registry:
+            return self.registry[name_or_id]
+        elif name_or_id in self.registry_id:
+            return self.registry_id[name_or_id]
+        else:
+            raise KeyError(f"Could not find name or id '{name_or_id}")
