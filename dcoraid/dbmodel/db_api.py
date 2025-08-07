@@ -1,9 +1,20 @@
+from itertools import islice
+import sys
 import urllib.parse
 
 import numpy as np
 
 from .db_core import DBInterrogator
 from .extract import DBExtract
+
+
+if sys.version_info >= (3, 12):
+    from itertools import batched
+else:
+    def batched(iterable, chunk_size):
+        iterator = iter(iterable)
+        while chunk := tuple(islice(iterator, chunk_size)):
+            yield chunk
 
 
 class APIInterrogator(DBInterrogator):
@@ -61,14 +72,24 @@ class APIInterrogator(DBInterrogator):
     def get_datasets_user_shared(self):
         """Return datasets shared with the user"""
         assert self.mode == "user"
-        # perform a dataset search with all circles and collections
-        dbextract = self.search_dataset(
-            circles=self.get_circles(),
-            collections=self.get_collections(),
-            circle_collection_union=True,
-            filter_queries=[f"-creator_user_id:{self.api.user_id}"],
-            limit=0,
-        )
+        # Perform a dataset search with all circles and collections.
+        # This search may become too large (414 Request-URI Too Large).
+        # Limit the search to 20 circles/collections.
+        dbextract = DBExtract()
+
+        for circles_batch in batched(self.get_circles(), 20):
+            dbextract += self.search_dataset(
+                circles=list(circles_batch),
+                filter_queries=[f"-creator_user_id:{self.api.user_id}"],
+                limit=0,
+                )
+
+        for collections_batch in batched(self.get_collections(), 20):
+            dbextract += self.search_dataset(
+                collections=list(collections_batch),
+                filter_queries=[f"-creator_user_id:{self.api.user_id}"],
+                limit=0,
+                )
 
         # all packages the user is a collaborator in
         collaborated = self.api.get("package_collaborator_list_for_user",
@@ -114,7 +135,7 @@ class APIInterrogator(DBInterrogator):
         circle_collection_union: bool
             If set to True, make a union of the circle and collection
             sets. Otherwise (default), search only for datasets that
-            are are at least member of one of the circles and one of the
+            are at least member of one of the circles and one of the
             collections.
         limit: int
             limit number of search results; Set to 0 to get all results
