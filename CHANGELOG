@@ -3,6 +3,7 @@
  - fix: `get_datasets_user_shared` failed when many circles/collections exist
  - enh: allow to disable update check on startup via settings
  - ref: decorate PyQtSlots
+ - tests: restore previous users settings after testing
 0.17.3
  - fix: drag'n'drop to DCscope broken since 0.17.0 (#88)
  - fix: show long resource names with elide-middle and tool tip (#89)

@@ -17,7 +17,11 @@ from . import common
 TMPDIR = tempfile.mkdtemp(prefix=time.strftime(
     "dcoraid_test_%H.%M_"))
 
+# settings before testing
+USER_SETTINGS = {}
+
 pytest_plugins = ["pytest-qt"]
+
 
 
 def cleanup_dcoraid_tasks():
@@ -49,10 +53,19 @@ def pytest_configure(config):
     QtCore.QCoreApplication.setApplicationName("dcoraid")
     QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
-    settings.setValue("check for updates", "0")
-    settings.setValue("user scenario", "dcor-dev")
-    settings.setValue("auth/server", common.SERVER)
-    settings.setValue("auth/api key", common.get_api_key())
+    change_settings = {
+        "check for updates": "0",
+        "user scenario": "dcor-dev",
+        "auth/server": common.SERVER,
+        "auth/api key": common.get_api_key(),
+    }
+    for key, value in change_settings.items():
+        old_value = settings.value(key, None)
+        if old_value is not None:
+            USER_SETTINGS[key] = old_value
+
+        settings.setValue(key, value)
+    # removing timers breaks the user workflow, so it is not in change_settings
     settings.setValue("debug/without timers", "1")
     settings.sync()
     # cleanup
@@ -71,8 +84,10 @@ def pytest_unconfigure(config):
     QtCore.QCoreApplication.setApplicationName("dcoraid")
     QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
+    for key in USER_SETTINGS:
+        settings.setValue(key, USER_SETTINGS[key])
+    # always remove this setting, because it breaks the user workflow
     settings.remove("debug/without timers")
-    settings.remove("check for updates")
     settings.sync()
     # cleanup
     cleanup_dcoraid_tasks()
