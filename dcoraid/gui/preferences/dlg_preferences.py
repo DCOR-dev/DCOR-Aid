@@ -32,7 +32,8 @@ class PreferencesDialog(QtWidgets.QMainWindow):
 
         self.setWindowTitle("DCOR-Aid Preferences")
         # general
-        self.checkBox_check_updates.toggled.connect(self.on_check_for_updates)
+        self.checkBox_check_updates.toggled.connect(
+            self.on_general_check_for_updates)
         # server
         self.show_server.connect(self.on_show_server)
         self.show_user.connect(self.on_show_user)
@@ -46,7 +47,10 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         # uploads
         self.toolButton_uploads_cache_browse.clicked.connect(
             self.on_uploads_browse)
-        self.toolButton_uploads_apply.clicked.connect(self.on_uploads_apply)
+        self.toolButton_uploads_path_apply.clicked.connect(
+            self.on_uploads_path_apply)
+        self.checkBox_upload_write_task_id.toggled.connect(
+            self.on_uploads_write_task_id)
         # downloads
         self.toolButton_downloads_browse.clicked.connect(
             self.on_downloads_browse)
@@ -114,7 +118,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         self.checkBox_upload_write_task_id.blockSignals(False)
 
     @QtCore.pyqtSlot(bool)
-    def on_check_for_updates(self, check_for_updates):
+    def on_general_check_for_updates(self, check_for_updates):
         self.settings.setValue("check for updates",
                                int(bool(check_for_updates)))
 
@@ -203,11 +207,17 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         if path and pathlib.Path(path).exists():
             self.lineEdit_downloads_path.setText(path)
 
-    @QtCore.pyqtSlot()
-    def on_uploads_apply(self):
-        utwdid = int(self.checkBox_upload_write_task_id.isChecked())
-        self.settings.setValue("uploads/update task with dataset id", utwdid)
+    def on_uploads_browse(self):
+        default = self.settings.value("uploads/cache path", ".")
+        path = QtWidgets.QFileDialog.getExistingDirectory(
+            self,
+            "Choose upload cache location",
+            default,
+        )
+        self.lineEdit_uploads_cache.setText(path)
 
+    @QtCore.pyqtSlot()
+    def on_uploads_path_apply(self):
         current = self.settings.value("uploads/cache path", ".")
         path_cache = self.lineEdit_uploads_cache.text()
         self.settings.setValue("uploads/cache path", path_cache)
@@ -219,14 +229,10 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             msg.setWindowTitle("Please restart DCOR-Aid")
             msg.exec()
 
-    def on_uploads_browse(self):
-        default = self.settings.value("uploads/cache path", ".")
-        path = QtWidgets.QFileDialog.getExistingDirectory(
-            self,
-            "Choose upload cache location",
-            default,
-        )
-        self.lineEdit_uploads_cache.setText(path)
+    @QtCore.pyqtSlot(bool)
+    def on_uploads_write_task_id(self, check_for_updates):
+        self.settings.setValue("uploads/update task with dataset id",
+                               int(bool(check_for_updates)))
 
     @QtCore.pyqtSlot()
     def on_show_server(self):

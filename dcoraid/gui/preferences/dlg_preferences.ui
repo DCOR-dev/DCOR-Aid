@@ -228,6 +228,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QToolButton" name="toolButton_uploads_path_apply">
+            <property name="text">
+             <string>Apply</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
         <item>
@@ -255,13 +262,6 @@ dataset identifier assigned to it by CKAN/DCOR.</string>
              </size>
             </property>
            </spacer>
-          </item>
-          <item>
-           <widget class="QToolButton" name="toolButton_uploads_apply">
-            <property name="text">
-             <string>Apply</string>
-            </property>
-           </widget>
           </item>
          </layout>
         </item>

@@ -2,6 +2,7 @@
  - fix: correctly handle dataset IDs and names in `DBExtract`
  - fix: `get_datasets_user_shared` failed when many circles/collections exist
  - enh: allow to disable update check on startup via settings
+ - enh: apply button in upload settings only affects cache location
  - ref: decorate PyQtSlots
  - tests: restore previous users settings after testing
 0.17.3
