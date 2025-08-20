@@ -23,7 +23,6 @@ USER_SETTINGS = {}
 pytest_plugins = ["pytest-qt"]
 
 
-
 def cleanup_dcoraid_tasks():
     # disable update checking
     QtCore.QCoreApplication.setOrganizationName("DCOR")
