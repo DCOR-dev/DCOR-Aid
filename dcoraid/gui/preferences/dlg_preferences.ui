@@ -304,25 +304,8 @@ dataset identifier assigned to it by CKAN/DCOR.</string>
             </property>
            </widget>
           </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
-           <spacer name="horizontalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QToolButton" name="toolButton_downloads_apply">
+           <widget class="QToolButton" name="toolButton_downloads_path_apply">
             <property name="text">
              <string>Apply</string>
             </property>

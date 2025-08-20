@@ -54,8 +54,8 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         # downloads
         self.toolButton_downloads_browse.clicked.connect(
             self.on_downloads_browse)
-        self.toolButton_downloads_apply.clicked.connect(
-            self.on_downloads_apply)
+        self.toolButton_downloads_path_apply.clicked.connect(
+            self.on_downloads_path_apply)
         # account
         self.toolButton_user_update.clicked.connect(self.on_update_user)
 
@@ -193,10 +193,6 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             self.logger.info("Exiting, because user revoked API token.")
             QtWidgets.QApplication.quit()
 
-    def on_downloads_apply(self):
-        path = self.lineEdit_downloads_path.text()
-        self.settings.setValue("downloads/default path", path)
-
     def on_downloads_browse(self):
         default = self.settings.value("downloads/default path", ".")
         path = QtWidgets.QFileDialog.getExistingDirectory(
@@ -206,6 +202,10 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         )
         if path and pathlib.Path(path).exists():
             self.lineEdit_downloads_path.setText(path)
+
+    def on_downloads_path_apply(self):
+        path = self.lineEdit_downloads_path.text()
+        self.settings.setValue("downloads/default path", path)
 
     def on_uploads_browse(self):
         default = self.settings.value("uploads/cache path", ".")
