@@ -31,6 +31,8 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             uic.loadUi(path_ui, self)
 
         self.setWindowTitle("DCOR-Aid Preferences")
+        # general
+        self.checkBox_check_updates.toggled.connect(self.on_check_for_updates)
         # server
         self.show_server.connect(self.on_show_server)
         self.show_user.connect(self.on_show_user)
@@ -54,8 +56,9 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         self.toolButton_user_update.clicked.connect(self.on_update_user)
 
         self.settings = QtCore.QSettings()
-        self.on_uploads_init()
-        self.on_downloads_init()
+        self.init_uploads()
+        self.init_general()
+        self.init_downloads()
 
         self.logger = logging.getLogger(__name__)
 
@@ -80,6 +83,40 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             return True
         else:
             return False
+
+    def init_downloads(self):
+        fallback = QStandardPaths.writableLocation(
+                      QStandardPaths.StandardLocation.DownloadLocation)
+        dl_path = self.settings.value("downloads/default path", fallback)
+        self.lineEdit_downloads_path.setText(dl_path)
+
+    def init_general(self):
+        ck_updates = int(self.settings.value("check for updates", "1"))
+        self.checkBox_check_updates.blockSignals(True)
+        self.checkBox_check_updates.setChecked(bool(ck_updates))
+        self.checkBox_check_updates.blockSignals(False)
+
+    def init_uploads(self):
+        fallback = QStandardPaths.writableLocation(
+                      QStandardPaths.StandardLocation.CacheLocation)
+        cache_path = self.settings.value("uploads/cache path", fallback)
+        if not pathlib.Path(cache_path).exists():
+            cache_path = fallback
+        else:
+            # set it in the settings (in case it's not there)
+            self.settings.setValue("uploads/cache path", cache_path)
+        self.lineEdit_uploads_cache.setText(cache_path)
+
+        utwdid = int(self.settings.value("uploads/update task with dataset id",
+                                         "1"))
+        self.checkBox_upload_write_task_id.blockSignals(True)
+        self.checkBox_upload_write_task_id.setChecked(bool(utwdid))
+        self.checkBox_upload_write_task_id.blockSignals(False)
+
+    @QtCore.pyqtSlot(bool)
+    def on_check_for_updates(self, check_for_updates):
+        self.settings.setValue("check for updates",
+                               int(bool(check_for_updates)))
 
     @QtCore.pyqtSlot()
     def on_toggle_api_password_view(self):
@@ -166,12 +203,6 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         if path and pathlib.Path(path).exists():
             self.lineEdit_downloads_path.setText(path)
 
-    def on_downloads_init(self):
-        fallback = QStandardPaths.writableLocation(
-                      QStandardPaths.StandardLocation.DownloadLocation)
-        dl_path = self.settings.value("downloads/default path", fallback)
-        self.lineEdit_downloads_path.setText(dl_path)
-
     @QtCore.pyqtSlot()
     def on_uploads_apply(self):
         utwdid = int(self.checkBox_upload_write_task_id.isChecked())
@@ -196,24 +227,6 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             default,
         )
         self.lineEdit_uploads_cache.setText(path)
-
-    @QtCore.pyqtSlot()
-    def on_uploads_init(self):
-        fallback = QStandardPaths.writableLocation(
-                      QStandardPaths.StandardLocation.CacheLocation)
-        cache_path = self.settings.value("uploads/cache path", fallback)
-        if not pathlib.Path(cache_path).exists():
-            cache_path = fallback
-        else:
-            # set it in the settings (in case it's not there)
-            self.settings.setValue("uploads/cache path", cache_path)
-        self.lineEdit_uploads_cache.setText(cache_path)
-
-        utwdid = int(self.settings.value("uploads/update task with dataset id",
-                                         "1"))
-        self.checkBox_upload_write_task_id.blockSignals(True)
-        self.checkBox_upload_write_task_id.setChecked(bool(utwdid))
-        self.checkBox_upload_write_task_id.blockSignals(False)
 
     @QtCore.pyqtSlot()
     def on_show_server(self):

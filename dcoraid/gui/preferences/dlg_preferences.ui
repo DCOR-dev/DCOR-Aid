@@ -18,11 +18,38 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="tabPosition">
-       <enum>QTabWidget::North</enum>
+       <enum>QTabWidget::TabPosition::North</enum>
       </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
+      <widget class="QWidget" name="tab_general">
+       <attribute name="title">
+        <string>General</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <widget class="QCheckBox" name="checkBox_check_updates">
+          <property name="text">
+           <string>Check for updates on startup</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="tab_server">
        <attribute name="title">
         <string>Server</string>
@@ -38,7 +65,7 @@
         <item row="5" column="1">
          <spacer name="verticalSpacer">
           <property name="orientation">
-           <enum>Qt::Vertical</enum>
+           <enum>Qt::Orientation::Vertical</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -63,7 +90,7 @@
           <item>
            <spacer name="horizontalSpacer_2">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -84,7 +111,7 @@
         </item>
         <item row="3" column="1">
          <layout class="QGridLayout" name="gridLayout_2">
-          <item row="1" column="0" alignment="Qt::AlignTop">
+          <item row="1" column="0" alignment="Qt::AlignmentFlag::AlignTop">
            <widget class="QToolButton" name="toolButton_api_token_revoke">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -129,7 +156,7 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0" alignment="Qt::AlignTop">
+          <item row="0" column="0" alignment="Qt::AlignmentFlag::AlignTop">
            <widget class="QToolButton" name="toolButton_api_token_renew">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -156,7 +183,7 @@
           <item>
            <widget class="QLineEdit" name="lineEdit_api_key">
             <property name="echoMode">
-             <enum>QLineEdit::PasswordEchoOnEdit</enum>
+             <enum>QLineEdit::EchoMode::PasswordEchoOnEdit</enum>
             </property>
             <property name="placeholderText">
              <string>It's on your profile page when you log in at DCOR via browser.</string>
@@ -169,8 +196,7 @@
              <string>e</string>
             </property>
             <property name="icon">
-             <iconset theme="eye">
-              <normaloff>.</normaloff>.</iconset>
+             <iconset theme="eye"/>
             </property>
            </widget>
           </item>
@@ -220,7 +246,7 @@ dataset identifier assigned to it by CKAN/DCOR.</string>
           <item>
            <spacer name="horizontalSpacer_3">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -242,7 +268,7 @@ dataset identifier assigned to it by CKAN/DCOR.</string>
         <item>
          <spacer name="verticalSpacer_2">
           <property name="orientation">
-           <enum>Qt::Vertical</enum>
+           <enum>Qt::Orientation::Vertical</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -285,7 +311,7 @@ dataset identifier assigned to it by CKAN/DCOR.</string>
           <item>
            <spacer name="horizontalSpacer_4">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -307,7 +333,7 @@ dataset identifier assigned to it by CKAN/DCOR.</string>
         <item>
          <spacer name="verticalSpacer_3">
           <property name="orientation">
-           <enum>Qt::Vertical</enum>
+           <enum>Qt::Orientation::Vertical</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -367,7 +393,7 @@ dataset identifier assigned to it by CKAN/DCOR.</string>
            <string>About</string>
           </property>
           <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
           </property>
          </widget>
         </item>
@@ -379,7 +405,7 @@ dataset identifier assigned to it by CKAN/DCOR.</string>
           <item>
            <spacer name="horizontalSpacer">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
