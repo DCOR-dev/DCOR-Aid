@@ -35,10 +35,11 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         self.toolButton_server_update.clicked.connect(self.on_update_server)
         self.tabWidget.currentChanged.connect(self.on_tab_changed)
         self.toolButton_api_token_renew.clicked.connect(
-            self.on_api_token_renew)
+            self.on_server_api_token_renew)
         self.toolButton_api_token_revoke.clicked.connect(
-            self.on_api_token_revoke)
-        self.toolButton_eye.clicked.connect(self.on_toggle_api_password_view)
+            self.on_server_api_token_revoke)
+        self.toolButton_eye.clicked.connect(
+            self.on_server_toggle_api_password_view)
         # uploads
         self.toolButton_uploads_cache_browse.clicked.connect(
             self.on_uploads_browse)
@@ -112,22 +113,29 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         self.checkBox_upload_write_task_id.setChecked(bool(utwdid))
         self.checkBox_upload_write_task_id.blockSignals(False)
 
+    @QtCore.pyqtSlot()
+    def on_downloads_browse(self):
+        default = self.settings.value("downloads/default path", ".")
+        path = QtWidgets.QFileDialog.getExistingDirectory(
+            self,
+            "Choose download location",
+            default,
+        )
+        if path and pathlib.Path(path).exists():
+            self.lineEdit_downloads_path.setText(path)
+
+    @QtCore.pyqtSlot()
+    def on_downloads_path_apply(self):
+        path = self.lineEdit_downloads_path.text()
+        self.settings.setValue("downloads/default path", path)
+
     @QtCore.pyqtSlot(bool)
     def on_general_check_for_updates(self, check_for_updates):
         self.settings.setValue("check for updates",
                                int(bool(check_for_updates)))
 
     @QtCore.pyqtSlot()
-    def on_toggle_api_password_view(self):
-        cur_em = self.lineEdit_api_key.echoMode()
-        if cur_em == QtWidgets.QLineEdit.EchoMode.Normal:
-            new_em = QtWidgets.QLineEdit.EchoMode.PasswordEchoOnEdit
-        else:
-            new_em = QtWidgets.QLineEdit.EchoMode.Normal
-        self.lineEdit_api_key.setEchoMode(new_em)
-
-    @QtCore.pyqtSlot()
-    def on_api_token_renew(self):
+    def on_server_api_token_renew(self):
         if self.ask_change_server_or_api_key():
             api_key = self.settings.value("auth/api key")
             if len(api_key) == 36:
@@ -164,7 +172,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             QtWidgets.QApplication.quit()
 
     @QtCore.pyqtSlot()
-    def on_api_token_revoke(self):
+    def on_server_api_token_revoke(self):
         if self.ask_change_server_or_api_key():
             api_key = self.settings.value("auth/api key")
             if len(api_key) == 36:
@@ -188,46 +196,14 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             self.logger.info("Exiting, because user revoked API token.")
             QtWidgets.QApplication.quit()
 
-    def on_downloads_browse(self):
-        default = self.settings.value("downloads/default path", ".")
-        path = QtWidgets.QFileDialog.getExistingDirectory(
-            self,
-            "Choose download location",
-            default,
-        )
-        if path and pathlib.Path(path).exists():
-            self.lineEdit_downloads_path.setText(path)
-
-    def on_downloads_path_apply(self):
-        path = self.lineEdit_downloads_path.text()
-        self.settings.setValue("downloads/default path", path)
-
-    def on_uploads_browse(self):
-        default = self.settings.value("uploads/cache path", ".")
-        path = QtWidgets.QFileDialog.getExistingDirectory(
-            self,
-            "Choose upload cache location",
-            default,
-        )
-        self.lineEdit_uploads_cache.setText(path)
-
     @QtCore.pyqtSlot()
-    def on_uploads_path_apply(self):
-        current = self.settings.value("uploads/cache path", ".")
-        path_cache = self.lineEdit_uploads_cache.text()
-        self.settings.setValue("uploads/cache path", path_cache)
-        if path_cache != current:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Warning)
-            msg.setText("In order for the new cache path to be used, please "
-                        "restart DCOR-Aid!")
-            msg.setWindowTitle("Please restart DCOR-Aid")
-            msg.exec()
-
-    @QtCore.pyqtSlot(bool)
-    def on_uploads_write_task_id(self, check_for_updates):
-        self.settings.setValue("uploads/update task with dataset id",
-                               int(bool(check_for_updates)))
+    def on_server_toggle_api_password_view(self):
+        cur_em = self.lineEdit_api_key.echoMode()
+        if cur_em == QtWidgets.QLineEdit.EchoMode.Normal:
+            new_em = QtWidgets.QLineEdit.EchoMode.PasswordEchoOnEdit
+        else:
+            new_em = QtWidgets.QLineEdit.EchoMode.Normal
+        self.lineEdit_api_key.setEchoMode(new_em)
 
     @QtCore.pyqtSlot()
     def on_show_server(self):
@@ -296,6 +272,34 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         update_dict["email"] = self.lineEdit_user_email.text()
         update_dict["about"] = self.plainTextEdit_user_about.toPlainText()
         api.post("user_update", data=update_dict)
+
+    @QtCore.pyqtSlot()
+    def on_uploads_browse(self):
+        default = self.settings.value("uploads/cache path", ".")
+        path = QtWidgets.QFileDialog.getExistingDirectory(
+            self,
+            "Choose upload cache location",
+            default,
+        )
+        self.lineEdit_uploads_cache.setText(path)
+
+    @QtCore.pyqtSlot()
+    def on_uploads_path_apply(self):
+        current = self.settings.value("uploads/cache path", ".")
+        path_cache = self.lineEdit_uploads_cache.text()
+        self.settings.setValue("uploads/cache path", path_cache)
+        if path_cache != current:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("In order for the new cache path to be used, please "
+                        "restart DCOR-Aid!")
+            msg.setWindowTitle("Please restart DCOR-Aid")
+            msg.exec()
+
+    @QtCore.pyqtSlot(bool)
+    def on_uploads_write_task_id(self, check_for_updates):
+        self.settings.setValue("uploads/update task with dataset id",
+                               int(bool(check_for_updates)))
 
     @QtCore.pyqtSlot()
     @show_wait_cursor
