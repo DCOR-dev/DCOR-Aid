@@ -18,9 +18,6 @@ from ..api import get_ckan_api
 
 
 class PreferencesDialog(QtWidgets.QMainWindow):
-    show_server = QtCore.pyqtSignal()
-    show_user = QtCore.pyqtSignal()
-
     def __init__(self, *args, **kwargs):
         """Create a new window for preferences
         """
@@ -35,8 +32,6 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         self.checkBox_check_updates.toggled.connect(
             self.on_general_check_for_updates)
         # server
-        self.show_server.connect(self.on_show_server)
-        self.show_user.connect(self.on_show_user)
         self.toolButton_server_update.clicked.connect(self.on_update_server)
         self.tabWidget.currentChanged.connect(self.on_tab_changed)
         self.toolButton_api_token_renew.clicked.connect(
@@ -243,7 +238,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
         self.comboBox_server.setCurrentText(
             self.settings.value("auth/server", "dcor.mpl.mpg.de"))
         self.lineEdit_api_key.setText(self.settings.value("auth/api key", ""))
-        self.tabWidget.setCurrentIndex(0)  # server settings
+        self.tabWidget.setCurrentWidget(self.tab_server)
         self.lineEdit_api_key.setEchoMode(
             QtWidgets.QLineEdit.EchoMode.PasswordEchoOnEdit)
         self.show()

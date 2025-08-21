@@ -4,6 +4,7 @@
  - enh: allow to disable update check on startup via settings
  - enh: apply button in upload settings only affects cache location
  - enh: move "apply" button in downloads settings next to "browse" button
+ - ref: remove unnecessary custom signals for preferences dialog
  - ref: decorate PyQtSlots
  - tests: restore previous users settings after testing
 0.17.3

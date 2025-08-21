@@ -89,7 +89,7 @@ class DCORAid(QtWidgets.QMainWindow):
         # Disable native menubar (e.g. on Mac)
         self.menubar.setNativeMenuBar(False)
         # File menu
-        self.actionPreferences.triggered.connect(self.dlg_pref.show_server)
+        self.actionPreferences.triggered.connect(self.dlg_pref.show)
         self.actionSetupWizard.triggered.connect(self.on_wizard)
         # Help menu
         self.actionSoftware.triggered.connect(self.on_action_software)
