@@ -113,6 +113,13 @@ class DCORAid(QtWidgets.QMainWindow):
         QtWidgets.QApplication.processEvents(
             QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
+        if self.settings.value("user scenario", "") == "anonymous":
+            # disable tabs that an anonymous user cannot use
+            self.tab_user.setEnabled(False)
+            self.tab_maintain.setEnabled(False)
+            self.tab_upload.setEnabled(False)
+            self.tab_share.setEnabled(False)
+
         # Run wizard if necessary
         if ((self.settings.value("user scenario", "") != "anonymous")
                 and not self.settings.value("auth/api key", "")):

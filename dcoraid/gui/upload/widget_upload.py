@@ -16,7 +16,7 @@ from ...api import APINotFoundError
 from ...upload import queue, task
 
 from ..api import get_ckan_api
-from ..tools import ShowWaitCursor, show_wait_cursor
+from ..tools import ShowWaitCursor
 
 from . import circle_mgr
 from .dlg_upload import NoCircleSelectedError, UploadDialog
@@ -118,7 +118,6 @@ class UploadWidget(QtWidgets.QWidget):
             elif pp.suffix == ".dcoraid-task":
                 self.on_upload_task(pp)
 
-    @show_wait_cursor
     @QtCore.pyqtSlot()
     def initialize(self, retry_if_fail=True):
         if self._jobs is not None:

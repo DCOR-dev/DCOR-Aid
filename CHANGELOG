@@ -1,6 +1,7 @@
 0.17.4
  - fix: correctly handle dataset IDs and names in `DBExtract`
  - fix: `get_datasets_user_shared` failed when many circles/collections exist
+ - enh: improve "anonymous" GUI experience (no busy cursor, disable tabs)
  - enh: allow to disable update check on startup via settings
  - enh: apply button in upload settings only affects cache location
  - enh: move "apply" button in downloads settings next to "browse" button
