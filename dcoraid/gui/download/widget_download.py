@@ -87,7 +87,15 @@ class DownloadWidget(QtWidgets.QWidget):
         fallback = QStandardPaths.writableLocation(
                       QStandardPaths.StandardLocation.DownloadLocation)
         dl_path = self.settings.value("downloads/default path", fallback)
-        self.widget_jobs.jobs.new_job(resource_id, dl_path, condensed)
+        if self.jobs is not None:
+            self.jobs.new_job(resource_id, dl_path, condensed)
+        else:
+            api = get_ckan_api()
+            QtWidgets.QMessageBox.critical(
+                self,
+                f"Connection issue ({api.server})",
+                f"We cannot connect to '{api.server}'. Please make "
+                f"sure you are connected to the network.")
 
     def prepare_quit(self):
         """Should be called before the application quits"""
