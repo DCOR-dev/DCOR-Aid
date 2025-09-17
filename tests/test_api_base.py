@@ -65,3 +65,15 @@ def test_api_server_name(server, api_server):
                            check_ckan_version=False)
     assert api.server == api_server
     assert api.api_url.startswith(api_server)
+
+
+@pytest.mark.parametrize("server,api_hostname", [
+    ("http://localhost:5000", "localhost"),
+    ("https://localhost:5000", "localhost"),
+    ("localhost:5000", "localhost"),
+    ("https://dcor.mpl.mpg.de", "dcor.mpl.mpg.de"),
+])
+def test_api_hostname(server, api_hostname):
+    api = ckan_api.CKANAPI(server=server,
+                           check_ckan_version=False)
+    assert api.hostname == api_hostname

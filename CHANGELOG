@@ -1,5 +1,6 @@
 0.17.5
  - fix: error handling when connection to server fails on download (#75)
+ - enh: add `CKANAPI.hostname`
 0.17.4
  - fix: correctly handle dataset IDs and names in `DBExtract`
  - fix: `get_datasets_user_shared` failed when many circles/collections exist

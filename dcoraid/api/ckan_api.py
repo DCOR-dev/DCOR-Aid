@@ -4,9 +4,11 @@ import copy
 import functools
 import json
 import logging
+import numbers
 import pathlib
 import traceback
-import numbers
+import urllib.parse
+
 
 from dclab.external.packaging import parse as parse_version
 import requests
@@ -110,6 +112,11 @@ class CKANAPI:
     def ckan_version_object(self):
         version_act = self.get("status_show")["ckan_version"]
         return parse_version(version_act)
+
+    @property
+    def hostname(self):
+        """Hostname (server without "htttps://" prepended)"""
+        return urllib.parse.urlparse(self.server).hostname
 
     @property
     def user_name(self):
