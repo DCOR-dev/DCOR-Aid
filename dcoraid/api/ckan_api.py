@@ -87,6 +87,7 @@ class CKANAPI:
             self.req_ses = requests_cache.CachedSession(urls_expire_after={
                 # API calls without parameters; seconds cached
                 self.api_url + "user_show": 5,
+                self.api_url + "user_autocomplete": 30,
                 self.api_url + "group_list": 10,
                 self.api_url + "user_list": 30,
                 self.api_url + "status_show": 60,

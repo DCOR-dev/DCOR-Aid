@@ -103,7 +103,7 @@ class APIInterrogator(DBInterrogator):
 
     def get_users(self, ret_fullnames=False):
         """Return the list of DCOR users"""
-        data = self.api.get("user_list")
+        data = self.api.get("user_autocomplete", q="")
         user_list = []
         full_list = []
         for dd in data:
