@@ -3,6 +3,7 @@
  - fix: '_condensed' suffix for file stem randomly missing in downloads
  - enh: add `CKANAPI.hostname`
  - enh: sort search results by creation date instead of score and modified date
+ - enh: convenience kwarg `since_time` for `search_dataset_via_api`
  - ref: replace `user_list` with `user_autocomplete`
  - ref: replace `search_dataset` with `search_dataset_via_api`
    in `APIInterrogator`; `search_dataset` is now only free text search.

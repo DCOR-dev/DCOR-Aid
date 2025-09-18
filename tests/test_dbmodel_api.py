@@ -1,5 +1,6 @@
 import pathlib
 import random
+import time
 
 import pytest
 
@@ -172,6 +173,31 @@ def test_search_dataset_only_one_filter_query():
             break
     else:
         assert False, "Search did not return figshare-7771184-v2!"
+
+
+def test_search_dataset_since_time():
+    """Search datasets that have been modified after some time"""
+    api = common.get_api()
+    db = db_api.APIInterrogator(api=api)
+    tstart = time.time()
+
+    # Normally, this should not return anything, except for a race
+    # condition when multiple tests are running at the same time.
+    de0 = db.search_dataset_via_api(since_time=tstart)
+
+    # Create a dataset
+    ds_dict = common.make_dataset_for_download()
+
+    # Run the query again
+    de1 = db.search_dataset_via_api(since_time=tstart)
+    # The new dataset should be in the results.
+    assert len(de1) > len(de0)
+
+    for item in de1:
+        if item["id"] == ds_dict["id"]:
+            break
+    else:
+        assert False, "created dataset not found"
 
 
 @pytest.mark.skipif(not HAS_FIGSHARE_ACCESS,

@@ -1,5 +1,6 @@
 from itertools import islice
 import sys
+import time
 import urllib.parse
 
 import numpy as np
@@ -137,6 +138,7 @@ class APIInterrogator(DBInterrogator):
                                circles: list[str] = None,
                                collections: list[str] = None,
                                circle_collection_union: bool = False,
+                               since_time: float = None,
                                sort_solr: str = "metadata_created desc",
                                limit: int = 100):
         """Search datasets via the CKAN API
@@ -146,7 +148,9 @@ class APIInterrogator(DBInterrogator):
         query: str
             search query
         filter_queries: list of str
-            SOLR `fq` filter queries (are joined with 'AND')
+            SOLR `fq` filter queries (are joined with 'AND'). The `circles`,
+            `collections`, `circle_collection_union`, and `since_date`
+            convenience kwargs are appended to the query list.
         circles: list of str
             list of circles (organizations) to search in
         collections: list of str
@@ -156,6 +160,9 @@ class APIInterrogator(DBInterrogator):
             sets. Otherwise (default), search only for datasets that
             are at least member of one of the circles and one of the
             collections.
+        since_time: float
+            Return only datasets that have been modified after this time
+            since the epoch.
         sort_solr: str
             SOLR search ordering. By default, sort according to dataset
             creation date `'metadata_created desc'`. The CKAN default is
@@ -185,6 +192,7 @@ class APIInterrogator(DBInterrogator):
         else:
             solr_collections_query = None
 
+        # collections and/or circles filter query
         if solr_circle_query and solr_collections_query:
             if circle_collection_union:
                 fq = f"({solr_circle_query} OR {solr_collections_query})"
@@ -198,6 +206,16 @@ class APIInterrogator(DBInterrogator):
             fq = ""
         if fq:
             filter_queries.append(fq)
+
+        # time filter query
+        if since_time is not None:
+            gm_time_str = time.strftime(r"%Y-%m-%dT%H\:%M\:%SZ",
+                                        time.gmtime(since_time-60))
+            # Use "metadata_modified", since datasets that were previously
+            # drafts or private datasets made public would not show up
+            # if "metadata_created" was used.
+            filter_queries.append(f"metadata_modified:[{gm_time_str} TO NOW]")
+
         if len(filter_queries) == 0:
             final_fq = ""
         elif len(filter_queries) == 1:
