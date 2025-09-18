@@ -239,13 +239,13 @@ class DCORAid(QtWidgets.QMainWindow):
         data = DBExtract()
         if api.is_available() and api.api_key:
             try:
-                ai = APIInterrogator(api=api)
+                db = APIInterrogator(api=api)
                 if self.checkBox_user_following.isChecked():
-                    data += ai.get_datasets_user_following()
+                    data += db.get_datasets_user_following()
                 if self.checkBox_user_owned.isChecked():
-                    data += ai.get_datasets_user_owned()
+                    data += db.get_datasets_user_owned()
                 if self.checkBox_user_shared.isChecked():
-                    data += ai.get_datasets_user_shared()
+                    data += db.get_datasets_user_shared()
                 self.user_filter_chain.set_db_extract(data)
             except ConnectionTimeoutErrors:
                 self.logger.error(tb.format_exc())
