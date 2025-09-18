@@ -2,6 +2,8 @@
  - fix: error handling when connection to server fails on download (#75)
  - enh: add `CKANAPI.hostname`
  - ref: replace `user_list` with `user_autocomplete`
+ - ref: replace `search_dataset` with `search_dataset_via_api`
+   in `APIInterrogator`; `search_dataset` is now only free text search.
 0.17.4
  - fix: correctly handle dataset IDs and names in `DBExtract`
  - fix: `get_datasets_user_shared` failed when many circles/collections exist

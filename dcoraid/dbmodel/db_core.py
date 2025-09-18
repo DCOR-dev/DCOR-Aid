@@ -65,7 +65,8 @@ class DBInterrogator(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def search_dataset(self, query, circles=None, collections=None):
+    def search_dataset(self, text):
+        """Free text search for a dataset in the database"""
         pass
 
     @property

@@ -78,10 +78,10 @@ def test_search_dataset_basic():
                    activate=True)
     db = db_api.APIInterrogator(api=api)
     # Positive test
-    data = db.search_dataset(query="dcoraid",
-                             circles=[defaults["circle"]],
-                             collections=[defaults["collection"]],
-                             )
+    data = db.search_dataset_via_api(query="dcoraid",
+                                     circles=[defaults["circle"]],
+                                     collections=[defaults["collection"]],
+                                     )
     assert len(data) >= 1
     for dd in data:
         if dd["name"].endswith(ranstr):
@@ -89,10 +89,10 @@ def test_search_dataset_basic():
     else:
         assert False, "{} not found!".format(defaults["dataset"])
     # Negative test
-    data = db.search_dataset(query="cliauwenlc_should_never_exist",
-                             circles=[defaults["circle"]],
-                             collections=[defaults["collection"]],
-                             )
+    data = db.search_dataset_via_api(query="cliauwenlc_should_never_exist",
+                                     circles=[defaults["circle"]],
+                                     collections=[defaults["collection"]],
+                                     )
     assert len(data) == 0, "search result for non-existent dataset?"
 
 
@@ -115,19 +115,21 @@ def test_search_dataset_limit():
             activate=True)
         dataset_ids.append(ds_dict["id"])
     db = db_api.APIInterrogator(api=api)
-    data_limited = db.search_dataset(query=ranstr,
-                                     circles=[defaults["circle"]],
-                                     collections=[defaults["collection"]],
-                                     circle_collection_union=True,
-                                     limit=2
-                                     )
+    data_limited = db.search_dataset_via_api(
+        query=ranstr,
+        circles=[defaults["circle"]],
+        collections=[defaults["collection"]],
+        circle_collection_union=True,
+        limit=2
+        )
     assert len(data_limited) == 2
-    data_unlimited = db.search_dataset(query=ranstr,
-                                       circles=[defaults["circle"]],
-                                       collections=[defaults["collection"]],
-                                       circle_collection_union=True,
-                                       limit=0
-                                       )
+    data_unlimited = db.search_dataset_via_api(
+        query=ranstr,
+        circles=[defaults["circle"]],
+        collections=[defaults["collection"]],
+        circle_collection_union=True,
+        limit=0
+        )
     assert len(data_unlimited) == 3
 
 
@@ -148,12 +150,13 @@ def test_search_dataset_limit_negative_error():
         activate=True)
     db = db_api.APIInterrogator(api=api)
     with pytest.raises(ValueError, match="must be 0 or >0"):
-        db.search_dataset(query=ranstr,
-                          circles=[defaults["circle"]],
-                          collections=[defaults["collection"]],
-                          circle_collection_union=True,
-                          limit=-1
-                          )
+        db.search_dataset_via_api(
+            query=ranstr,
+            circles=[defaults["circle"]],
+            collections=[defaults["collection"]],
+            circle_collection_union=True,
+            limit=-1
+            )
 
 
 @pytest.mark.skipif(not HAS_FIGSHARE_ACCESS,
@@ -162,7 +165,8 @@ def test_search_dataset_only_one_filter_query():
     # The figshare circle must have the testing user as a member
     api = common.get_api()
     db = db_api.APIInterrogator(api=api)
-    ds = db.search_dataset(filter_queries=[f"-creator_user_id:{api.user_id}"])
+    ds = db.search_dataset_via_api(
+        filter_queries=[f"-creator_user_id:{api.user_id}"])
     for di in ds:
         if di["name"] == "figshare-7771184-v2":
             break

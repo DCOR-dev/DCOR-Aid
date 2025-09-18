@@ -63,7 +63,7 @@ class APIInterrogator(DBInterrogator):
     def get_datasets_user_owned(self):
         """Return datasets the user created"""
         assert self.mode == "user"
-        dbextract = self.search_dataset(
+        dbextract = self.search_dataset_via_api(
             filter_queries=[f"+creator_user_id:{self.api.user_id}"],
             limit=0,
         )
@@ -78,14 +78,14 @@ class APIInterrogator(DBInterrogator):
         dbextract = DBExtract()
 
         for circles_batch in batched(self.get_circles(), 20):
-            dbextract += self.search_dataset(
+            dbextract += self.search_dataset_via_api(
                 circles=list(circles_batch),
                 filter_queries=[f"-creator_user_id:{self.api.user_id}"],
                 limit=0,
                 )
 
         for collections_batch in batched(self.get_collections(), 20):
-            dbextract += self.search_dataset(
+            dbextract += self.search_dataset_via_api(
                 collections=list(collections_batch),
                 filter_queries=[f"-creator_user_id:{self.api.user_id}"],
                 limit=0,
@@ -117,9 +117,27 @@ class APIInterrogator(DBInterrogator):
         else:
             return user_list
 
-    def search_dataset(self, query="*:*", filter_queries=None, circles=None,
-                       collections=None, circle_collection_union=False,
-                       limit=100):
+    def search_dataset(self,
+                       text: str,
+                       limit: int = 100):
+        """Free text search for a dataset in the database
+
+        Parameters
+        ----------
+        text: str
+            text to search for
+        limit: int
+            number of results to return
+        """
+        return self.search_dataset_via_api(query=text, limit=limit)
+
+    def search_dataset_via_api(self,
+                               query: str = "*:*",
+                               filter_queries: list[str] = None,
+                               circles: list[str] = None,
+                               collections: list[str] = None,
+                               circle_collection_union: bool = False,
+                               limit: int = 100):
         """Search datasets via the CKAN API
 
         Parameters

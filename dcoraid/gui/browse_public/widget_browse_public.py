@@ -33,8 +33,8 @@ class BrowsePublic(QtWidgets.QWidget):
         api = get_ckan_api(
             public=not self.checkBox_public_include_private.isChecked())
         try:
-            ai = APIInterrogator(api=api)
-            dbextract = ai.search_dataset(
+            db = APIInterrogator(api=api)
+            dbextract = db.search_dataset(
                 self.lineEdit_public_search.text(),
                 limit=self.spinBox_public_rows.value())
             self.public_filter_chain.set_db_extract(dbextract)
