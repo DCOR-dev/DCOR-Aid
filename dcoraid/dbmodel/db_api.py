@@ -137,6 +137,7 @@ class APIInterrogator(DBInterrogator):
                                circles: list[str] = None,
                                collections: list[str] = None,
                                circle_collection_union: bool = False,
+                               sort_solr: str = "metadata_created desc",
                                limit: int = 100):
         """Search datasets via the CKAN API
 
@@ -155,6 +156,11 @@ class APIInterrogator(DBInterrogator):
             sets. Otherwise (default), search only for datasets that
             are at least member of one of the circles and one of the
             collections.
+        sort_solr: str
+            SOLR search ordering. By default, sort according to dataset
+            creation date `'metadata_created desc'`. The CKAN default is
+            `'score desc, metadata_modified desc'`.
+            https://docs.ckan.org/en/latest/api/index.html#ckan.logic.action.get.package_search
         limit: int
             limit number of search results; Set to 0 to get all results
         """
@@ -216,6 +222,7 @@ class APIInterrogator(DBInterrogator):
                                 fq=final_fq,
                                 include_private=(self.mode == "user"),
                                 rows=rows,
+                                sort=sort_solr,
                                 start=num_retrieved,
                                 )
             if np.isinf(num_total):
