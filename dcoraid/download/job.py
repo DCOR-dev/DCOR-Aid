@@ -160,15 +160,28 @@ class DownloadJob:
                 # Compute the resource path from the dataset dictionary
                 rsdict = self.get_resource_dict()
                 ds_name = self.get_dataset_dict()["name"]
+                rs_name = rsdict["name"]
+
                 # append dataset name to user-specified download directory
                 ds_dir = self._user_path / ds_name
                 ds_dir.mkdir(parents=True, exist_ok=True)
-                if self.condensed and rsdict["mimetype"] == "RT-DC":
-                    stem, suffix = rsdict["name"].rsplit(".", 1)
-                    res_name = stem + "_condensed." + suffix
+
+                # Is this a DC resource?
+                is_dc = (
+                    # DCOR says this is a DC resource
+                    rsdict.get("mimetype") == "RT-DC"
+                    # The suffix indicates that this is a DC resource
+                    # (in case DCOR has not yet updated the metadata)
+                    or (rs_name.count(".")
+                        and rs_name.rsplit(".", 1)[-1] in ["dc", "rtdc"])
+                    )
+
+                if self.condensed and is_dc:
+                    stem, suffix = rs_name.rsplit(".", 1)
+                    dl_res_name = stem + "_condensed." + suffix
                 else:
-                    res_name = rsdict["name"]
-                self._download_path = ds_dir / res_name
+                    dl_res_name = rsdict["name"]
+                self._download_path = ds_dir / dl_res_name
             elif self._user_path.parent.is_dir():
                 # user specified an actual file
                 self._download_path = self._user_path

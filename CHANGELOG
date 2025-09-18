@@ -1,5 +1,6 @@
 0.17.5
  - fix: error handling when connection to server fails on download (#75)
+ - fix: '_condensed' suffix for file stem randomly missing in downloads
  - enh: add `CKANAPI.hostname`
  - enh: sort search results by creation date instead of score and modified date
  - ref: replace `user_list` with `user_autocomplete`
