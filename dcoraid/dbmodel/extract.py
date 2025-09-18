@@ -49,11 +49,14 @@ class DBExtract:
         else:
             return self.get_dataset_dict(idx_or_name_or_id)
 
+    def __iter__(self):
+        return iter(self.datasets)
+
     def __len__(self):
         return len(self.datasets)
 
-    def __iter__(self):
-        return iter(self.datasets)
+    def __repr__(self):
+        return f"<DBExtract of size {len(self)} at {hex(id(self))}>"
 
     def add_datasets(self, datasets: list[dict]):
         for dd in datasets:
