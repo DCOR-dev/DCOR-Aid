@@ -1,3 +1,4 @@
+import json
 import logging
 import pathlib
 import requests
@@ -60,7 +61,7 @@ class StatusWidget(QtWidgets.QWidget):
             ) / "favicons"
 
         dldir.mkdir(exist_ok=True, parents=True)
-        favname = dldir / (server.split("://")[1] + "_favicon.ico")
+        favname = dldir / (server.split("://")[-1] + "_favicon.ico")
         if not favname.exists():
             try:
                 r = requests.get(server + "/favicon.ico",
@@ -80,6 +81,35 @@ class StatusWidget(QtWidgets.QWidget):
             favicon = QtGui.QIcon(str(favname))
         return favicon
 
+    @staticmethod
+    def get_title(server):
+        dldir = pathlib.Path(
+            QtCore.QStandardPaths.writableLocation(
+                QtCore.QStandardPaths.StandardLocation.AppDataLocation)
+            ) / "metadata"
+        dldir.mkdir(exist_ok=True, parents=True)
+        metaname = dldir / (server.split("://")[-1] + "_meta.json")
+        if not metaname.exists():
+            try:
+                r = requests.get(server + "/api/3/action/status_show",
+                                 verify=setup_certificate_file(),
+                                 timeout=3.05)
+                if r.ok:
+                    with metaname.open("wb") as fd:
+                        fd.write(r.content)
+                else:
+                    raise ValueError("No favicon!")
+                data = r.json()["result"]
+                metaname.write_text(json.dumps(data))
+                title = data["site_title"]
+            except BaseException:
+                logger = logging.getLogger(__name__)
+                logger.error(traceback.format_exc())
+                title = "DCOR"
+        else:
+            title = json.loads(metaname.read_text())["site_title"]
+        return title
+
     @QtCore.pyqtSlot()
     def request_status_update(self):
         # sanity check just in case something got deleted
@@ -92,7 +122,7 @@ class StatusWidget(QtWidgets.QWidget):
         if self.parent().isVisible():
             favicon = self.get_favicon(server)
             self.flabel.setPixmap(favicon.pixmap(16, 16))
-            self.flabel.setToolTip(server)
+            self.flabel.setToolTip(f"{self.get_title(server)} ({server})")
             self.toolButton_user.setText(text)
             self.toolButton_user.setToolTip(tooltip)
             self.toolButton_user.setIcon(QtGui.QIcon.fromTheme(icon))

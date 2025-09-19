@@ -9,6 +9,7 @@ from ...dbmodel import APIInterrogator
 
 from ..api import get_ckan_api
 from ..main import DCORAid
+from ..status_widget import StatusWidget
 
 
 class BrowsePublic(QtWidgets.QWidget):
@@ -21,6 +22,11 @@ class BrowsePublic(QtWidgets.QWidget):
             "dcoraid.gui.browse_public") / "widget_browse_public.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
+
+        settings = QtCore.QSettings()
+        server = settings.value("auth/server", "dcor.mpl.mpg.de")
+        title = StatusWidget.get_title(server)
+        self.label_search.setText(f"Search {title or 'DCOR'}")
 
         # Signals for public data browser
         self.pushButton_public_search.clicked.connect(self.on_public_search)
