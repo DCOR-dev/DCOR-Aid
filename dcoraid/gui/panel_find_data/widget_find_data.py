@@ -1,3 +1,4 @@
+import logging
 import traceback as tb
 
 from importlib import resources
@@ -12,12 +13,15 @@ from ..main import DCORAid
 from ..status_widget import StatusWidget
 
 
-class BrowsePublic(QtWidgets.QWidget):
+logger = logging.getLogger(__name__)
+
+
+class WidgetFindData(QtWidgets.QWidget):
     request_download = QtCore.pyqtSignal(str, bool)
 
     def __init__(self, *args, **kwargs):
-        """Browse public DCOR data"""
-        super(BrowsePublic, self).__init__(*args, **kwargs)
+        """Browse DCOR data"""
+        super(WidgetFindData, self).__init__(*args, **kwargs)
         ref_ui = resources.files(
             "dcoraid.gui.panel_find_data") / "widget_find_data.ui"
         with resources.as_file(ref_ui) as path_ui:
@@ -28,7 +32,7 @@ class BrowsePublic(QtWidgets.QWidget):
         title = StatusWidget.get_title(server)
         self.label_search.setText(f"Search {title or 'DCOR'}")
 
-        # Signals for public data browser
+        # Signals for data browser
         self.pushButton_public_search.clicked.connect(self.on_public_search)
         self.public_filter_chain.download_resource.connect(
             self.request_download)
@@ -45,7 +49,7 @@ class BrowsePublic(QtWidgets.QWidget):
                 limit=self.spinBox_public_rows.value())
             self.public_filter_chain.set_db_extract(dbextract)
         except ConnectionTimeoutErrors:
-            self.logger.error(tb.format_exc())
+            logger.error(tb.format_exc())
             QtWidgets.QMessageBox.critical(
                 self,
                 f"Failed to connect to {api.server}",

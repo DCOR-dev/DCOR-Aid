@@ -15,11 +15,8 @@ import urllib3
 from PyQt6 import uic, QtCore, QtGui, QtWidgets
 
 from ..api import APIOutdatedError
-from ..common import ConnectionTimeoutErrors
-from ..dbmodel import APIInterrogator, DBExtract
 from .._version import __version__
 
-from .api import get_ckan_api
 from .preferences import PreferencesDialog
 from .status_widget import StatusWidget
 from . import updater
@@ -100,14 +97,10 @@ class DCORAid(QtWidgets.QMainWindow):
         self.tabWidget.setCornerWidget(self.status_widget)
         self.status_widget.clicked.connect(self.dlg_pref.on_show_server)
 
-        # Signals for user datasets (my data)
-        self.pushButton_user_refresh.clicked.connect(
-            self.on_refresh_private_data)
-
         # Signal for requesting resource download
         self.panel_find_data.request_download.connect(
             self.panel_download.download_resource)
-        self.user_filter_chain.download_resource.connect(
+        self.panel_my_data.request_download.connect(
             self.panel_download.download_resource)
 
         QtWidgets.QApplication.processEvents(
@@ -115,7 +108,7 @@ class DCORAid(QtWidgets.QMainWindow):
 
         if self.settings.value("user scenario", "") == "anonymous":
             # disable tabs that an anonymous user cannot use
-            self.tab_user.setEnabled(False)
+            self.tab_my_data.setEnabled(False)
             self.tab_maintain.setEnabled(False)
             self.tab_upload.setEnabled(False)
 
@@ -230,29 +223,6 @@ class DCORAid(QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.information(self,
                                           "Software",
                                           sw_text)
-
-    @QtCore.pyqtSlot()
-    def on_refresh_private_data(self):
-        self.tab_user.setCursor(QtCore.Qt.CursorShape.WaitCursor)
-        api = get_ckan_api()
-        data = DBExtract()
-        if api.is_available() and api.api_key:
-            try:
-                db = APIInterrogator(api=api)
-                if self.checkBox_user_following.isChecked():
-                    data += db.get_datasets_user_following()
-                if self.checkBox_user_owned.isChecked():
-                    data += db.get_datasets_user_owned()
-                if self.checkBox_user_shared.isChecked():
-                    data += db.get_datasets_user_shared()
-                self.user_filter_chain.set_db_extract(data)
-            except ConnectionTimeoutErrors:
-                self.logger.error(tb.format_exc())
-                QtWidgets.QMessageBox.critical(
-                    self,
-                    f"Failed to connect to {api.server}",
-                    tb.format_exc(limit=1))
-        self.tab_user.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
 
     @QtCore.pyqtSlot()
     def on_wizard(self):

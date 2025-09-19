@@ -1,0 +1,64 @@
+import logging
+import traceback as tb
+
+from importlib import resources
+
+from PyQt6 import uic, QtCore, QtWidgets
+
+from ...common import ConnectionTimeoutErrors
+from ...dbmodel import APIInterrogator, DBExtract
+
+from ..api import get_ckan_api
+from ..main import DCORAid
+
+
+logger = logging.getLogger(__name__)
+
+
+class WidgetMyData(QtWidgets.QWidget):
+    request_download = QtCore.pyqtSignal(str, bool)
+
+    def __init__(self, *args, **kwargs):
+        """Browse public DCOR data"""
+        super(WidgetMyData, self).__init__(*args, **kwargs)
+        ref_ui = resources.files(
+            "dcoraid.gui.panel_my_data") / "widget_my_data.ui"
+        with resources.as_file(ref_ui) as path_ui:
+            uic.loadUi(path_ui, self)
+
+        # Signals for user datasets (my data)
+        self.pushButton_user_refresh.clicked.connect(
+            self.on_refresh_private_data)
+        self.user_filter_chain.download_resource.connect(
+            self.request_download)
+
+    @QtCore.pyqtSlot()
+    def on_refresh_private_data(self):
+        self.setCursor(QtCore.Qt.CursorShape.WaitCursor)
+        api = get_ckan_api()
+        data = DBExtract()
+        if api.is_available() and api.api_key:
+            try:
+                db = APIInterrogator(api=api)
+                if self.checkBox_user_following.isChecked():
+                    data += db.get_datasets_user_following()
+                if self.checkBox_user_owned.isChecked():
+                    data += db.get_datasets_user_owned()
+                if self.checkBox_user_shared.isChecked():
+                    data += db.get_datasets_user_shared()
+                self.user_filter_chain.set_db_extract(data)
+            except ConnectionTimeoutErrors:
+                logger.error(tb.format_exc())
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    f"Failed to connect to {api.server}",
+                    tb.format_exc(limit=1))
+        self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
+
+    @staticmethod
+    def find_main_window():
+        # Global function to find the (open) QMainWindow in application
+        app = QtWidgets.QApplication.instance()
+        for widget in app.topLevelWidgets():
+            if isinstance(widget, DCORAid):
+                return widget

@@ -115,16 +115,17 @@ def test_gui_mydata_dataset_add_to_collection(mw, qtbot):
     common.wait_for_job_no_queue(uj)
     # go to the "My Data" tab and click update
     mw.tabWidget.setCurrentIndex(1)
-    qtbot.mouseClick(mw.pushButton_user_refresh,
+    qtbot.mouseClick(mw.panel_my_data.pushButton_user_refresh,
                      QtCore.Qt.MouseButton.LeftButton)
     # select our dataset
-    entries = mw.user_filter_chain.fw_datasets.get_entry_identifiers()
+    fw_datasets = mw.panel_my_data.user_filter_chain.fw_datasets
+    entries = fw_datasets.get_entry_identifiers()
     index = entries.index(ds_id)
     # we cannot click on qtablewidgetitems (because they are not widgets)
-    widget1 = mw.user_filter_chain.fw_datasets.tableWidget.item(index, 0)
+    widget1 = fw_datasets.tableWidget.item(index, 0)
     assert widget1 is not None
     widget1.setSelected(True)
-    selected = mw.user_filter_chain.fw_datasets.get_entry_identifiers(
+    selected = fw_datasets.get_entry_identifiers(
         selected=True)
     assert len(selected) == 1
     assert selected[0] == ds_id
@@ -141,7 +142,7 @@ def test_gui_mydata_dataset_add_to_collection(mw, qtbot):
     with mock.patch.object(
             QInputDialog, "getItem",
             return_value=(f"{ii}: {item['display_name']}", True)):
-        qtbot.mouseClick(mw.user_filter_chain.fw_datasets.toolButton_custom,
+        qtbot.mouseClick(fw_datasets.toolButton_custom,
                          QtCore.Qt.MouseButton.LeftButton)
     # Now check whether that worked
     ds_dict = api.get("package_show", id=ds_id)
