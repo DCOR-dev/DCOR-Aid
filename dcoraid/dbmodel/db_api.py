@@ -210,7 +210,7 @@ class APIInterrogator(DBInterrogator):
         # time filter query
         if since_time is not None:
             gm_time_str = time.strftime(r"%Y-%m-%dT%H\:%M\:%SZ",
-                                        time.gmtime(since_time-60))
+                                        time.gmtime(since_time))
             # Use "metadata_modified", since datasets that were previously
             # drafts or private datasets made public would not show up
             # if "metadata_created" was used.

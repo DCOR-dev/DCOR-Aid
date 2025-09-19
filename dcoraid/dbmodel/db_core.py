@@ -24,6 +24,9 @@ class DBInterrogator(abc.ABC):
             uptodate = True
         return uptodate
 
+    def close(self):
+        """Make sure any open file handles or connections are closed"""
+
     @abc.abstractmethod
     def get_circles(self):
         """Return the list of DCOR Circles"""
