@@ -16,6 +16,7 @@
    in `APIInterrogator`; `search_dataset` is now only free text search
  - ref: rename gui submodules for better overview
  - ref: move "My Data" panel into its own submodule
+ - ref: implement `is_dc_resource_dict`
 0.17.4
  - fix: correctly handle dataset IDs and names in `DBExtract`
  - fix: `get_datasets_user_shared` failed when many circles/collections exist

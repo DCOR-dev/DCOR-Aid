@@ -12,7 +12,7 @@ import numpy as np
 import requests
 
 from ..api import errors as api_errors
-from ..common import etagsum, sha256sum
+from ..common import etagsum, is_dc_resource_dict, sha256sum
 
 
 logger = logging.getLogger(__name__)
@@ -158,29 +158,20 @@ class DownloadJob:
         if self._download_path is None:
             if self._user_path.is_dir():
                 # Compute the resource path from the dataset dictionary
-                rsdict = self.get_resource_dict()
+                res_dict = self.get_resource_dict()
                 ds_name = self.get_dataset_dict()["name"]
-                rs_name = rsdict["name"]
+                rs_name = res_dict["name"]
 
                 # append dataset name to user-specified download directory
                 ds_dir = self._user_path / ds_name
                 ds_dir.mkdir(parents=True, exist_ok=True)
 
                 # Is this a DC resource?
-                is_dc = (
-                    # DCOR says this is a DC resource
-                    rsdict.get("mimetype") == "RT-DC"
-                    # The suffix indicates that this is a DC resource
-                    # (in case DCOR has not yet updated the metadata)
-                    or (rs_name.count(".")
-                        and rs_name.rsplit(".", 1)[-1] in ["dc", "rtdc"])
-                    )
-
-                if self.condensed and is_dc:
+                if self.condensed and is_dc_resource_dict(res_dict):
                     stem, suffix = rs_name.rsplit(".", 1)
                     dl_res_name = stem + "_condensed." + suffix
                 else:
-                    dl_res_name = rsdict["name"]
+                    dl_res_name = res_dict["name"]
                 self._download_path = ds_dir / dl_res_name
             elif self._user_path.parent.is_dir():
                 # user specified an actual file
@@ -198,7 +189,7 @@ class DownloadJob:
         res_dict = self.get_resource_dict()
         # If we have an .rtdc dataset and want the condensed version,
         # we have a different download path.
-        if res_dict["mimetype"] == "RT-DC" and self.condensed:
+        if self.condensed and is_dc_resource_dict(res_dict):
             dl_path = f"{self.api.server}/dataset/{res_dict['package_id']}" \
                       + f"/resource/{self.resource_id}/condensed.rtdc"
         else:

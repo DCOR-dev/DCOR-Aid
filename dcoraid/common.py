@@ -81,6 +81,19 @@ def is_dc_file(path, test_open=True):
     return is_dc
 
 
+def is_dc_resource_dict(res_dict):
+    rs_name = res_dict["name"]
+    is_dc = (
+        # DCOR says this is a DC resource
+        res_dict.get("mimetype") == "RT-DC"
+        # The suffix indicates that this is a DC resource
+        # (in case DCOR has not yet updated the metadata)
+        or (rs_name.count(".")
+            and rs_name.rsplit(".", 1)[-1] in ["dc", "rtdc"])
+    )
+    return is_dc
+
+
 @functools.lru_cache(maxsize=2000)
 def sha256sum(path):
     """Compute the SHA256 hash of a file"""
