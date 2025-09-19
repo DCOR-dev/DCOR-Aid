@@ -7,6 +7,7 @@
  - enh: sort search results by creation date instead of score and modified date
  - enh: convenience kwarg `since_time` for `search_dataset_via_api`
  - enh: implement `DBExtract.__repr__`
+ - enh: remove unused "Sharing" page
  - ref: replace `user_list` with `user_autocomplete`
  - ref: replace `search_dataset` with `search_dataset_via_api`
    in `APIInterrogator`; `search_dataset` is now only free text search.
