@@ -222,7 +222,8 @@ class MetaCache:
         dates = np.array(self._srt_blobs["created"], copy=True)
         new_size = dates.size + 1
         new_idx = np.searchsorted(dates, m_created)
-        dates.resize(new_size)
+        # we can set refcheck to False, since we created a copy above
+        dates.resize(new_size, refcheck=False)
         new_blobs = np.empty(new_size, dtype=new_dtype)
         new_blobs[:new_idx] = self._srt_blobs[:new_idx]
         new_blobs[new_idx] = (ds_id, m_created, blob)
