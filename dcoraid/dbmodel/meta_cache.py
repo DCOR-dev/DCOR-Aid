@@ -51,7 +51,6 @@ class MetaCache:
 
         self._initialize(circle_ids)
 
-
     def _initialize(self, circle_ids=None):
         # List of all dataset dictionaries (only used during init)
         datasets = []
