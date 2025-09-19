@@ -68,6 +68,7 @@ def test_gui_anonymous(qtbot):
         "[General]",
         "user%20scenario = anonymous",
         "check for updates = 0",
+        "update database on startup = 1",
         "[auth]",
         "api%20key =",
         "server = dcor.mpl.mpg.de",

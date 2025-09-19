@@ -1,14 +1,9 @@
 import logging
-import traceback as tb
 
 from importlib import resources
 
 from PyQt6 import uic, QtCore, QtWidgets
 
-from ...common import ConnectionTimeoutErrors
-from ...dbmodel import APIInterrogator
-
-from ..api import get_ckan_api
 from ..main import DCORAid
 from ..status_widget import StatusWidget
 
@@ -32,29 +27,27 @@ class WidgetFindData(QtWidgets.QWidget):
         title = StatusWidget.get_title(server)
         self.label_search.setText(f"Search {title or 'DCOR'}")
 
+        self.database = None
+
         # Signals for data browser
-        self.pushButton_public_search.clicked.connect(self.on_public_search)
+        self.pushButton_search.clicked.connect(self.on_search)
+        self.pushButton_update_db.clicked.connect(self.on_update_db)
         self.public_filter_chain.download_resource.connect(
             self.request_download)
 
     @QtCore.pyqtSlot()
-    def on_public_search(self):
+    def on_search(self):
+        self.find_main_window().check_update_database()
         self.setCursor(QtCore.Qt.CursorShape.WaitCursor)
-        api = get_ckan_api(
-            public=not self.checkBox_public_include_private.isChecked())
-        try:
-            db = APIInterrogator(api=api)
-            dbextract = db.search_dataset(
-                self.lineEdit_public_search.text(),
-                limit=self.spinBox_public_rows.value())
-            self.public_filter_chain.set_db_extract(dbextract)
-        except ConnectionTimeoutErrors:
-            logger.error(tb.format_exc())
-            QtWidgets.QMessageBox.critical(
-                self,
-                f"Failed to connect to {api.server}",
-                tb.format_exc(limit=1))
+        dbextract = self.database.search_dataset(
+            self.lineEdit_search.text(),
+            limit=self.spinBox_public_rows.value())
+        self.public_filter_chain.set_db_extract(dbextract)
         self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
+
+    @QtCore.pyqtSlot()
+    def on_update_db(self):
+        self.find_main_window().check_update_database(force=True)
 
     @staticmethod
     def find_main_window():
@@ -63,3 +56,6 @@ class WidgetFindData(QtWidgets.QWidget):
         for widget in app.topLevelWidgets():
             if isinstance(widget, DCORAid):
                 return widget
+
+    def set_database(self, database):
+        self.database = database

@@ -54,6 +54,7 @@ def pytest_configure(config):
     settings = QtCore.QSettings()
     change_settings = {
         "check for updates": "0",
+        "update database on startup": "1",
         "user scenario": "dcor-dev",
         "auth/server": common.SERVER,
         "auth/api key": common.get_api_key(),

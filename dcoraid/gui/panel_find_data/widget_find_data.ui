@@ -24,7 +24,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_public_search">
+      <widget class="QLineEdit" name="lineEdit_search">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -82,22 +82,19 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="checkBox_public_include_private">
-       <property name="text">
-        <string>include private</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_public_search">
+      <widget class="QPushButton" name="pushButton_search">
        <property name="text">
         <string>Search</string>
        </property>
        <property name="shortcut">
         <string>Return</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_update_db">
+       <property name="text">
+        <string>Update DB</string>
        </property>
       </widget>
      </item>

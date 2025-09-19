@@ -62,3 +62,7 @@ class WidgetMyData(QtWidgets.QWidget):
         for widget in app.topLevelWidgets():
             if isinstance(widget, DCORAid):
                 return widget
+
+    def set_database(self, database):
+        # TODO: Use this database for searches
+        self.database = database

@@ -1,9 +1,11 @@
 import atexit
+import traceback
 from contextlib import ExitStack
 import logging
 from importlib import resources
 import signal
 import sys
+import time
 import traceback as tb
 
 import dclab
@@ -15,12 +17,15 @@ import urllib3
 from PyQt6 import uic, QtCore, QtGui, QtWidgets
 
 from ..api import APIOutdatedError
+from ..dbmodel import CachedAPIInterrogator
 from .._version import __version__
 
+from .api import get_ckan_api
 from .preferences import PreferencesDialog
 from .status_widget import StatusWidget
 from . import updater
 from .wizard import SetupWizard
+
 
 file_manager = ExitStack()
 atexit.register(file_manager.close)
@@ -33,8 +38,6 @@ QtGui.QIcon.setThemeName(".")
 
 
 class DCORAid(QtWidgets.QMainWindow):
-    plots_changed = QtCore.pyqtSignal()
-
     def __init__(self, *args, **kwargs):
         """Initialize DCOR-Aid
 
@@ -125,7 +128,51 @@ class DCORAid(QtWidgets.QMainWindow):
         self.show()
         self.raise_()
 
+        # setup the metadata database
+        try:
+            self.database = CachedAPIInterrogator(
+                api=get_ckan_api(),
+                cache_location=QtCore.QStandardPaths.writableLocation(
+                    QtCore.QStandardPaths.StandardLocation.CacheLocation)
+                )
+            self._last_asked_about_update = 0
+            self.check_update_database(
+                force=int(self.settings.value(
+                    "update database on startup", "0"))
+            )
+        except BaseException:
+            self.logger.error(traceback.format_exc())
+        else:
+            self.panel_find_data.set_database(self.database)
+            self.panel_my_data.set_database(self.database)
+
         self.status_widget.request_status_update()
+
+    @QtCore.pyqtSlot(bool)
+    def check_update_database(self, reset=False, force=False):
+        doit = False
+        if force:
+            doit = True
+        else:
+            if (self.database.local_timestamp < time.time() - 24*3600
+                    and self._last_asked_about_update < time.time() - 3600):
+                # Ask the user whether the cache should be updated
+                button_reply = QtWidgets.QMessageBox.question(
+                    self,
+                    'Database outdated',
+                    "The local database is outdated. Would you like to "
+                    "refresh the database?",
+                    QtWidgets.QMessageBox.StandardButton.Yes
+                    | QtWidgets.QMessageBox.StandardButton.No,
+                    QtWidgets.QMessageBox.StandardButton.Yes)
+                doit = button_reply == QtWidgets.QMessageBox.StandardButton.Yes
+        if doit:
+            # TODO: Progress monitoring
+            self.setEnabled(False)
+            self.database.update()
+            self.setEnabled(True)
+
+        self._last_asked_about_update = time.time()
 
     @QtCore.pyqtSlot(QtCore.QEvent)
     def closeEvent(self, event):
