@@ -27,6 +27,7 @@ class MaintenanceWidget(QtWidgets.QWidget):
 
         self.pushButton_cache.clicked.connect(self.on_clear_cache)
         self.pushButton_drafts.clicked.connect(self.on_remove_drafts)
+        self.pushButton_meta.clicked.connect(self.on_clear_meta)
 
     @staticmethod
     def find_main_window():
@@ -54,6 +55,18 @@ class MaintenanceWidget(QtWidgets.QWidget):
             msg.setText("No zombie cache data found.")
             msg.setWindowTitle("Nothing to do")
         msg.exec()
+
+    @QtCore.pyqtSlot()
+    def on_clear_meta(self):
+        """Clear local metadata cache"""
+        self.find_main_window().database.reset_cache()
+        QtWidgets.QMessageBox.information(
+            self,
+            "Metadata deleted",
+            "All metadata databases have been removed from local "
+            "storage. To continue working with DCOR-Aid, please select "
+            "'Update DB' in the 'Find Data' tab."
+        )
 
     @QtCore.pyqtSlot()
     def on_remove_drafts(self):

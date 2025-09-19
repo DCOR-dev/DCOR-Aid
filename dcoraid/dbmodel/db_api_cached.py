@@ -94,6 +94,11 @@ class CachedAPIInterrogator(DBInterrogator):
         """Return the list of DCOR users"""
         return self.ai.get_users()
 
+    def reset_cache(self):
+        self._mc_timestamp_path.unlink()
+        self._mc_version_path.unlink()
+        self._mc.reset()
+
     def search_dataset(self, query="", limit=100):
         """Search datasets via the CKAN API
 
