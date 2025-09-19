@@ -116,6 +116,13 @@ class MetaCache:
     def close(self):
         for db in self._databases.values():
             db.close()
+        self._databases.clear()
+
+    def destroy(self):
+        self.close()
+
+        for path in self.base_dir.glob("circle_*.db"):
+            path.unlink()
 
     def search(self,
                query: str,
@@ -212,7 +219,7 @@ class MetaCache:
         self._registry_org.setdefault(org_id, []).append(ds_id)
 
         # search array
-        dates = np.array(self._srt_blobs["created"])
+        dates = np.array(self._srt_blobs["created"], copy=True)
         new_size = dates.size + 1
         new_idx = np.searchsorted(dates, m_created)
         dates.resize(new_size)
