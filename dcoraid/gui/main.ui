@@ -23,7 +23,7 @@
       <property name="currentIndex">
        <number>0</number>
       </property>
-      <widget class="QWidget" name="tab_browse_public">
+      <widget class="QWidget" name="tab_find_data">
        <attribute name="icon">
         <iconset theme="magnifying-glass"/>
        </attribute>
@@ -44,7 +44,7 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="BrowsePublic" name="panel_browse_public" native="true">
+         <widget class="BrowsePublic" name="panel_find_data" native="true">
           <property name="acceptDrops">
            <bool>true</bool>
           </property>
@@ -323,19 +323,19 @@
   <customwidget>
    <class>UploadWidget</class>
    <extends>QWidget</extends>
-   <header>dcoraid.gui.upload.widget_upload</header>
+   <header>dcoraid.gui.panel_uploads.widget_upload</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>MaintenanceWidget</class>
    <extends>QWidget</extends>
-   <header>dcoraid.gui.maintenance.widget_maintenance</header>
+   <header>dcoraid.gui.panel_maintenance.widget_maintenance</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>DownloadWidget</class>
    <extends>QWidget</extends>
-   <header>dcoraid.gui.download.widget_download</header>
+   <header>dcoraid.gui.panel_downloads.widget_download</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -347,7 +347,7 @@
   <customwidget>
    <class>BrowsePublic</class>
    <extends>QWidget</extends>
-   <header>dcoraid.gui.browse_public.widget_browse_public</header>
+   <header>dcoraid.gui.panel_find_data.widget_find_data</header>
    <container>1</container>
   </customwidget>
   <customwidget>

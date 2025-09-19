@@ -7,8 +7,8 @@ import uuid
 
 from dcoraid.gui.api import get_ckan_api
 from dcoraid.gui.main import DCORAid
-from dcoraid.gui.upload.dlg_upload import UploadDialog
-from dcoraid.gui.upload import widget_upload
+from dcoraid.gui.panel_uploads.dlg_upload import UploadDialog
+from dcoraid.gui.panel_uploads import widget_upload
 
 import pytest
 from PyQt6 import QtCore, QtGui, QtWidgets, QtTest

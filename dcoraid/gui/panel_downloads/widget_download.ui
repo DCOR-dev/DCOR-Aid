@@ -69,7 +69,7 @@
   <customwidget>
    <class>DownloadTableWidget</class>
    <extends>QTableWidget</extends>
-   <header>dcoraid.gui.download.widget_download</header>
+   <header>dcoraid.gui.panel_downloads.widget_download</header>
   </customwidget>
  </customwidgets>
  <resources/>

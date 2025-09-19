@@ -30,7 +30,8 @@ class UploadWidget(QtWidgets.QWidget):
         """Manage running uploads
         """
         super(UploadWidget, self).__init__(*args, **kwargs)
-        ref_ui = resources.files("dcoraid.gui.upload") / "widget_upload.ui"
+        ref_ui = resources.files(
+            "dcoraid.gui.panel_uploads") / "widget_upload.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
 

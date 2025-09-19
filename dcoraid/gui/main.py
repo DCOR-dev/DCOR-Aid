@@ -105,7 +105,7 @@ class DCORAid(QtWidgets.QMainWindow):
             self.on_refresh_private_data)
 
         # Signal for requesting resource download
-        self.panel_browse_public.request_download.connect(
+        self.panel_find_data.request_download.connect(
             self.panel_download.download_resource)
         self.user_filter_chain.download_resource.connect(
             self.panel_download.download_resource)

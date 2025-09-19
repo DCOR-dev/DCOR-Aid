@@ -33,7 +33,7 @@ class UploadDialog(QtWidgets.QDialog):
         super(UploadDialog, self).__init__(*args, **kwargs)
         self.logger = logging.getLogger(__name__)
         ref_ui = resources.files(
-            "dcoraid.gui.upload") / "dlg_upload.ui"
+            "dcoraid.gui.panel_uploads") / "dlg_upload.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
 

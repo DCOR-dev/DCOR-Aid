@@ -626,7 +626,7 @@
   <customwidget>
    <class>SchemaWidget</class>
    <extends>QWidget</extends>
-   <header>dcoraid.gui.upload.widget_schema</header>
+   <header>dcoraid.gui.panel_uploads.widget_schema</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

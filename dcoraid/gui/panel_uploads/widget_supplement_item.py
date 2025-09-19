@@ -84,7 +84,7 @@ class RSSTagsItem(RSSItemBase):
         """Represents an item in the supplementary resource schema"""
         super(RSSTagsItem, self).__init__(*args, **kwargs)
         ref_ui = resources.files(
-            "dcoraid.gui.upload") / "widget_supplement_tags.ui"
+            "dcoraid.gui.panel_uploads") / "widget_supplement_tags.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
 
@@ -160,7 +160,7 @@ class RSSItem(RSSItemBase):
         """Represents an item in the supplementary resource schema"""
         super(RSSItem, self).__init__(*args, **kwargs)
         ref_ui = resources.files(
-            "dcoraid.gui.upload") / "widget_supplement_item.ui"
+            "dcoraid.gui.panel_uploads") / "widget_supplement_item.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
 

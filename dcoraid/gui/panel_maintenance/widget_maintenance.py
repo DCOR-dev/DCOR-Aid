@@ -21,7 +21,7 @@ class MaintenanceWidget(QtWidgets.QWidget):
         super(MaintenanceWidget, self).__init__(*args, **kwargs)
 
         ref_ui = resources.files(
-            "dcoraid.gui.maintenance") / "widget_maintenance.ui"
+            "dcoraid.gui.panel_maintenance") / "widget_maintenance.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
 

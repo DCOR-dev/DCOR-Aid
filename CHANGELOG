@@ -13,7 +13,8 @@
  - enh: add icon for "Find Data"
  - ref: replace `user_list` with `user_autocomplete`
  - ref: replace `search_dataset` with `search_dataset_via_api`
-   in `APIInterrogator`; `search_dataset` is now only free text search.
+   in `APIInterrogator`; `search_dataset` is now only free text search
+ - ref: rename gui submodules for better overview
 0.17.4
  - fix: correctly handle dataset IDs and names in `DBExtract`
  - fix: `get_datasets_user_shared` failed when many circles/collections exist

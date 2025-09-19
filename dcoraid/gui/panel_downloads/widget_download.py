@@ -28,7 +28,8 @@ class DownloadWidget(QtWidgets.QWidget):
         """Manage running downloads
         """
         super(DownloadWidget, self).__init__(*args, **kwargs)
-        ref_ui = resources.files("dcoraid.gui.download") / "widget_download.ui"
+        ref_ui = resources.files(
+            "dcoraid.gui.panel_downloads") / "widget_download.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
 

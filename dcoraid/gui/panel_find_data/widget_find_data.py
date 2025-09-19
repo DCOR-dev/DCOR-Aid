@@ -19,7 +19,7 @@ class BrowsePublic(QtWidgets.QWidget):
         """Browse public DCOR data"""
         super(BrowsePublic, self).__init__(*args, **kwargs)
         ref_ui = resources.files(
-            "dcoraid.gui.browse_public") / "widget_browse_public.ui"
+            "dcoraid.gui.panel_find_data") / "widget_find_data.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
 

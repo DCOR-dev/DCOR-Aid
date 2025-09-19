@@ -212,7 +212,7 @@
   <customwidget>
    <class>UploadTableWidget</class>
    <extends>QTableWidget</extends>
-   <header>dcoraid.gui.upload.widget_upload</header>
+   <header>dcoraid.gui.panel_uploads.widget_upload</header>
   </customwidget>
  </customwidgets>
  <resources/>
