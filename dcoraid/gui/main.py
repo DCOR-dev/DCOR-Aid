@@ -118,7 +118,6 @@ class DCORAid(QtWidgets.QMainWindow):
             self.tab_user.setEnabled(False)
             self.tab_maintain.setEnabled(False)
             self.tab_upload.setEnabled(False)
-            self.tab_share.setEnabled(False)
 
         # Run wizard if necessary
         if ((self.settings.value("user scenario", "") != "anonymous")
