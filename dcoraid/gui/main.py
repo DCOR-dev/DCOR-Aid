@@ -1,4 +1,5 @@
 import atexit
+import threading
 import traceback
 from contextlib import ExitStack
 import logging
@@ -14,7 +15,7 @@ import requests_cache
 import requests_toolbelt
 import urllib3
 
-from PyQt6 import uic, QtCore, QtGui, QtWidgets
+from PyQt6 import uic, QtCore, QtGui, QtTest, QtWidgets
 
 from ..api import APIOutdatedError
 from ..dbmodel import CachedAPIInterrogator
@@ -167,10 +168,24 @@ class DCORAid(QtWidgets.QMainWindow):
                     QtWidgets.QMessageBox.StandardButton.Yes)
                 doit = button_reply == QtWidgets.QMessageBox.StandardButton.Yes
         if doit:
-            # TODO: Progress monitoring
-            self.setEnabled(False)
-            self.database.update()
-            self.setEnabled(True)
+            abort_event = threading.Event()
+            prog = QtWidgets.QProgressDialog("Database update",
+                                             "Abort",
+                                             0,
+                                             0)
+            prog.canceled.connect(abort_event.set)
+            prog.setMinimumDuration(0)
+            prog.setModal(True)
+            prog.show()
+
+            thr = threading.Thread(target=self.database.update,
+                                   args=(reset, abort_event))
+            thr.start()
+
+            while thr.is_alive():
+                QtWidgets.QApplication.processEvents(
+                    QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+                QtTest.QTest.qWait(500)
 
         self._last_asked_about_update = time.time()
 

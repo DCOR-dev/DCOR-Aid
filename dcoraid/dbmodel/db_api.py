@@ -140,6 +140,7 @@ class APIInterrogator(DBInterrogator):
                                circle_collection_union: bool = False,
                                since_time: float = None,
                                sort_solr: str = "metadata_created desc",
+                               start: int = 0,
                                limit: int = 100):
         """Search datasets via the CKAN API
 
@@ -168,6 +169,9 @@ class APIInterrogator(DBInterrogator):
             creation date `'metadata_created desc'`. The CKAN default is
             `'score desc, metadata_modified desc'`.
             https://docs.ckan.org/en/latest/api/index.html#ckan.logic.action.get.package_search
+        start: int
+            The offset in the complete result for where the set of
+            returned datasets should begin.
         limit: int
             limit number of search results; Set to 0 to get all results
         """
@@ -234,14 +238,14 @@ class APIInterrogator(DBInterrogator):
         num_total = np.inf  # just the initial value
         num_retrieved = 0
         dbextract = DBExtract()
-        while num_retrieved < min(limit, num_total) and rows:
+        while start + num_retrieved < min(start + limit, num_total) and rows:
             data = self.api.get("package_search",
                                 q=urllib.parse.quote(query, safe=""),
                                 fq=final_fq,
                                 include_private=(self.mode == "user"),
                                 rows=rows,
                                 sort=sort_solr,
-                                start=num_retrieved,
+                                start=start + num_retrieved,
                                 )
             if np.isinf(num_total):
                 # first iteration

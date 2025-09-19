@@ -97,6 +97,8 @@ class CachedAPIInterrogator(DBInterrogator):
     def reset_cache(self):
         self._mc_timestamp_path.unlink()
         self._mc_version_path.unlink()
+        self._mc_timestamp_path.touch()
+        self._mc_version_path.touch()
         self._mc.reset()
 
     def search_dataset(self, query="", limit=100):
@@ -111,7 +113,7 @@ class CachedAPIInterrogator(DBInterrogator):
         """
         return DBExtract(self._mc.search(query, limit))
 
-    def update(self, reset=False, progress_callback=None):
+    def update(self, reset=False, abort_event=None):
         """Update the local metadata cache based on the last local timestamp"""
         if self.remote_version_score != self.local_version_score:
             reset = True
@@ -120,15 +122,21 @@ class CachedAPIInterrogator(DBInterrogator):
             self.local_timestamp = 0
             self._mc.reset()
 
-        circles = self.get_circles(refresh=True)
+        self.get_circles(refresh=True)
         self.get_collections(refresh=True)
 
         new_timestamp = time.time()
-        for cc in circles:
-            logger.info(f"Updating metadata cache for circle '{cc}'")
-            for ds_dict in self.ai.search_dataset_via_api(
-                    circles=[cc],
-                    since_time=self.local_timestamp,
-            ):
-                self._mc.upsert_dataset(ds_dict)
-        self.local_timestamp = new_timestamp
+
+        dbe = self.ai.search_dataset_via_api(
+            since_time=self.local_timestamp,
+            limit=0,
+        )
+
+        for ds_dict in dbe:
+            if abort_event and abort_event.is_set():
+                break
+            self._mc.upsert_dataset(ds_dict)
+        else:
+            # Only update teh local timestamp if we actually did
+            # update the local database.
+            self.local_timestamp = new_timestamp

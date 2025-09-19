@@ -13,7 +13,9 @@ class SQLiteKeyJSONDatabase:
         db_name
             The name of the SQLite database file (create if not exists)
         """
-        self.conn = sqlite3.connect(db_name)
+        # Disable check_same_thread. We will take care of serializing write
+        # operations.
+        self.conn = sqlite3.connect(db_name, check_same_thread=False)
         self.cursor = self.conn.cursor()
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS key_value_store
