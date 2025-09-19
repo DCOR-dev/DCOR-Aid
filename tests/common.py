@@ -67,12 +67,13 @@ def make_dataset_dict(hint=""):
     return dataset_dict
 
 
-def make_dataset_dict_full_fake():
-    org_id = f"{uuid.uuid4()}"
-    ds_id = f"{uuid.uuid4()}"
+def make_dataset_dict_full_fake(org_id=None, ds_id=None, title=None):
+    org_id = org_id or f"{uuid.uuid4()}"
+    ds_id = ds_id or f"{uuid.uuid4()}"
     user_id = f"{uuid.uuid4()}"
     created = datetime.date.fromtimestamp(time.time() - 50).isoformat()
     modified = datetime.date.fromtimestamp(time.time()).isoformat()
+    title = title or "Standard title"
 
     return {"authors": "John Doe",
             "creator_user_id": f"{user_id}",
@@ -98,7 +99,8 @@ def make_dataset_dict_full_fake():
                 "state": "active"},
             "owner_org": f"{org_id}",
             "private": True, "references": "",
-            "state": "active", "title": "Dataset Title",
+            "state": "active",
+            "title": title,
             "type": "dataset", "resources": [
                 {"cache_last_updated": None, "cache_url": None,
                  "created": created,
