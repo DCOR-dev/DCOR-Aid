@@ -5,6 +5,7 @@ from unittest import mock
 
 import uuid
 
+import dcoraid.gui.api
 from dcoraid.gui.api import get_ckan_api
 from dcoraid.gui.main import DCORAid
 from dcoraid.gui.panel_uploads.dlg_upload import UploadDialog
@@ -15,6 +16,11 @@ from PyQt6 import QtCore, QtGui, QtWidgets, QtTest
 from PyQt6.QtWidgets import QInputDialog, QMessageBox
 
 from . import common
+
+
+@pytest.fixture(scope="function", autouse=True)
+def clear_ckan_api():
+    dcoraid.gui.api._CKAN_API = None
 
 
 @pytest.fixture

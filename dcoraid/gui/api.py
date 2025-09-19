@@ -14,21 +14,28 @@ _disable_ssl = os.environ.get("DCORAID_SKIP_SSL_VERIFY", "").lower() == "true"
 #: to `None` which means DCOR-Aid decides depending on where it is.
 _SSL_VERIFY = False if _disable_ssl else None
 
+#: Cache for CKANAPI instance
+_CKAN_API = None
+
 logger = logging.getLogger(__name__)
 
 
 def get_ckan_api(public=False):
     """Convenience function for obtaining CKANAPI instance from settings"""
-    settings = QtCore.QSettings()
-    if public:
-        api_key = None
-    else:
-        api_key = settings.value("auth/api key", "")
-    server = settings.value("auth/server", "dcor.mpl.mpg.de")
-    ssl_verify = setup_certificate_file()
-    api = CKANAPI(server=server, api_key=api_key, ssl_verify=ssl_verify,
-                  check_ckan_version=False)
-    return api
+    global _CKAN_API
+    if _CKAN_API is None:
+        settings = QtCore.QSettings()
+        if public:
+            api_key = None
+        else:
+            api_key = settings.value("auth/api key", "")
+        server = settings.value("auth/server", "dcor.mpl.mpg.de")
+        ssl_verify = setup_certificate_file()
+        _CKAN_API = CKANAPI(server=server,
+                            api_key=api_key,
+                            ssl_verify=ssl_verify,
+                            check_ckan_version=False)
+    return _CKAN_API
 
 
 def setup_certificate_file():
