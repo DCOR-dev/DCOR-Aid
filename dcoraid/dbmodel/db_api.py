@@ -255,6 +255,10 @@ class APIInterrogator(DBInterrogator):
 
         return dbextract
 
+    def update(self, reset=False):
+        """Ignored, since no local database exists"""
+        pass
+
     @property
     def local_timestamp(self):
         """Local database date in seconds since epoch"""

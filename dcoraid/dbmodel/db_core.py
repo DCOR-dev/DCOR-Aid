@@ -88,3 +88,8 @@ class DBInterrogator(abc.ABC):
     def remote_timestamp(self):
         """Remote database date in seconds since epoch"""
         return 0
+
+    @abc.abstractmethod
+    def update(self, reset=False):
+        """Update the local database copy"""
+        pass
