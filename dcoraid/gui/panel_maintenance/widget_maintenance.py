@@ -25,8 +25,8 @@ class MaintenanceWidget(QtWidgets.QWidget):
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
 
-        self.toolButton_cache.clicked.connect(self.on_clear_cache)
-        self.toolButton_drafts.clicked.connect(self.on_remove_drafts)
+        self.pushButton_cache.clicked.connect(self.on_clear_cache)
+        self.pushButton_drafts.clicked.connect(self.on_remove_drafts)
 
     @staticmethod
     def find_main_window():
