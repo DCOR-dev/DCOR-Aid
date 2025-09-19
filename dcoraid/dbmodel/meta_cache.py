@@ -43,6 +43,16 @@ class MetaCache:
         # dataset IDs as values.
         self._registry_org = {}
 
+        # Dictionary of databases for persistent storage
+        self._databases = {}
+
+        # Search blob array
+        self._srt_blobs = None
+
+        self._initialize(circle_ids)
+
+
+    def _initialize(self, circle_ids=None):
         # List of all dataset dictionaries (only used during init)
         datasets = []
         # List of search data (only used during init)
@@ -53,8 +63,7 @@ class MetaCache:
             db_paths = list(self.base_dir.glob("circle_*.db"))
         else:
             db_paths = [self.base_dir / f"circle_{c}.db" for c in circle_ids]
-        # Dictionary of databases for persistent storage
-        self._databases = {}
+
         for cp in db_paths:
             cid = cp.stem.split("_", 1)[-1]
             try:
@@ -116,13 +125,15 @@ class MetaCache:
     def close(self):
         for db in self._databases.values():
             db.close()
-        self._databases.clear()
 
-    def destroy(self):
+    def reset(self):
         self.close()
-
+        self._databases.clear()
+        self.datasets.clear()
+        self._registry_org.clear()
         for path in self.base_dir.glob("circle_*.db"):
             path.unlink()
+        self._initialize()
 
     def search(self,
                query: str,

@@ -113,8 +113,7 @@ class CachedAPIInterrogator(DBInterrogator):
 
         if reset:
             self.local_timestamp = 0
-            self._mc.destroy()
-            self._mc = MetaCache(self.cache_location)
+            self._mc.reset()
 
         circles = self.get_circles(refresh=True)
         self.get_collections(refresh=True)

@@ -137,8 +137,8 @@ class DCORAid(QtWidgets.QMainWindow):
                 )
             self._last_asked_about_update = 0
             self.check_update_database(
-                force=int(self.settings.value(
-                    "update database on startup", "0"))
+                force=bool(int(self.settings.value(
+                    "update database on startup", "0")))
             )
         except BaseException:
             self.logger.error(traceback.format_exc())
