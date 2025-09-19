@@ -24,6 +24,9 @@
        <number>0</number>
       </property>
       <widget class="QWidget" name="tab_browse_public">
+       <attribute name="icon">
+        <iconset theme="magnifying-glass"/>
+       </attribute>
        <attribute name="title">
         <string>Find Data</string>
        </attribute>

@@ -62,6 +62,7 @@ icons = {
         "hat-wizard",
         "hourglass",
         "info",
+        "magnifying-glass",
         "people-arrows",
         "people-carry",
         "puzzle-piece",

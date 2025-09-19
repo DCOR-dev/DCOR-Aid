@@ -1,29 +1,25 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg width="64" version="1.1" xmlns="http://www.w3.org/2000/svg" height="64" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
- <defs id="defs3811">
-  <linearGradient inkscape:collect="always" xlink:href="#linearGradient4143-6" id="linearGradient4416" y1="43.999989" y2="6.999989" x2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-1.4054053 0 0 1.4054053 804.69502 154.09579)"/>
-  <linearGradient inkscape:collect="always" id="linearGradient4144" xlink:href="#linearGradient4155" y1="29.999973" y2="2" gradientUnits="userSpaceOnUse" x2="0" gradientTransform="matrix(2 0 0 -2 0 53)"/>
-  <linearGradient inkscape:collect="always" id="linearGradient4155">
-   <stop style="stop-color:#fcd994" id="stop4157"/>
-   <stop offset="1" style="stop-color:#fff6e1" id="stop4159"/>
-  </linearGradient>
-  <linearGradient inkscape:collect="always" id="linearGradient4143-6">
-   <stop style="stop-color:#faae2a" id="stop4145-8"/>
-   <stop offset="1" style="stop-color:#ffc35a" id="stop4147-0"/>
-  </linearGradient>
-  <linearGradient inkscape:collect="always" xlink:href="#linearGradient4227" id="linearGradient4191" y1="12.999999" x1="17" y2="41" x2="45" gradientUnits="userSpaceOnUse"/>
-  <linearGradient inkscape:collect="always" id="linearGradient4227">
-   <stop style="stop-color:#292c2f" id="stop4229"/>
-   <stop offset="1" style="stop-opacity:0" id="stop4231"/>
-  </linearGradient>
- </defs>
- <metadata id="metadata3814"/>
- <g inkscape:label="Layer 1" inkscape:groupmode="layer" id="layer1" transform="matrix(1 0 0 1 -736.85718 -157.93361)">
-  <path inkscape:connector-curvature="0" style="fill:url(#linearGradient4416);fill-rule:evenodd" id="path4445" d="m 794.85718,163.93361 0,37.94594 -25.29727,0 -14.05412,14.05406 0,-14.05406 -12.64861,0 0,-37.94594 z"/>
-  <path style="fill:#e59305;fill-rule:evenodd" id="path4256" d="M 6 42.945312 L 6 43.945312 L 18.648438 43.945312 L 18.648438 42.945312 L 6 42.945312 z M 32.703125 42.945312 L 18.648438 57 L 18.648438 58 L 32.703125 43.945312 L 58 43.945312 L 58 42.945312 L 32.703125 42.945312 z " transform="matrix(1 0 0 1 736.85718 157.93361)"/>
-  <path style="fill:url(#linearGradient4191);opacity:0.2;fill-rule:evenodd" id="path4186" d="M 32 13 L 32 15 L 44 35.785156 L 44.701172 37 L 19 37 L 29.324219 47.324219 L 32.703125 43.945312 L 58 43.945312 L 58 39 L 32 13 z " transform="matrix(1 0 0 1 736.85718 157.93361)"/>
-  <path inkscape:connector-curvature="0" style="fill:url(#linearGradient4144)" id="rect4133" d="M 32,13 18.853516,37 19.992188,37 20,36.986328 20,37 l 24,0 0,-0.01367 0.0078,0.01367 1.138672,0 z M 32,15.076172 43.460938,36 20.539062,36 Z M 31,20 l 0,10 2,0 0,-10 z m 0,12 0,2 2,0 0,-2 z" transform="matrix(1 0 0 1 736.85718 157.93361)"/>
- </g>
+<svg fill="none" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6 57L32 5L58 57H6Z" fill="url(#paint0_linear_1700_20014)"/>
+    <path d="M43.0311 27.0874L58 57H34L29 52H35V46H33L29 42V19H35L43.0311 27.0874Z" clip-rule="evenodd" fill="url(#paint1_linear_1700_20014)" fill-rule="evenodd" opacity=".2"/>
+    <path d="m29 52v-6h6v6h-6zm0-33v23h6v-23h-6z" clip-rule="evenodd" fill="url(#paint2_linear_1700_20014)" fill-rule="evenodd"/>
+    <rect x="6" y="57" width="52" height="1" fill="url(#paint3_linear_1700_20014)"/>
+    <rect x="6" y="57" width="52" height="1" fill="#000" fill-opacity=".2"/>
+    <defs>
+        <linearGradient id="paint0_linear_1700_20014" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#FF902E" offset="0"/>
+            <stop stop-color="#F07406" offset="1"/>
+        </linearGradient>
+        <linearGradient id="paint1_linear_1700_20014" x1="31.5" x2="51.3995" y1="32.0365" y2="54.0321" gradientUnits="userSpaceOnUse">
+            <stop stop-opacity=".6" offset="0"/>
+            <stop stop-opacity="0" offset="1"/>
+        </linearGradient>
+        <linearGradient id="paint2_linear_1700_20014" x1="-64" x2="-64" y1="73.5" y2="19.5" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#FFE3B3" offset="0"/>
+            <stop stop-color="#FFFEFC" offset="1"/>
+        </linearGradient>
+        <linearGradient id="paint3_linear_1700_20014" x2=".0473198" y1="56.9038" y2="59.3645" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#FF902E" offset="0"/>
+            <stop stop-color="#F07406" offset="1"/>
+        </linearGradient>
+    </defs>
 </svg>
