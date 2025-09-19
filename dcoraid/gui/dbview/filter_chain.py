@@ -4,6 +4,8 @@ from importlib import resources
 
 from PyQt6 import QtCore, QtWidgets, uic
 
+from ...common import is_dc_resource_dict
+
 from ..tools import ShowWaitCursor
 from ..api import get_ckan_api
 
@@ -117,8 +119,7 @@ class FilterChain(QtWidgets.QWidget):
             ddict = self.db_extract.get_dataset_dict(dn)
             for rs in ddict.get("resources", []):
                 if (self.fw_resources.checkBox.isChecked()
-                    and ("mimetype" in rs
-                         and rs["mimetype"] != "RT-DC")):
+                        and not is_dc_resource_dict(rs)):
                     # Ignore non-RT-DC mimetypes
                     continue
                 else:

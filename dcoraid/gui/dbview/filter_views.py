@@ -4,6 +4,8 @@ import webbrowser
 from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtCore import Qt
 
+from ...common import is_dc_resource_dict
+
 from ..api import get_ckan_api
 from ..tools import ShowWaitCursor
 
@@ -156,7 +158,7 @@ class FilterResources(filter_base.FilterBase):
              "tooltip": f"view resource {entry['name']} online",
              "function": partial(webbrowser.open, url)},
         ]
-        if entry["mimetype"] == "RT-DC":
+        if is_dc_resource_dict(entry):
             # only show condensed-download-button for .rtdc files
             actions.insert(
                 1,

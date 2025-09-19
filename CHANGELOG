@@ -1,4 +1,5 @@
 0.17.5
+ - fix: missing .rtdc resource files in filter view
  - fix: error handling when connection to server fails on download (#75)
  - fix: '_condensed' suffix for file stem randomly missing in downloads
  - enh: display DCOR instance title in search bar
