@@ -114,3 +114,4 @@ _dev_*.py
 
 # QtCreator temporary files
 *.ui.autosave
+*.png~
