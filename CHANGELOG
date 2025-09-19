@@ -1,6 +1,7 @@
 0.17.5
  - fix: error handling when connection to server fails on download (#75)
  - fix: '_condensed' suffix for file stem randomly missing in downloads
+ - enh: add `SQLiteKeyJSONDatabase` for persistent metadata storage
  - enh: add `CKANAPI.hostname`
  - enh: sort search results by creation date instead of score and modified date
  - enh: convenience kwarg `since_time` for `search_dataset_via_api`
