@@ -37,13 +37,15 @@ class WidgetFindData(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_search(self):
-        self.find_main_window().check_update_database()
-        self.setCursor(QtCore.Qt.CursorShape.WaitCursor)
-        dbextract = self.database.search_dataset(
-            self.lineEdit_search.text(),
-            limit=self.spinBox_public_rows.value())
-        self.public_filter_chain.set_db_extract(dbextract)
-        self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
+        mv = self.find_main_window()
+        mv.check_update_database()
+        if mv.database:
+            self.setCursor(QtCore.Qt.CursorShape.WaitCursor)
+            dbextract = self.database.search_dataset(
+                self.lineEdit_search.text(),
+                limit=self.spinBox_public_rows.value())
+            self.public_filter_chain.set_db_extract(dbextract)
+            self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
 
     @QtCore.pyqtSlot()
     def on_update_db(self):

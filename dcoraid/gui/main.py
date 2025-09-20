@@ -49,6 +49,8 @@ class DCORAid(QtWidgets.QMainWindow):
         self._update_thread = None
         self._update_worker = None
 
+        self.database = None
+
         # Settings are stored in the .ini file format. Even though
         # `self.settings` may return integer/bool in the same session,
         # in the next session, it will reliably return strings. Lists
@@ -152,7 +154,14 @@ class DCORAid(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(bool)
     def check_update_database(self, reset=False, force=False):
         doit = False
-        if force:
+        if not self.database:
+            QtWidgets.QMessageBox.critical(
+                self,
+                "No connection",
+                "Database could not be initialized. Please make sure "
+                "your are connected to the network."
+            )
+        elif force:
             doit = True
         else:
             if (self.database.local_timestamp < time.time() - 24*3600

@@ -145,7 +145,7 @@ class FilterChainUser(FilterChain):
         """Add all datasets currently selected to a collection
 
         Displays a dialog where the user can choose a collection
-        she has write-access to.
+        they have write-access to.
         """
         # get current selection
         dataset_ids = self.fw_datasets.get_entry_identifiers(selected=True)
