@@ -32,7 +32,9 @@ class CachedAPIInterrogator(DBInterrogator):
         else:
             user_data = None
 
-        self._mc = MetaCache(self.cache_location)
+        self._mc = MetaCache(directory=self.cache_location,
+                             user_id=self.api.user_id,
+                             )
         self._mc_timestamp_path = self.cache_location / "cache_timestamp"
         self._mc_timestamp_path.touch()
         self._mc_version_path = self.cache_location / "cache_version"
@@ -79,8 +81,9 @@ class CachedAPIInterrogator(DBInterrogator):
 
     def get_datasets_user_owned(self):
         """Return datasets the user created"""
-        # TODO: Use datasets in self._mc
-        return self.ai.get_datasets_user_owned()
+        own_list = self._mc.datasets_user_owned
+        ds_list = self._mc.datasets
+        return [ds for (ds, byuser) in zip(ds_list, own_list) if byuser]
 
     def get_datasets_user_shared(self):
         """Return datasets shared with the user"""
@@ -134,6 +137,6 @@ class CachedAPIInterrogator(DBInterrogator):
                 break
             self._mc.upsert_dataset(ds_dict)
         else:
-            # Only update teh local timestamp if we actually did
+            # Only update the local timestamp if we actually did
             # update the local database.
             self.local_timestamp = new_timestamp

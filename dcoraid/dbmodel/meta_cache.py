@@ -20,6 +20,7 @@ class MetaCache:
     """
     def __init__(self,
                  directory: str | pathlib.Path,
+                 user_id: str = None,
                  circle_ids: list[str] = None,
                  ) -> None:
         """
@@ -28,23 +29,32 @@ class MetaCache:
 
         Parameters
         ----------
-        directory : str | pathlib.Path
+        directory: str | pathlib.Path
             Path to the folder that will hold the ``circle_<org_id>.db`` files.
             The folder is created automatically if it does not exist.
-        circle_ids : list[str]
+        user_id: str
+            The ID of the user operating the database.
+        circle_ids: list[str]
             List of circle IDs that should be taken into consideration.
             If set to None (default), all databases in the `directory`
             are loaded.
         """
         self.base_dir = pathlib.Path(directory).expanduser().resolve()
         self.base_dir.mkdir(parents=True, exist_ok=True)
+        self.user_id = user_id
 
-        # The registry is a dictionary with circle IDs and a list of
-        # dataset IDs as values.
+        # The organization registry is a dictionary with circle IDs and
+        # a list of dataset IDs as values.
         self._registry_org = {}
+
+        # List of booleans indicating whether dataset was created by the user
+        self.datasets_user_owned = []
 
         # Dictionary of databases for persistent storage
         self._databases = {}
+
+        # List of dataset dictionaries
+        self.datasets = []
 
         # Search blob array
         self._srt_blobs = None
@@ -248,6 +258,12 @@ class MetaCache:
             self._databases[org_id] = SQLiteKeyJSONDatabase(
                 db_name=self.base_dir / f"circle_{org_id}.db")
         self._databases[org_id][ds_id] = ds_dict
+
+        # user's dataset list
+        self.datasets_user_owned.insert(
+            new_idx,
+            ds_dict["creator_user_id"] == self.user_id
+            )
 
     def _upsert_dataset_update(self, ds_dict):
         """Update an existing dataset

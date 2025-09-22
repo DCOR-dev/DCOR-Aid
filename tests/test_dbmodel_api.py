@@ -38,6 +38,14 @@ def test_get_collections():
     assert "figshare-collection" in collections
 
 
+def test_get_datasets_user_owned(tmp_path):
+    ds_dict = common.make_dataset_for_download()
+    api = common.get_api()
+    db = db_api.APIInterrogator(api=api)
+    ds_list = db.get_datasets_user_owned()
+    assert ds_dict in ds_list
+
+
 def test_get_users_anonymous():
     api = CKANAPI(server=common.SERVER)  # anonymous access
     db = db_api.APIInterrogator(api=api)
