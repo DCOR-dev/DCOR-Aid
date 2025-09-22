@@ -2,15 +2,14 @@ import abc
 
 
 class DBInterrogator(abc.ABC):
-    def __init__(self, mode, user_data):
-        if mode == "user":
+    def __init__(self, user_data):
+        if user_data:
             mandatory = ["id", "name", "number_created_packages"]
             missing = [key for key in mandatory if key not in user_data]
             if missing:
                 raise ValueError("The following keys are missing in "
-                                 f"`user_data` for `mode=='user'`: {missing}")
+                                 f"`user_data`: {missing}")
         self.user_data = user_data
-        self.mode = mode
         self.search_query = {}
 
     @property
@@ -39,8 +38,6 @@ class DBInterrogator(abc.ABC):
 
     def get_datasets_user(self):
         """Return DBExtract with data owned by or shared with the user"""
-        if self.mode != "user":
-            raise ValueError("Cannot get user datasets if mode is 'public'!")
         owned = self.get_datasets_user_owned()
         shared = self.get_datasets_user_shared()
         following = self.get_datasets_user_following()

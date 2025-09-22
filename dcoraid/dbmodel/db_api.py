@@ -22,33 +22,20 @@ class APIInterrogator(DBInterrogator):
     def __init__(self, api):
         self.api = api.copy()
         if api.user_id:
-            mode = "user"
             user_data = api.get_user_dict()
         else:
-            mode = "public"
             user_data = None
-        super(APIInterrogator, self).__init__(mode=mode, user_data=user_data)
+        super(APIInterrogator, self).__init__(user_data=user_data)
 
     def get_circles(self):
         """Return the list of DCOR Circle names
         """
-        if self.mode == "user":
-            # Organizations the user is a member of
-            circle_dict = self.api.get("organization_list_for_user",
-                                       id=self.api.user_id,
-                                       permission="read")
-            data = [dd["name"] for dd in circle_dict]
-        else:
-            data = self.api.get("organization_list")
+        data = self.api.get("organization_list")
         return data
 
     def get_collections(self):
         """Return the list of DCOR Collection names"""
-        if self.mode == "user":
-            collection_dict = self.api.get("group_list_authz", am_member=True)
-            data = [dd["name"] for dd in collection_dict]
-        else:
-            data = self.api.get("group_list")
+        data = self.api.get("group_list")
         if len(data) == 1000:
             raise NotImplementedError(
                 "Reached hard limit of 1000 results! "
@@ -57,50 +44,56 @@ class APIInterrogator(DBInterrogator):
 
     def get_datasets_user_following(self):
         """Return datasets the user is following"""
-        assert self.mode == "user"
-        data = self.api.get("dataset_followee_list", id=self.api.user_name)
+        if self.api.user_id is not None:
+            data = self.api.get("dataset_followee_list", id=self.api.user_name)
+        else:
+            data = []
         return DBExtract(data)
 
     def get_datasets_user_owned(self):
         """Return datasets the user created"""
-        assert self.mode == "user"
-        dbextract = self.search_dataset_via_api(
-            filter_queries=[f"+creator_user_id:{self.api.user_id}"],
-            limit=0,
-        )
-        return dbextract
+        if self.api.user_id is not None:
+            dbe = self.search_dataset_via_api(
+                filter_queries=[f"+creator_user_id:{self.api.user_id}"],
+                limit=0,
+            )
+        else:
+            dbe = DBExtract()
+        return dbe
 
     def get_datasets_user_shared(self):
         """Return datasets shared with the user"""
-        assert self.mode == "user"
         # Perform a dataset search with all circles and collections.
         # This search may become too large (414 Request-URI Too Large).
         # Limit the search to 20 circles/collections.
-        dbextract = DBExtract()
+        dbe = DBExtract()
 
-        for circles_batch in batched(self.get_circles(), 20):
-            dbextract += self.search_dataset_via_api(
-                circles=list(circles_batch),
-                filter_queries=[f"-creator_user_id:{self.api.user_id}"],
-                limit=0,
-                )
+        if self.api.user_id is not None:
 
-        for collections_batch in batched(self.get_collections(), 20):
-            dbextract += self.search_dataset_via_api(
-                collections=list(collections_batch),
-                filter_queries=[f"-creator_user_id:{self.api.user_id}"],
-                limit=0,
-                )
+            for circles_batch in batched(self.get_circles(), 20):
+                dbe += self.search_dataset_via_api(
+                    circles=list(circles_batch),
+                    filter_queries=[f"-creator_user_id:{self.api.user_id}"],
+                    limit=0,
+                    )
 
-        # all packages the user is a collaborator in
-        collaborated = self.api.get("package_collaborator_list_for_user",
-                                    id=self.user_data["id"])
-        for col in collaborated:
-            if col["package_id"] not in dbextract:
-                ds_dict = self.api.get("package_show", id=col["package_id"])
-                dbextract.add_datasets([ds_dict])
+            for collections_batch in batched(self.get_collections(), 20):
+                dbe += self.search_dataset_via_api(
+                    collections=list(collections_batch),
+                    filter_queries=[f"-creator_user_id:{self.api.user_id}"],
+                    limit=0,
+                    )
 
-        return dbextract
+            # all packages the user is a collaborator in
+            collaborated = self.api.get("package_collaborator_list_for_user",
+                                        id=self.user_data["id"])
+            for col in collaborated:
+                if col["package_id"] not in dbe:
+                    ds_dict = self.api.get("package_show",
+                                           id=col["package_id"])
+                    dbe.add_datasets([ds_dict])
+
+        return dbe
 
     def get_users(self, ret_fullnames=False):
         """Return the list of DCOR users"""
@@ -237,16 +230,17 @@ class APIInterrogator(DBInterrogator):
 
         num_total = np.inf  # just the initial value
         num_retrieved = 0
-        dbextract = DBExtract()
+        dbe = DBExtract()
         while start + num_retrieved < min(start + limit, num_total) and rows:
-            data = self.api.get("package_search",
-                                q=urllib.parse.quote(query, safe=""),
-                                fq=final_fq,
-                                include_private=(self.mode == "user"),
-                                rows=rows,
-                                sort=sort_solr,
-                                start=start + num_retrieved,
-                                )
+            data = self.api.get(
+                "package_search",
+                q=urllib.parse.quote(query, safe=""),
+                fq=final_fq,
+                include_private=bool(self.api.user_id is not None),
+                rows=rows,
+                sort=sort_solr,
+                start=start + num_retrieved,
+                )
             if np.isinf(num_total):
                 # first iteration
                 num_total = data["count"]
@@ -255,9 +249,9 @@ class APIInterrogator(DBInterrogator):
                 # in the next iteration, only get the final
                 # few results.
                 rows = num_total - num_retrieved
-            dbextract.add_datasets(data["results"])
+            dbe.add_datasets(data["results"])
 
-        return dbextract
+        return dbe
 
     def update(self, reset=False):
         """Ignored, since no local database exists"""

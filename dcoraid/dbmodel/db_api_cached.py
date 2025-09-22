@@ -28,10 +28,8 @@ class CachedAPIInterrogator(DBInterrogator):
         }
 
         if api.user_id:
-            mode = "user"
             user_data = api.get_user_dict()
         else:
-            mode = "public"
             user_data = None
 
         self._mc = MetaCache(self.cache_location)
@@ -40,8 +38,7 @@ class CachedAPIInterrogator(DBInterrogator):
         self._mc_version_path = self.cache_location / "cache_version"
         self._mc_version_path.touch()
 
-        super(CachedAPIInterrogator, self).__init__(mode=mode,
-                                                    user_data=user_data)
+        super(CachedAPIInterrogator, self).__init__(user_data=user_data)
 
     @property
     def local_timestamp(self):
