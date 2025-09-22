@@ -47,14 +47,14 @@ class MetaCache:
         # a list of dataset IDs as values.
         self._registry_org = {}
 
-        # List of booleans indicating whether dataset was created by the user
-        self.datasets_user_owned = []
-
-        # Dictionary of databases for persistent storage
+        #: Dictionary of databases for persistent storage
         self._databases = {}
 
-        # List of dataset dictionaries
+        #: List of dataset dictionaries
         self.datasets = []
+
+        #: List of booleans indicating whether dataset was created by the user
+        self.datasets_user_owned = []
 
         # Search blob array
         self._srt_blobs = None
@@ -124,6 +124,12 @@ class MetaCache:
 
         #: list of datasets, sorted by creation date descending
         self.datasets = [datasets[ii] for ii in sort_idx]
+
+        #: List of booleans indicating whether dataset was created by the user
+        self.datasets_user_owned = [
+            ds_dict["creator_user_id"] == self.user_id
+            for ds_dict in self.datasets
+        ]
 
     def __enter__(self):
         return self
@@ -262,7 +268,7 @@ class MetaCache:
         # user's dataset list
         self.datasets_user_owned.insert(
             new_idx,
-            ds_dict["creator_user_id"] == self.user_id
+            ds_dict["creator_user_id"] == self.user_id,
             )
 
     def _upsert_dataset_update(self, ds_dict):

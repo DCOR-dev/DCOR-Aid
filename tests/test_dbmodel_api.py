@@ -196,6 +196,8 @@ def test_search_dataset_since_time():
     # Create a dataset
     ds_dict = common.make_dataset_for_download()
 
+    time.sleep(.5)
+
     # Run the query again
     de1 = db.search_dataset_via_api(since_time=tstart)
     # The new dataset should be in the results.

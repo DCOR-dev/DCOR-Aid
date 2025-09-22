@@ -6,7 +6,7 @@ from importlib import resources
 from PyQt6 import uic, QtCore, QtWidgets
 
 from ...common import ConnectionTimeoutErrors
-from ...dbmodel import APIInterrogator, DBExtract
+from ...dbmodel import DBExtract
 
 from ..api import get_ckan_api
 from ..main import DCORAid
@@ -34,18 +34,18 @@ class WidgetMyData(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_refresh_private_data(self):
+        self.find_main_window().check_update_database(force=True)
         self.setCursor(QtCore.Qt.CursorShape.WaitCursor)
         api = get_ckan_api()
         data = DBExtract()
         if api.is_available() and api.api_key:
             try:
-                db = APIInterrogator(api=api)
                 if self.checkBox_user_following.isChecked():
-                    data += db.get_datasets_user_following()
+                    data += self.database.get_datasets_user_following()
                 if self.checkBox_user_owned.isChecked():
-                    data += db.get_datasets_user_owned()
+                    data += self.database.get_datasets_user_owned()
                 if self.checkBox_user_shared.isChecked():
-                    data += db.get_datasets_user_shared()
+                    data += self.database.get_datasets_user_shared()
                 self.user_filter_chain.set_db_extract(data)
             except ConnectionTimeoutErrors:
                 logger.error(tb.format_exc())
@@ -64,5 +64,4 @@ class WidgetMyData(QtWidgets.QWidget):
                 return widget
 
     def set_database(self, database):
-        # TODO: Use this database for searches
         self.database = database

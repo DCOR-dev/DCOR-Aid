@@ -74,18 +74,19 @@ class CachedAPIInterrogator(DBInterrogator):
             clist += self.ai.get_collections()
         return clist
 
-    def get_datasets_user_following(self):
+    def get_datasets_user_following(self) -> DBExtract:
         """Return datasets the user is following"""
         # TODO: Use datasets in self._mc
         return self.ai.get_datasets_user_following()
 
-    def get_datasets_user_owned(self):
+    def get_datasets_user_owned(self) -> DBExtract:
         """Return datasets the user created"""
         own_list = self._mc.datasets_user_owned
         ds_list = self._mc.datasets
-        return [ds for (ds, byuser) in zip(ds_list, own_list) if byuser]
+        owned = [ds for (ds, byuser) in zip(ds_list, own_list) if byuser]
+        return DBExtract(owned)
 
-    def get_datasets_user_shared(self):
+    def get_datasets_user_shared(self) -> DBExtract:
         """Return datasets shared with the user"""
         # TODO: Use datasets in self._mc
         return self.ai.get_datasets_user_shared()
