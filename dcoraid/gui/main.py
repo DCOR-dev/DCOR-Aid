@@ -141,10 +141,10 @@ class DCORAid(QtWidgets.QMainWindow):
                 cache_location=QtCore.QStandardPaths.writableLocation(
                     QtCore.QStandardPaths.StandardLocation.CacheLocation)
                 )
-            self._last_asked_about_update = 0
+            self._last_asked_about_update = self.database.local_timestamp
             self.check_update_database(
                 force=bool(int(self.settings.value(
-                    "update database on startup", "0")))
+                    "force update database on startup", "0")))
             )
         except BaseException:
             self.logger.error(traceback.format_exc())

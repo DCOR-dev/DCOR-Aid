@@ -54,7 +54,6 @@ def pytest_configure(config):
     settings = QtCore.QSettings()
     change_settings = {
         "check for updates": "0",
-        "update database on startup": "1",
         "user scenario": "dcor-dev",
         "auth/server": common.SERVER,
         "auth/api key": common.get_api_key(),
@@ -67,6 +66,7 @@ def pytest_configure(config):
         settings.setValue(key, value)
     # removing timers breaks the user workflow, so it is not in change_settings
     settings.setValue("debug/without timers", "1")
+    settings.setValue("force update database on startup", "1")
     settings.sync()
     # cleanup
     cleanup_dcoraid_tasks()
@@ -88,6 +88,7 @@ def pytest_unconfigure(config):
         settings.setValue(key, USER_SETTINGS[key])
     # always remove this setting, because it breaks the user workflow
     settings.remove("debug/without timers")
+    settings.remove("force update database on startup")
     settings.sync()
     # cleanup
     cleanup_dcoraid_tasks()
