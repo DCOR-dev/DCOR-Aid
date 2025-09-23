@@ -167,6 +167,27 @@ class DCORAid(QtWidgets.QMainWindow):
             )
         elif force:
             doit = True
+            if (self.database.local_timestamp > time.time() - 10
+                    and self._last_asked_about_update > time.time() - 1):
+                # The user might be frantically hitting the update button,
+                # because something is not showing up. Ask whether to reset
+                # the database.
+                button_reply = QtWidgets.QMessageBox.question(
+                    self,
+                    'User frustration detected',
+                    "It seems like you are looking for a dataset that "
+                    "is not here. If something has been modified by someone "
+                    "different than you, it might help to reset the database. "
+                    "Would you like to reset (instead of update) the "
+                    "database? This will delete the local database and fetch "
+                    "all metadata from the DCOR server.",
+                    QtWidgets.QMessageBox.StandardButton.Yes
+                    | QtWidgets.QMessageBox.StandardButton.No,
+                    QtWidgets.QMessageBox.StandardButton.No)
+                reset_db = (button_reply
+                            == QtWidgets.QMessageBox.StandardButton.Yes)
+                if reset_db:
+                    self.database.reset_cache()
         else:
             if (self.database.local_timestamp < time.time() - 24*3600
                     and self._last_asked_about_update < time.time() - 3600):
