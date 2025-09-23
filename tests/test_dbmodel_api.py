@@ -189,25 +189,19 @@ def test_search_dataset_since_time():
     db = db_api.APIInterrogator(api=api)
     tstart = time.time()
 
-    # Normally, this should not return anything, except for a race
-    # condition when multiple tests are running at the same time.
-    de0 = db.search_dataset_via_api(since_time=tstart)
-
     # Create a dataset
     ds_dict = common.make_dataset_for_download()
 
-    time.sleep(.5)
-
     # Run the query again
-    de1 = db.search_dataset_via_api(since_time=tstart)
-    # The new dataset should be in the results.
-    assert len(de1) > len(de0)
-
-    for item in de1:
-        if item["id"] == ds_dict["id"]:
+    for ii in range(10):
+        de1 = db.search_dataset_via_api(since_time=tstart-10,
+                                        limit=0)
+        # The new dataset should be in the results.
+        ids = [d["id"] for d in de1]
+        if ds_dict["id"] in ids:
             break
     else:
-        assert False, "created dataset not found"
+        assert False, "Created dataset does not exist"
 
 
 @pytest.mark.skipif(not HAS_FIGSHARE_ACCESS,

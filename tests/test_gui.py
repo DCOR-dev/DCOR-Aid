@@ -12,7 +12,7 @@ from dcoraid.gui.panel_uploads.dlg_upload import UploadDialog
 from dcoraid.gui.panel_uploads import widget_upload
 
 import pytest
-from PyQt6 import QtCore, QtGui, QtWidgets, QtTest
+from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QInputDialog, QMessageBox
 
 from . import common
@@ -33,27 +33,21 @@ def mw(qtbot):
     QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
     settings.setValue("auth/server", common.SERVER)
-    QtTest.QTest.qWait(100)
     QtWidgets.QApplication.processEvents(
-        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
-    qtbot.wait(100)
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
     # Code that will run before your test
     mw = DCORAid()
     qtbot.addWidget(mw)
     QtWidgets.QApplication.setActiveWindow(mw)
-    QtTest.QTest.qWait(100)
     QtWidgets.QApplication.processEvents(
-        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
-    qtbot.wait(100)
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
     # Run test
     yield mw
     # Make sure that all daemons are gone
     mw.close()
     # It is extremely weird, but this seems to be important to avoid segfaults!
-    QtTest.QTest.qWait(100)
     QtWidgets.QApplication.processEvents(
-        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
-    qtbot.wait(100)
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
 
 
 @pytest.mark.filterwarnings("ignore::UserWarning",
@@ -86,8 +80,7 @@ def test_gui_anonymous(qtbot):
         qtbot.addWidget(mw)
         QtWidgets.QApplication.setActiveWindow(mw)
         QtWidgets.QApplication.processEvents(
-            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
-        qtbot.wait(100)
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
         # sanity check
         assert mw.settings.value("user scenario") == "anonymous"
         assert mw.settings.value("auth/server") == "dcor.mpl.mpg.de"
@@ -100,10 +93,8 @@ def test_gui_anonymous(qtbot):
         spath.unlink()
         shutil.copy2(stmp, spath)
     mw.close()
-    QtTest.QTest.qWait(500)
     QtWidgets.QApplication.processEvents(
-        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
-    qtbot.wait(100)
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
 
 
 def test_gui_mydata_dataset_add_to_collection(mw, qtbot):
@@ -169,18 +160,14 @@ def test_gui_start_with_bad_server(qtbot):
         mw = DCORAid()
         qtbot.addWidget(mw)
         QtWidgets.QApplication.setActiveWindow(mw)
-        QtTest.QTest.qWait(200)
         QtWidgets.QApplication.processEvents(
-            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
-        qtbot.wait(100)
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
         # just make sure that DCOR-Aid thinks it is offline
         assert not mw.panel_upload.isEnabled()
         assert not mw.panel_download.isEnabled()
         mw.close()
-        QtTest.QTest.qWait(500)
         QtWidgets.QApplication.processEvents(
-            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
-        qtbot.wait(100)
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
     except BaseException:
         raise
     finally:
@@ -201,19 +188,15 @@ def test_gui_start_with_bad_api_key(qtbot):
         mw = DCORAid()
         qtbot.addWidget(mw)
         QtWidgets.QApplication.setActiveWindow(mw)
-        QtTest.QTest.qWait(200)
         QtWidgets.QApplication.processEvents(
-            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
-        qtbot.wait(100)
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
         # just make sure that DCOR-Aid thinks it is offline
         assert not mw.panel_upload.isEnabled()
         # downloads should still be possible
         assert mw.panel_download.isEnabled()
         mw.close()
-        QtTest.QTest.qWait(500)
         QtWidgets.QApplication.processEvents(
-            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
-        qtbot.wait(100)
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
     except BaseException:
         raise
     finally:
@@ -242,7 +225,7 @@ def test_gui_upload_simple(mw, qtbot):
 
     mw.panel_upload.widget_jobs.update_job_status()
     QtWidgets.QApplication.processEvents(
-        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
     assert mw.database.get_dataset_dictionary(dlg.dataset_id)
 
 
@@ -379,8 +362,7 @@ def test_gui_upload_task_missing_circle(mw, qtbot):
     tpath = common.make_upload_task(task_id=task_id,
                                     dataset_dict=dataset_dict)
     QtWidgets.QApplication.processEvents(
-        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
-    qtbot.wait(100)
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
     defaults = common.get_test_defaults()
     with mock.patch.object(
             QtWidgets.QFileDialog, "getOpenFileNames",

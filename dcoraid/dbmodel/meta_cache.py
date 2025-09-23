@@ -146,7 +146,7 @@ class MetaCache:
 
         #: Dict of dataset ID indices
         self._dataset_index_dict = {
-            ds_id:ii for (ii, ds_id) in enumerate(self._dataset_ids)}
+            ds_id: ii for (ii, ds_id) in enumerate(self._dataset_ids)}
 
     def __enter__(self):
         return self
