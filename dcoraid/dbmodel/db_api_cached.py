@@ -57,19 +57,21 @@ class CachedAPIInterrogator(DBInterrogator):
     def close(self):
         self._mc.close()
 
-    def get_circles(self, refresh=False):
+    def get_circles(self):
         """Return the list of DCOR Circle names
         """
-        clist = self._cache_fleeting["circles"]
-        if not clist or refresh:
+        # TODO: Use self._mc to extract circles
+        clist = self._cache_fleeting.setdefault("circles", [])
+        if not clist:
             clist.clear()
             clist += self.ai.get_circles()
         return clist
 
-    def get_collections(self, refresh=False):
+    def get_collections(self):
         """Return the list of DCOR Collection names"""
-        clist = self._cache_fleeting["collections"]
-        if not clist or refresh:
+        # TODO: Use self._mc to extract collections
+        clist = self._cache_fleeting.setdefault("collections", [])
+        if not clist:
             clist.clear()
             clist += self.ai.get_collections()
         return clist
@@ -80,7 +82,10 @@ class CachedAPIInterrogator(DBInterrogator):
     def get_datasets_user_following(self) -> DBExtract:
         """Return datasets the user is following"""
         # TODO: Use datasets in self._mc
-        return self.ai.get_datasets_user_following()
+        ckey = "get_datasets_user_following"
+        if self._cache_fleeting.get(ckey) is None:
+            self._cache_fleeting[ckey] = self.ai.get_datasets_user_following()
+        return self._cache_fleeting[ckey]
 
     def get_datasets_user_owned(self) -> DBExtract:
         """Return datasets the user created"""
@@ -92,7 +97,10 @@ class CachedAPIInterrogator(DBInterrogator):
     def get_datasets_user_shared(self) -> DBExtract:
         """Return datasets shared with the user"""
         # TODO: Use datasets in self._mc
-        return self.ai.get_datasets_user_shared()
+        ckey = "get_datasets_user_shared"
+        if self._cache_fleeting.get(ckey) is None:
+            self._cache_fleeting[ckey] = self.ai.get_datasets_user_shared()
+        return self._cache_fleeting[ckey]
 
     def get_users(self):
         """Return the list of DCOR users"""
@@ -119,6 +127,8 @@ class CachedAPIInterrogator(DBInterrogator):
 
     def update(self, reset=False, abort_event=None):
         """Update the local metadata cache based on the last local timestamp"""
+        # Clear the fleeting cache.
+        self._cache_fleeting.clear()
         if self.remote_version_score != self.local_version_score:
             reset = True
 
@@ -126,8 +136,9 @@ class CachedAPIInterrogator(DBInterrogator):
             self.local_timestamp = 0
             self._mc.reset()
 
-        self.get_circles(refresh=True)
-        self.get_collections(refresh=True)
+        # Call these methods now so they reflect the current database state.
+        self.get_circles()
+        self.get_collections()
 
         new_timestamp = time.time()
 
@@ -147,4 +158,5 @@ class CachedAPIInterrogator(DBInterrogator):
 
     def update_dataset(self, ds_dict):
         """Update a single dataset in the database without calling `update`"""
+        self._cache_fleeting.clear()
         self._mc.upsert_dataset(ds_dict)

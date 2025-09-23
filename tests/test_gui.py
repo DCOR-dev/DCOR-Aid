@@ -140,7 +140,7 @@ def test_gui_mydata_dataset_add_to_collection(mw, qtbot):
     with mock.patch.object(
             QInputDialog, "getItem",
             return_value=(f"{ii}: {item['display_name']}", True)):
-        qtbot.mouseClick(fw_datasets.toolButton_custom,
+        qtbot.mouseClick(fw_datasets.pushButton_custom,
                          QtCore.Qt.MouseButton.LeftButton)
 
     # Check whether dataset is in collection in database

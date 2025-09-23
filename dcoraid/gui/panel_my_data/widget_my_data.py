@@ -41,12 +41,21 @@ class WidgetMyData(QtWidgets.QWidget):
     def on_added_datasets_to_collection(self, collection, dataset_ids):
         """User manually added a bunch of datasets to a collection"""
         # Get the collection
-        for col in self.database.get_collections(refresh=True):
+        for col in self.database.get_collections():
             if col == collection["name"]:
                 cid = collection["id"]
                 break
         else:
-            raise KeyError(f"Collection {collection['id']} not found!")
+            # we have to reset the database and try again
+            self.database.update(reset=True)
+            for col in self.database.get_collections():
+                if col == collection["name"]:
+                    cid = collection["id"]
+                    break
+            else:
+                raise ValueError(
+                    f"Could not, with the best will in the world, "
+                    f"find this collection: '{collection['name']}'")
         # Append it to each dataset
         for ds_id in dataset_ids:
             ds_dict = self.database.get_dataset_dict(ds_id)
@@ -57,6 +66,7 @@ class WidgetMyData(QtWidgets.QWidget):
             else:
                 ds_dict["groups"].append(collection)
             self.database.update_dataset(ds_dict)
+        self.on_update_view()
 
     @QtCore.pyqtSlot()
     def on_update_db(self):
