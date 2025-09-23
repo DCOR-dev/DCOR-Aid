@@ -200,6 +200,7 @@ def test_search_dataset_since_time():
         ids = [d["id"] for d in de1]
         if ds_dict["id"] in ids:
             break
+        time.sleep(.5)
     else:
         assert False, "Created dataset does not exist"
 
