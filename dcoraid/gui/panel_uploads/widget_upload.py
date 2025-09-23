@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 import warnings
 from functools import lru_cache
 import os.path as os_path
@@ -381,19 +382,28 @@ class UploadTableWidget(QtWidgets.QTableWidget):
             QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
 
         self._jobs = None
+        self._finished_uploads = []
+        self._on_update_job_status_lock = threading.Lock()
 
         settings = QtCore.QSettings()
         if bool(int(settings.value("debug/without timers", "0"))):
             self.timer = None
         else:
             self.timer = QtCore.QTimer()
-            self.timer.timeout.connect(self.update_job_status)
-            self.timer.start(1000)
-        self._finished_uploads = []
+            self.timer.timeout.connect(self.on_update_job_status)
+            self.timer.start(500)
 
         # signals
         self.itemSelectionChanged.connect(self.on_selection)
         self.itemClicked.connect(self.on_selection)
+
+        # Set columns and spacing for upload table
+        self.setColumnCount(6)
+        header = self.horizontalHeader()
+        header.setSectionResizeMode(
+            0, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(
+            1, QtWidgets.QHeaderView.ResizeMode.Stretch)
 
     @property
     def jobs(self):
@@ -430,12 +440,12 @@ class UploadTableWidget(QtWidgets.QTableWidget):
     @QtCore.pyqtSlot(str)
     def on_job_abort(self, dataset_id):
         self.jobs.abort_job(dataset_id)
-        self.update_job_status()
+        self.on_update_job_status()
 
     @QtCore.pyqtSlot(str)
     def on_job_delete(self, dataset_id):
         self.jobs.remove_job(dataset_id)
-        self.update_job_status()
+        self.on_update_job_status()
 
     @QtCore.pyqtSlot()
     def on_selection(self):
@@ -460,7 +470,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
                 self.logger.error(tb.format_exc())
 
     @QtCore.pyqtSlot()
-    def update_job_status(self):
+    def on_update_job_status(self):
         """Update UI with information from self.jobs (UploadJobList)"""
         # Let everyone know when a job is done
         for job in self.jobs:
@@ -470,13 +480,18 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         if not self.isVisible() or not self.jobs:
             # Don't update the UI if nobody is looking anyway.
             return
+        if self._on_update_job_status_lock.locked():
+            return
+
+        with self._on_update_job_status_lock:
+            self.update_job_status()
+
+    def update_job_status(self):
         # disable updates
         self.setUpdatesEnabled(False)
         # make sure the length of the table is long enough
         self.setRowCount(len(self.jobs))
         if self.jobs:
-            self.setColumnCount(6)
-
             for row, job in enumerate(self.jobs):
                 status = job.get_status()
                 self.set_label_item(row, 0, job.dataset_id[:5])
@@ -486,12 +501,9 @@ class UploadTableWidget(QtWidgets.QTableWidget):
                 self.set_label_item(row, 4, job.get_rate_string())
                 self.set_actions_item(row, 5, job)
 
-            # spacing (did not work in __init__)
-            header = self.horizontalHeader()
-            header.setSectionResizeMode(
-                0, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
-            header.setSectionResizeMode(
-                1, QtWidgets.QHeaderView.ResizeMode.Stretch)
+                QtWidgets.QApplication.processEvents(
+                    QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+
         # enable updates again
         self.setUpdatesEnabled(True)
 
@@ -504,11 +516,13 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         item = self.item(row, col)
         if item is None:
             item = QtWidgets.QTableWidgetItem(label)
+            item.setToolTip(label)
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.setItem(row, col, item)
         else:
             if item.text() != label:
                 item.setText(label)
+                item.setToolTip(label)
 
     def set_actions_item(self, row, col, job):
         """Set/Create a TableCellActions widget in the table

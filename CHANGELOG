@@ -6,9 +6,9 @@
  - fix: finalize/ephermalize job when upload finishes when widget not visible
  - fix: race condition in `DownloadJob.get_status`
  - enh: display DCOR instance title in search bar
- - enh: increase download panel refresh rate to 2 Hz
- - enh: initialize download panel with final column widths
- - enh: add tool tip with full resource and dataset name in download panel
+ - enh: increase up/download panel refresh rate to 2 Hz
+ - enh: initialize up/download panel with final column widths
+ - enh: add tool tip with full resource and dataset name in up/download panel
  - enh: make icons "grayer" so they work in dark themes as well
  - enh: add `SQLiteKeyJSONDatabase` for persistent metadata storage
  - enh: add `MetaCache` for persistent metadata management

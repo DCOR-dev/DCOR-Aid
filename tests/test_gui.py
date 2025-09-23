@@ -230,7 +230,7 @@ def test_gui_upload_simple(mw, qtbot):
                         dataset_id=dlg.dataset_id,
                         set_job_done=False)
 
-    mw.panel_upload.widget_jobs.update_job_status()
+    mw.panel_upload.widget_jobs.on_update_job_status()
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
     assert mw.database.get_dataset_dict(dlg.dataset_id)
