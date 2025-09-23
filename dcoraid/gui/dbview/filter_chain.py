@@ -11,7 +11,7 @@ from ..api import get_ckan_api
 
 
 class FilterChain(QtWidgets.QWidget):
-    download_resource = QtCore.pyqtSignal(str, bool)
+    download_item = QtCore.pyqtSignal(str, str, bool)
 
     def __init__(self, *args, **kwargs):
         """Filter chain widget with multiple filter views
@@ -35,10 +35,10 @@ class FilterChain(QtWidgets.QWidget):
         # resource filtered by .rtdc
         self.fw_resources.checkBox.stateChanged.connect(self.update_resources)
         # request resource downloads
-        self.fw_circles.download_resource.connect(self.download_resource)
-        self.fw_collections.download_resource.connect(self.download_resource)
-        self.fw_datasets.download_resource.connect(self.download_resource)
-        self.fw_resources.download_resource.connect(self.download_resource)
+        self.fw_circles.download_item.connect(self.download_item)
+        self.fw_collections.download_item.connect(self.download_item)
+        self.fw_datasets.download_item.connect(self.download_item)
+        self.fw_resources.download_item.connect(self.download_item)
 
     @property
     def selected_circles(self):

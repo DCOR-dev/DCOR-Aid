@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class WidgetMyData(QtWidgets.QWidget):
-    request_download = QtCore.pyqtSignal(str, bool)
+    download_item = QtCore.pyqtSignal(str, str, bool)
 
     def __init__(self, *args, **kwargs):
         """Browse public DCOR data"""
@@ -29,8 +29,7 @@ class WidgetMyData(QtWidgets.QWidget):
         # Signals for user datasets (my data)
         self.pushButton_user_refresh.clicked.connect(
             self.on_refresh_private_data)
-        self.user_filter_chain.download_resource.connect(
-            self.request_download)
+        self.user_filter_chain.download_item.connect(self.download_item)
         self.user_filter_chain.added_datasets_to_collection.connect(
             self.on_added_datasets_to_collection)
 

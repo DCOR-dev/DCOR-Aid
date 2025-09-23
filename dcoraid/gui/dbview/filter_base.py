@@ -7,7 +7,11 @@ from PyQt6 import QtCore, QtGui, QtWidgets, uic
 class FilterBase(QtWidgets.QWidget):
     #: The user selection has changed
     selection_changed = QtCore.pyqtSignal(list)
-    download_resource = QtCore.pyqtSignal(str, bool)
+    #: Download something (which, id_or_name, condensed)
+    #: - `which` is e.g. "resource", "dataset", "collection", circle
+    #: - `id_or_name` is the identifier or name of the thing
+    #: - `condensed` determines whether to download condensed resources only
+    download_item = QtCore.pyqtSignal(str, str, bool)
 
     def __init__(self, *args, **kwargs):
         """Filter view widget with title, edit, checkbox, and table

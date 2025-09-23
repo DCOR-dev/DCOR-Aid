@@ -12,6 +12,7 @@ import webbrowser
 from PyQt6 import uic, QtCore, QtGui, QtWidgets
 from PyQt6.QtCore import QStandardPaths
 
+from ...common import is_dc_resource_dict
 from ...download import DownloadQueue
 
 from ..api import get_ckan_api
@@ -32,6 +33,8 @@ class DownloadWidget(QtWidgets.QWidget):
             "dcoraid.gui.panel_downloads") / "widget_download.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
+
+        self.database = None
 
         self.settings = QtCore.QSettings()
 
@@ -83,11 +86,49 @@ class DownloadWidget(QtWidgets.QWidget):
             self.init_timer.setInterval(1000)
             self.init_timer.start()
 
+    @QtCore.pyqtSlot(str, str, bool)
+    def download_an_item(self, which, identifier, condensed=False):
+        if which == "collection":
+            self.download_collection(identifier, condensed)
+        elif which == "dataset":
+            self.download_dataset(identifier, condensed)
+        elif which == "resource":
+            self.download_resource(identifier, condensed)
+        else:
+            raise ValueError(f"Invalid download item specified: {which}")
+
+    @QtCore.pyqtSlot(str, bool)
+    def download_collection(self, collection_id, condensed=False):
+        """Download all resources from all datasets in a collection"""
+        # Get all datasets in that collection
+        api = get_ckan_api()
+        ds_list = api.get("package_search",
+                          fq=f"+groups:{collection_id}",
+                          include_private=True,
+                          rows=1000)["results"]
+        for ds_dict in ds_list:
+            # use this opportunity to update our database
+            self.database.update_dataset(ds_dict)
+            # send this dataset on for downloading
+            self.download_dataset(ds_dict["id"], condensed)
+
+    @QtCore.pyqtSlot(str, bool)
+    def download_dataset(self, dataset_id, condensed=False):
+        """Download all resources in a dataset"""
+        dl_path = self.get_download_path()
+        ds_dict = self.database.get_dataset_dict(dataset_id)
+        if self.jobs is not None:
+            for res_dict in ds_dict.get("resources", []):
+                cond_this = condensed
+                if condensed and not is_dc_resource_dict(res_dict):
+                    # Not a DC resource; cannot download condensed file!
+                    cond_this = False
+                self.jobs.new_job(res_dict["id"], dl_path, cond_this)
+
     @QtCore.pyqtSlot(str, bool)
     def download_resource(self, resource_id, condensed=False):
-        fallback = QStandardPaths.writableLocation(
-                      QStandardPaths.StandardLocation.DownloadLocation)
-        dl_path = self.settings.value("downloads/default path", fallback)
+        """Download a resource"""
+        dl_path = self.get_download_path()
         if self.jobs is not None:
             self.jobs.new_job(resource_id, dl_path, condensed)
         else:
@@ -98,6 +139,11 @@ class DownloadWidget(QtWidgets.QWidget):
                 f"We cannot connect to '{api.server}'. Please make "
                 f"sure you are connected to the network.")
 
+    def get_download_path(self):
+        fallback = QStandardPaths.writableLocation(
+                      QStandardPaths.StandardLocation.DownloadLocation)
+        return self.settings.value("downloads/default path", fallback)
+
     def prepare_quit(self):
         """Should be called before the application quits"""
         self.init_timer.stop()
@@ -105,6 +151,9 @@ class DownloadWidget(QtWidgets.QWidget):
             self.widget_jobs.timer.stop()
         if self.jobs is not None:
             self.jobs.__del__()
+
+    def set_database(self, database):
+        self.database = database
 
 
 class DownloadTableWidget(QtWidgets.QTableWidget):

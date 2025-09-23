@@ -104,10 +104,10 @@ class DCORAid(QtWidgets.QMainWindow):
         self.status_widget.clicked.connect(self.dlg_pref.on_show_server)
 
         # Signal for requesting resource download
-        self.panel_find_data.request_download.connect(
-            self.panel_download.download_resource)
-        self.panel_my_data.request_download.connect(
-            self.panel_download.download_resource)
+        self.panel_find_data.download_item.connect(
+            self.panel_download.download_an_item)
+        self.panel_my_data.download_item.connect(
+            self.panel_download.download_an_item)
 
         # Signal for dataset upload or modification
         self.panel_upload.upload_finished.connect(self.on_dataset_changed)
@@ -151,6 +151,7 @@ class DCORAid(QtWidgets.QMainWindow):
         else:
             self.panel_find_data.set_database(self.database)
             self.panel_my_data.set_database(self.database)
+            self.panel_download.set_database(self.database)
 
         self.status_widget.request_status_update()
 

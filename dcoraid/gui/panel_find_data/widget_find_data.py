@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class WidgetFindData(QtWidgets.QWidget):
-    request_download = QtCore.pyqtSignal(str, bool)
+    download_item = QtCore.pyqtSignal(str, str, bool)
 
     def __init__(self, *args, **kwargs):
         """Browse DCOR data"""
@@ -32,8 +32,7 @@ class WidgetFindData(QtWidgets.QWidget):
         # Signals for data browser
         self.pushButton_search.clicked.connect(self.on_search)
         self.pushButton_update_db.clicked.connect(self.on_update_db)
-        self.public_filter_chain.download_resource.connect(
-            self.request_download)
+        self.public_filter_chain.download_item.connect(self.download_item)
 
     @QtCore.pyqtSlot()
     def on_search(self):
