@@ -81,6 +81,7 @@ class DownloadWidget(QtWidgets.QWidget):
         if api.is_available(with_correct_version=True):
             self.setEnabled(True)
             self._jobs_init()
+            logger.info("Initialized download panel")
         else:
             # try again
             self.init_timer.setInterval(1000)
@@ -160,18 +161,26 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
     download_finished = QtCore.pyqtSignal()
 
     def __init__(self, *args, **kwargs):
-        self._busy_updating_widgets = False
+        self._busy_updating_widgets_lock = threading.Lock()
         super(DownloadTableWidget, self).__init__(*args, **kwargs)
         self.jobs = []  # Will become DownloadQueue with self.set_job_list
+        self._finished_downloads = []
 
         settings = QtCore.QSettings()
         if bool(int(settings.value("debug/without timers", "0"))):
             self.timer = None
         else:
             self.timer = QtCore.QTimer()
-            self.timer.timeout.connect(self.update_job_status)
-            self.timer.start(1000)
-        self._finished_downloads = []
+            self.timer.timeout.connect(self.on_update_job_status)
+            self.timer.start(500)
+
+        # Set column count and horizontal header sizes
+        self.setColumnCount(6)
+        header = self.horizontalHeader()
+        header.setSectionResizeMode(
+            0, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(
+            1, QtWidgets.QHeaderView.ResizeMode.Stretch)
 
     def set_job_list(self, jobs):
         """Set the current job list
@@ -186,7 +195,7 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
     def on_job_delete(self, job_id):
         self.jobs.remove_job(job_id)
         self.clearContents()
-        self.update_job_status()
+        self.on_update_job_status()
 
     @QtCore.pyqtSlot(str)
     def on_job_retry(self, job_id):
@@ -202,18 +211,20 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
             self.download_finished.emit()
 
     @QtCore.pyqtSlot()
-    def update_job_status(self):
+    def on_update_job_status(self):
         """Update UI with information from self.jobs (DownloadJobList)"""
         if not self.parent().parent().isVisible():
             return
-        if self._busy_updating_widgets:
+        if self._busy_updating_widgets_lock.locked():
             return
-        self._busy_updating_widgets = True
 
+        with self._busy_updating_widgets_lock:
+            self.update_job_status()
+
+    @QtCore.pyqtSlot()
+    def update_job_status(self):
         # make sure the length of the table is long enough
         self.setRowCount(len(self.jobs))
-        self.setColumnCount(6)
-
         for row, job in enumerate(self.jobs):
             if job.job_id in self._finished_downloads:
                 # Widgets of finished downloads have already been drawn.
@@ -242,15 +253,6 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
             QtWidgets.QApplication.processEvents(
                 QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
-        # spacing (did not work in __init__)
-        header = self.horizontalHeader()
-        header.setSectionResizeMode(
-            0, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(
-            1, QtWidgets.QHeaderView.ResizeMode.Stretch)
-
-        self._busy_updating_widgets = False
-
     def set_label_item(self, row, col, label):
         """Get/Create a Qlabel at the specified position
 
@@ -260,11 +262,13 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
         item = self.item(row, col)
         if item is None:
             item = QtWidgets.QTableWidgetItem(label)
+            item.setToolTip(label)
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.setItem(row, col, item)
         else:
             if item.text() != label:
                 item.setText(label)
+                item.setToolTip(label)
 
     def set_actions_item(self, row, col, job):
         """Set/Create a TableCellActions widget in the table
