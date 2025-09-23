@@ -289,10 +289,23 @@ class DownloadJob:
                 "bytes downloaded": self.file_bytes_downloaded,
                 "rate": self.get_rate(),
             }
-            if self.path.exists() and self.path.is_file():
-                data["bytes local"] = self.path.stat().st_size
-            elif self.path_temp is not None and self.path_temp.is_file():
-                data["bytes local"] = self.path_temp.stat().st_size
+
+            # Stat the temporary file first. It might be pulled out from
+            # under us.
+            try:
+                size_temp = self.path_temp.stat().st_size
+            except FileNotFoundError:
+                size_temp = None
+
+            try:
+                size_done = self.path.stat().st_size
+            except FileNotFoundError:
+                size_done = None
+
+            if size_done is not None:
+                data["bytes local"] = size_done
+            elif size_temp is not None:
+                data["bytes local"] = size_temp
             else:
                 data["bytes local"] = 0
         except api_errors.APINotFoundError:
