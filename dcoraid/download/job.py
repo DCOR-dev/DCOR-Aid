@@ -294,12 +294,12 @@ class DownloadJob:
             # under us.
             try:
                 size_temp = self.path_temp.stat().st_size
-            except FileNotFoundError:
+            except (AttributeError, FileNotFoundError):
                 size_temp = None
 
             try:
                 size_done = self.path.stat().st_size
-            except FileNotFoundError:
+            except (AttributeError, FileNotFoundError):
                 size_done = None
 
             if size_done is not None:
