@@ -135,10 +135,10 @@ class FilterChainUser(FilterChain):
         super(FilterChainUser, self).__init__(*args, **kwargs)
 
         # Enable the "add to collection tool box"
-        self.fw_datasets.toolButton_custom.setText(
+        self.fw_datasets.pushButton_custom.setText(
             "Add selected datasets to a collection...")
-        self.fw_datasets.toolButton_custom.setVisible(True)
-        self.fw_datasets.toolButton_custom.clicked.connect(
+        self.fw_datasets.pushButton_custom.setVisible(True)
+        self.fw_datasets.pushButton_custom.clicked.connect(
             self.on_add_datasets_to_collection)
 
     @QtCore.pyqtSlot()

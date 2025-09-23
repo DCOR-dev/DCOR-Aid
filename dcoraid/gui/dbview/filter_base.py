@@ -36,7 +36,7 @@ class FilterBase(QtWidgets.QWidget):
         self.lineEdit.setVisible(False)
 
         # Disable custom tool button
-        self.toolButton_custom.setVisible(False)
+        self.pushButton_custom.setVisible(False)
 
         # default drag&drop behavior is "off"
         self.tableWidget.setDropIndicatorShown(False)  # don't show indicator
@@ -101,6 +101,7 @@ class FilterBase(QtWidgets.QWidget):
             tbact.setToolTip(action["tooltip"])
             tbact.clicked.connect(action["function"])
             horz_layout.addWidget(tbact)
+            horz_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
         self.tableWidget.setCellWidget(row, 1, widact)
         return widact
 
