@@ -190,7 +190,7 @@ def test_search_dataset_since_time():
     tstart = time.time()
 
     # Create a dataset
-    ds_dict = common.make_dataset_for_download()
+    ds_dict = common.make_dataset_for_download(seed=11558899)
 
     # Run the query again
     for ii in range(10):
