@@ -74,6 +74,9 @@ class CachedAPIInterrogator(DBInterrogator):
             clist += self.ai.get_collections()
         return clist
 
+    def get_dataset_dictionary(self, ds_id):
+        return self._mc[ds_id]
+
     def get_datasets_user_following(self) -> DBExtract:
         """Return datasets the user is following"""
         # TODO: Use datasets in self._mc
@@ -141,3 +144,7 @@ class CachedAPIInterrogator(DBInterrogator):
             # Only update the local timestamp if we actually did
             # update the local database.
             self.local_timestamp = new_timestamp
+
+    def update_dataset(self, ds_dict):
+        """Update a single dataset in the database without calling `update`"""
+        self._mc.upsert_dataset(ds_dict)

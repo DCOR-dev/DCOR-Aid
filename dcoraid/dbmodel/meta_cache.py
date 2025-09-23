@@ -1,5 +1,6 @@
 import logging
 import pathlib
+import threading
 import traceback
 from typing import Any
 
@@ -53,13 +54,22 @@ class MetaCache:
         #: List of dataset dictionaries
         self.datasets = []
 
+        #: List of dataset IDs, mapping database index to dataset ID
+        self._dataset_ids = []
+
+        #: Dict of dataset ID indices, mapping dataset ID to database index
+        self._dataset_index_dict = {}
+
         #: List of booleans indicating whether dataset was created by the user
         self.datasets_user_owned = []
 
         # Search blob array
         self._srt_blobs = None
 
-        self._initialize(circle_ids)
+        self._lock = threading.Lock()
+
+        with self._lock:
+            self._initialize(circle_ids)
 
     def _initialize(self, circle_ids=None):
         # List of all dataset dictionaries (only used during init)
@@ -131,24 +141,40 @@ class MetaCache:
             for ds_dict in self.datasets
         ]
 
+        #: List of dataset IDs
+        self._dataset_ids = [ds_dict["id"] for ds_dict in self.datasets]
+
+        #: Dict of dataset ID indices
+        self._dataset_index_dict = {
+            ds_id:ii for (ii, ds_id) in enumerate(self._dataset_ids)}
+
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
+    def __getitem__(self, ds_id):
+        """Return the dataset dictionary given its ID"""
+        return self.datasets[self._dataset_index_dict[ds_id]]
+
     def close(self):
         for db in self._databases.values():
             db.close()
 
     def reset(self):
-        self.close()
-        self._databases.clear()
-        self.datasets.clear()
-        self._registry_org.clear()
-        for path in self.base_dir.glob("circle_*.db"):
-            path.unlink()
-        self._initialize()
+        """Reset the entire database"""
+        with self._lock:
+            self.close()
+            self._databases.clear()
+            self.datasets.clear()
+            self.datasets_user_owned.clear()
+            self._dataset_ids.clear()
+            self._dataset_index_dict.clear()
+            self._registry_org.clear()
+            for path in self.base_dir.glob("circle_*.db"):
+                path.unlink()
+            self._initialize()
 
     def search(self,
                query: str,
@@ -215,12 +241,14 @@ class MetaCache:
         # Is this dataset new?
         if ds_id not in self._registry_org.setdefault(org_id, []):
             # We have a new dataset
-            self._upsert_dataset_insert(ds_dict)
+            with self._lock:
+                self._upsert_dataset_insert(ds_dict)
         else:
             # We have an existing dataset
             if self._databases[org_id][ds_id] != ds_dict:
                 # We have tp update the dataset
-                self._upsert_dataset_update(ds_dict)
+                with self._lock:
+                    self._upsert_dataset_update(ds_dict)
 
     def _upsert_dataset_insert(self, ds_dict):
         """Insert a new dataset
@@ -270,6 +298,10 @@ class MetaCache:
             new_idx,
             ds_dict["creator_user_id"] == self.user_id,
             )
+
+        # dataset IDs
+        self._dataset_ids.insert(new_idx, ds_id)
+        self._dataset_index_dict[ds_id] = new_idx
 
     def _upsert_dataset_update(self, ds_dict):
         """Update an existing dataset

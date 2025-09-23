@@ -43,6 +43,12 @@ def test_cache_append_to_one_circle(tmp_path):
             assert ds_id in mc._registry_org[org_id]
             assert ds_id not in found_dicts
             found_dicts[ds_id] = ds_dict
+            assert mc[ds_id] == ds_dict
+
+            # Test dataset indices
+            idx = mc._dataset_index_dict[ds_id]
+            assert mc.datasets[idx] == ds_dict
+            assert mc._dataset_ids[idx] == ds_dict["id"]
 
         assert len(mc.datasets) == 100
 
