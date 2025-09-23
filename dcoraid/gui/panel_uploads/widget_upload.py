@@ -24,7 +24,7 @@ from .widget_tablecell_actions import TableCellActions
 
 
 class UploadWidget(QtWidgets.QWidget):
-    upload_finished = QtCore.pyqtSignal()
+    upload_finished = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
         """Manage running uploads
@@ -369,7 +369,7 @@ class UploadWidget(QtWidgets.QWidget):
 
 
 class UploadTableWidget(QtWidgets.QTableWidget):
-    upload_finished = QtCore.pyqtSignal()
+    upload_finished = QtCore.pyqtSignal(dict)
     job_selected = QtCore.pyqtSignal(object)
 
     def __init__(self, *args, **kwargs):
@@ -450,12 +450,25 @@ class UploadTableWidget(QtWidgets.QTableWidget):
         if dataset_id not in self._finished_uploads:
             self._finished_uploads.append(dataset_id)
             self.jobs.jobs_eternal.set_job_done(dataset_id)
-            self.upload_finished.emit()
+            api = get_ckan_api()
+            try:
+                ds_dict = api.get("package_show",
+                                  id=dataset_id,
+                                  timeout=3)
+                self.upload_finished.emit(ds_dict)
+            except BaseException:
+                self.logger.error(tb.format_exc())
 
     @QtCore.pyqtSlot()
     def update_job_status(self):
         """Update UI with information from self.jobs (UploadJobList)"""
+        # Let everyone know when a job is done
+        for job in self.jobs:
+            if job.state == "done":
+                self.on_upload_finished(job.dataset_id)
+
         if not self.isVisible() or not self.jobs:
+            # Don't update the UI if nobody is looking anyway.
             return
         # disable updates
         self.setUpdatesEnabled(False)
@@ -471,8 +484,6 @@ class UploadTableWidget(QtWidgets.QTableWidget):
                 self.set_label_item(row, 2, status["state"])
                 self.set_label_item(row, 3, job.get_progress_string())
                 self.set_label_item(row, 4, job.get_rate_string())
-                if status["state"] == "done":
-                    self.on_upload_finished(job.dataset_id)
                 self.set_actions_item(row, 5, job)
 
             # spacing (did not work in __init__)

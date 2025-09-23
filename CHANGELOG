@@ -3,6 +3,7 @@
  - fix: missing .rtdc resource files in filter view
  - fix: error handling when connection to server fails on download (#75)
  - fix: '_condensed' suffix for file stem randomly missing in downloads
+ - fix: finalize/ephermalize job when upload finishes when widget not visible
  - enh: display DCOR instance title in search bar
  - enh: make icons "grayer" so they work in dark themes as well
  - enh: add `SQLiteKeyJSONDatabase` for persistent metadata storage

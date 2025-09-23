@@ -192,7 +192,8 @@ def make_upload_task(task_id=True,  # tester may pass `None` to disable
 
 
 def wait_for_job(upload_queue, dataset_id, wait_time=60,
-                 wait_for_resource_metadata=False):
+                 wait_for_resource_metadata=False,
+                 set_job_done=True):
     uq = upload_queue
     uj = uq.get_job(dataset_id)
     # wait for the upload to finish
@@ -210,7 +211,7 @@ def wait_for_job(upload_queue, dataset_id, wait_time=60,
                     if not complete:
                         break
             if complete:
-                if uq.jobs_eternal:
+                if set_job_done and uq.jobs_eternal:
                     # TODO:
                     # We do this manually here. Actually, a better solution
                     # would be to implement a signal-slot type of workflow

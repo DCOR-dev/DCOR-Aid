@@ -109,6 +109,9 @@ class DCORAid(QtWidgets.QMainWindow):
         self.panel_my_data.request_download.connect(
             self.panel_download.download_resource)
 
+        # Signal for dataset upload or modification
+        self.panel_upload.upload_finished.connect(self.on_dataset_changed)
+
         QtWidgets.QApplication.processEvents(
             QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
@@ -294,6 +297,10 @@ class DCORAid(QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.information(self,
                                           "Software",
                                           sw_text)
+
+    @QtCore.pyqtSlot(dict)
+    def on_dataset_changed(self, ds_dict):
+        self.database.update_dataset(ds_dict)
 
     @QtCore.pyqtSlot()
     def on_wizard(self):
