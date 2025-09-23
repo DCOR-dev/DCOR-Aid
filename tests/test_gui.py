@@ -253,7 +253,7 @@ def test_gui_upload_task(mw, qtbot):
 def test_gui_upload_task_bad_dataset_id_no(mw, qtbot):
     """When the dataset ID does not exist, DCOR-Aid should ask what to do"""
     task_id = str(uuid.uuid4())
-    dataset_dict = common.make_dataset_dict(hint="task_upload_no_org_")
+    dataset_dict = common.make_dataset_dict(hint="task_upload_no_id_")
     tpath = common.make_upload_task(task_id=task_id,
                                     dataset_id="wrong_id",
                                     dataset_dict=dataset_dict)
@@ -275,7 +275,7 @@ def test_gui_upload_task_bad_dataset_id_no(mw, qtbot):
 def test_gui_upload_task_bad_dataset_id_yes(mw, qtbot):
     """When the dataset ID does not exist, DCOR-Aid should ask what to do"""
     task_id = str(uuid.uuid4())
-    dataset_dict = common.make_dataset_dict(hint="task_upload_no_org_")
+    dataset_dict = common.make_dataset_dict(hint="task_upload_user_id_")
     tpath = common.make_upload_task(task_id=task_id,
                                     dataset_id="wrong_id",
                                     dataset_dict=dataset_dict)
@@ -297,14 +297,14 @@ def test_gui_upload_task_bad_dataset_id_yes(mw, qtbot):
 def test_gui_upload_task_missing_circle_multiple(mw, qtbot):
     """DCOR-Aid should only ask *once* for the circle (not for every task)"""
     task_id1 = str(uuid.uuid4())
-    dataset_dict1 = common.make_dataset_dict(hint="task_upload_no_org_")
+    dataset_dict1 = common.make_dataset_dict(hint="task_upload_ask_org_")
     dataset_dict1.pop("owner_org")
     tpath1 = common.make_upload_task(task_id=task_id1,
                                      dataset_dict=dataset_dict1)
     tpath1 = pathlib.Path(tpath1)
 
     task_id2 = str(uuid.uuid4())
-    dataset_dict2 = common.make_dataset_dict(hint="task_upload_no_org_")
+    dataset_dict2 = common.make_dataset_dict(hint="task_upload_ask_org_")
     dataset_dict2.pop("owner_org")
     tpath2 = common.make_upload_task(task_id=task_id2,
                                      dataset_dict=dataset_dict2)
@@ -364,7 +364,7 @@ def test_gui_upload_private(mw, qtbot):
 def test_gui_upload_task_missing_circle(mw, qtbot):
     """When the organization is missing, DCOR-Aid should ask for it"""
     task_id = str(uuid.uuid4())
-    dataset_dict = common.make_dataset_dict(hint="task_upload_no_org_")
+    dataset_dict = common.make_dataset_dict(hint="task_upload_missing_org_")
     dataset_dict.pop("owner_org")
     tpath = common.make_upload_task(task_id=task_id,
                                     dataset_dict=dataset_dict)
