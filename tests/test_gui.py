@@ -113,7 +113,7 @@ def test_gui_mydata_dataset_add_to_collection(mw, qtbot):
     common.wait_for_job_no_queue(uj)
     # go to the "My Data" tab and click update
     mw.tabWidget.setCurrentIndex(1)
-    qtbot.mouseClick(mw.panel_my_data.pushButton_user_refresh,
+    qtbot.mouseClick(mw.panel_my_data.pushButton_update_db,
                      QtCore.Qt.MouseButton.LeftButton)
     # select our dataset
     fw_datasets = mw.panel_my_data.user_filter_chain.fw_datasets

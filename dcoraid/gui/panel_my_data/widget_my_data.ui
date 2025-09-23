@@ -83,9 +83,9 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_user_refresh">
+      <widget class="QPushButton" name="pushButton_update_db">
        <property name="text">
-        <string>Update</string>
+        <string>Update DB</string>
        </property>
       </widget>
      </item>

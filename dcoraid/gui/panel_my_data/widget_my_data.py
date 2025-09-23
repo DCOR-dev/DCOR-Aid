@@ -27,11 +27,15 @@ class WidgetMyData(QtWidgets.QWidget):
             uic.loadUi(path_ui, self)
 
         # Signals for user datasets (my data)
-        self.pushButton_user_refresh.clicked.connect(
-            self.on_refresh_private_data)
+        self.pushButton_update_db.clicked.connect(self.on_update_db)
         self.user_filter_chain.download_item.connect(self.download_item)
         self.user_filter_chain.added_datasets_to_collection.connect(
             self.on_added_datasets_to_collection)
+
+        # Signals for checkboxes
+        self.checkBox_user_following.clicked.connect(self.on_update_view)
+        self.checkBox_user_owned.clicked.connect(self.on_update_view)
+        self.checkBox_user_shared.clicked.connect(self.on_update_view)
 
     @QtCore.pyqtSlot(dict, list)
     def on_added_datasets_to_collection(self, collection, dataset_ids):
@@ -55,8 +59,12 @@ class WidgetMyData(QtWidgets.QWidget):
             self.database.update_dataset(ds_dict)
 
     @QtCore.pyqtSlot()
-    def on_refresh_private_data(self):
+    def on_update_db(self):
         self.find_main_window().check_update_database(force=True)
+        self.on_update_view()
+
+    @QtCore.pyqtSlot()
+    def on_update_view(self):
         self.setCursor(QtCore.Qt.CursorShape.WaitCursor)
         api = get_ckan_api()
         data = DBExtract()
@@ -87,3 +95,4 @@ class WidgetMyData(QtWidgets.QWidget):
 
     def set_database(self, database):
         self.database = database
+        self.on_update_view()
