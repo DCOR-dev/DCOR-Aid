@@ -128,6 +128,7 @@ class FilterChain(QtWidgets.QWidget):
 
 
 class FilterChainUser(FilterChain):
+    added_datasets_to_collection = QtCore.pyqtSignal(dict, list)
 
     def __init__(self, *args, **kwargs):
         """Filter chain with user-related features"""
@@ -182,3 +183,5 @@ class FilterChainUser(FilterChain):
                                   # "capacity" should not be necessary
                                   # https://github.com/ckan/ckan/issues/6543
                                   "capacity": "member"})
+                    self.added_datasets_to_collection.emit(collection,
+                                                           dataset_ids)

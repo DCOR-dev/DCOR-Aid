@@ -74,7 +74,7 @@ class CachedAPIInterrogator(DBInterrogator):
             clist += self.ai.get_collections()
         return clist
 
-    def get_dataset_dictionary(self, ds_id):
+    def get_dataset_dict(self, ds_id):
         return self._mc[ds_id]
 
     def get_datasets_user_following(self) -> DBExtract:

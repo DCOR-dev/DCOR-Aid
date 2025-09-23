@@ -142,7 +142,14 @@ def test_gui_mydata_dataset_add_to_collection(mw, qtbot):
             return_value=(f"{ii}: {item['display_name']}", True)):
         qtbot.mouseClick(fw_datasets.toolButton_custom,
                          QtCore.Qt.MouseButton.LeftButton)
-    # Now check whether that worked
+
+    # Check whether dataset is in collection in database
+    ds_dict_db = mw.database.get_dataset_dict(ds_id)
+    assert "groups" in ds_dict_db
+    assert len(ds_dict_db["groups"]) == 1
+    assert ds_dict_db["groups"][0]["name"] == defaults["collection"]
+
+    # Check whether dataset is in collection via API
     ds_dict = api.get("package_show", id=ds_id)
     assert "groups" in ds_dict
     assert len(ds_dict["groups"]) == 1
@@ -226,7 +233,7 @@ def test_gui_upload_simple(mw, qtbot):
     mw.panel_upload.widget_jobs.update_job_status()
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
-    assert mw.database.get_dataset_dictionary(dlg.dataset_id)
+    assert mw.database.get_dataset_dict(dlg.dataset_id)
 
 
 def test_gui_upload_task(mw, qtbot):
