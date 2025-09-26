@@ -473,9 +473,10 @@ class UploadTableWidget(QtWidgets.QTableWidget):
     def on_update_job_status(self):
         """Update UI with information from self.jobs (UploadJobList)"""
         # Let everyone know when a job is done
-        for job in self.jobs:
-            if job.state == "done":
-                self.on_upload_finished(job.dataset_id)
+        if self.jobs:
+            for job in self.jobs:
+                if job.state == "done":
+                    self.on_upload_finished(job.dataset_id)
 
         if not self.isVisible() or not self.jobs:
             # Don't update the UI if nobody is looking anyway.
