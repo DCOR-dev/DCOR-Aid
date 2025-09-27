@@ -25,8 +25,13 @@ class DBExtract:
     def __add__(self, other):
         return DBExtract(self.datasets + other.datasets)
 
-    def __iadd__(self, other):
-        self.add_datasets(other.datasets)
+    def __iadd__(self, other: "DBExtract | list"):
+        """Add datasets from DBExtract instance or from list to self"""
+        if isinstance(other, DBExtract):
+            to_add = other.datasets
+        else:
+            to_add = other
+        self.add_datasets(to_add)
         return self
 
     def __contains__(self, item):
