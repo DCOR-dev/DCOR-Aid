@@ -90,7 +90,7 @@ def test_cache_dataset_index_dict_2(tmp_path):
         ds_list.append(make_dataset_dict_full_fake(time_created=t0 + ii))
 
     # sort dataset list according to ID
-    ds_list_edit = sorted(ds_list, key = lambda x: x["id"])
+    ds_list_edit = sorted(ds_list, key=lambda x: x["id"])
     assert ds_list_edit != ds_list
 
     with meta_cache.MetaCache(tmp_path) as mc:
@@ -109,15 +109,15 @@ def test_cache_dataset_index_dict_2_multi(tmp_path):
 
     ds_list = []
     for ii in range(200):
-        ds_list.append(make_dataset_dict_full_fake(time_created=t0 + ii,
+        ds_list.append(make_dataset_dict_full_fake(time_created=t0 - ii,
                                                    org_id=org_id))
 
     # sort dataset list according to ID
-    ds_list_edit = sorted(ds_list, key = lambda x: x["id"])
+    ds_list_edit = sorted(ds_list, key=lambda x: x["id"])
     assert ds_list_edit != ds_list
 
     with meta_cache.MetaCache(tmp_path) as mc:
-        mc.insert_many(org_id, ds_list_edit)
+        mc._upsert_many_insert(org_id, ds_list_edit)
 
     for ii in range(200):
         assert mc._dataset_index_dict[ds_list[ii]["id"]] == ii
@@ -150,7 +150,6 @@ def test_cache_datasets_user_owned(tmp_path):
             idx = mc._dataset_index_dict[ds["id"]]
             assert mc.datasets[idx] == ds
             assert not mc.datasets_user_owned[idx]
-
 
     with meta_cache.MetaCache(tmp_path, user_id=user_id) as mc:
         # Make sure that the user dictionaries are recovered correctly
@@ -187,12 +186,12 @@ def test_cache_datasets_user_owned_full(tmp_path):
             for _ in range(10)
             ]
         ds_user += ds_dicts_a
-        mc.insert_many(org_id, ds_dicts_a)
+        mc._upsert_many_insert(org_id, ds_dicts_a)
         ds_dicts_b = [
             make_dataset_dict_full_fake(org_id=org_id)
             for _ in range(10)
             ]
-        mc.insert_many(org_id, ds_dicts_b)
+        mc._upsert_many_insert(org_id, ds_dicts_b)
         ds_other += ds_dicts_b
 
         # Make sure that the user dictionaries are stored correctly
@@ -205,7 +204,6 @@ def test_cache_datasets_user_owned_full(tmp_path):
             idx = mc._dataset_index_dict[ds["id"]]
             assert mc.datasets[idx] == ds
             assert not mc.datasets_user_owned[idx]
-
 
     with meta_cache.MetaCache(tmp_path, user_id=user_id) as mc:
         # Make sure that the user dictionaries are recovered correctly
@@ -220,9 +218,86 @@ def test_cache_datasets_user_owned_full(tmp_path):
             assert not mc.datasets_user_owned[idx]
 
 
+def test_cache_upsert_many(tmp_path):
+    """Test the `upsert_many` wrapper"""
+    ds_list = []
+
+    org_id = str(uuid.uuid4())
+
+    # create datasets in ascending order (order must be reversed in MetaCache)
+    for ii in range(15):
+        ds_list.append(make_dataset_dict_full_fake(
+            org_id=org_id,
+            time_created=time.time() - 100 + ii,
+            ))
+
+    with meta_cache.MetaCache(tmp_path) as mc:
+        mc.upsert_many(ds_list, org_id=org_id)
+
+        # make sure datasets are in descending order
+        assert mc.datasets == ds_list[::-1]
+
+    with meta_cache.MetaCache(tmp_path) as mc:
+        assert mc.datasets == ds_list[::-1]
+
+        ds_list[0]["title"] = "Peter Pan"
+        ds_list[1]["title"] = "Peter Pan 3"
+        ds_list[-1]["title"] = "Peter Pan 2"
+
+        mc.upsert_many(ds_list, org_id=org_id)
+
+        assert mc.datasets == ds_list[::-1]
+        # descending order again
+        assert mc.datasets[-1]["title"] == "Peter Pan"
+        assert mc.datasets[0]["title"] == "Peter Pan 2"
+        assert mc.datasets[-2]["title"] == "Peter Pan 3"
+
+
+def test_cache_upsert_many_search(tmp_path):
+    """Test the `upsert_many` wrapper, searching data afterwards"""
+    ds_list = []
+
+    org_id = str(uuid.uuid4())
+
+    # create datasets in ascending order (order must be reversed in MetaCache)
+    for ii in range(15):
+        ds_list.append(make_dataset_dict_full_fake(
+            org_id=org_id,
+            time_created=time.time() - 100 + ii,
+            ))
+
+    ds_list.append(make_dataset_dict_full_fake(title="Mordor",
+                                               org_id=org_id,
+                                               time_created=time.time() - 98,
+                                               ))
+
+    org_id_2 = str(uuid.uuid4())
+
+    ds_list.append(make_dataset_dict_full_fake(title="Frodo",
+                                               org_id=org_id_2,
+                                               time_created=time.time() - 98,
+                                               ))
+
+    for ii in range(18):
+        ds_list.append(make_dataset_dict_full_fake(
+            org_id=org_id_2,
+            time_created=time.time() - 100 + ii,
+            ))
+
+    with meta_cache.MetaCache(tmp_path) as mc:
+        mc.upsert_many(ds_list, org_id=org_id)
+        # search for them in freshly-modified cache
+        assert mc.search(query="Frodo")[0]["title"] == "Frodo"
+        assert mc.search(query="Mordor")[0]["title"] == "Mordor"
+
+    with meta_cache.MetaCache(tmp_path) as mc:
+        # search for them in loaded cache
+        assert mc.search(query="Frodo")[0]["title"] == "Frodo"
+        assert mc.search(query="Mordor")[0]["title"] == "Mordor"
+
 
 @pytest.mark.parametrize("previous_datasets", [0, 10, 100])
-def test_cache_insert_many(tmp_path, previous_datasets):
+def test_cache_upsert_many_insert(tmp_path, previous_datasets):
     # generate datasets
     all_ds_dicts = []
     org_ids = [str(uuid.uuid4()), str(uuid.uuid4())]
@@ -241,7 +316,7 @@ def test_cache_insert_many(tmp_path, previous_datasets):
             mc.upsert_dataset(make_dataset_dict_full_fake())
 
         for (org_id, ds_dicts) in zip(org_ids, all_ds_dicts):
-            mc.insert_many(org_id, ds_dicts)
+            mc._upsert_many_insert(org_id, ds_dicts)
 
     # Check whether the databases exist
     for org_id in org_ids:
@@ -406,7 +481,8 @@ def test_cache_search_updated_dataset_case(tmp_path):
     [[2, {"other-key": "dop"}, [["sinn"]]], ["2", "sinn"]],
     ])
 def test_values_only(input, output):
-    assert list(meta_cache._values_only(input, only_keys=["peter", "rin"])) == output
+    assert list(meta_cache._values_only(input,
+                                        only_keys=["peter", "rin"])) == output
 
 
 def test_create_blob_for_search():
