@@ -212,6 +212,10 @@ class DCORAid(QtWidgets.QMainWindow):
             prog.setModal(True)
             prog.show()
 
+
+            def prog_update_callback(circle_name, num_circles, num_datasets)
+
+
             thr = threading.Thread(target=self.database.update,
                                    args=(reset, abort_event))
             thr.start()

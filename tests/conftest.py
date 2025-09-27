@@ -8,7 +8,6 @@ import traceback
 
 from PyQt6 import QtCore
 from PyQt6.QtCore import QStandardPaths
-import pytest
 
 from dcoraid.api import APIConflictError
 

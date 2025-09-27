@@ -125,7 +125,7 @@ class CachedAPIInterrogator(DBInterrogator):
         """
         return DBExtract(self._mc.search(query, limit))
 
-    def update(self, reset=False, abort_event=None):
+    def update(self, reset=False, abort_event=None, callback=None):
         """Update the local metadata cache based on the last local timestamp"""
         # Clear the fleeting cache.
         self._cache_fleeting.clear()
@@ -137,12 +137,21 @@ class CachedAPIInterrogator(DBInterrogator):
             self._mc.reset()
 
         # Call these methods now so they reflect the current database state.
-        self.get_circles()
-        self.get_collections()
+        circles = self.get_circles()
+        collections = self.get_collections()
 
         new_timestamp = time.time()
 
-        for cdict in self.get_circles():
+        datasets_new = 0
+
+        for cdict in circles:
+            if callback is not None:
+                callback({
+                    "circles": circles,
+                    "collections": collections,
+                    "datasets_new": datasets_new,
+                    "circle_current": cdict,
+                })
             logger.info(f"Fetching dataset from circle {cdict['name']}")
             dbe = self.ai.search_dataset_via_api(
                 since_time=self.local_timestamp,
@@ -150,6 +159,7 @@ class CachedAPIInterrogator(DBInterrogator):
                 limit=0,
                 ret_db_extract=False,
             )
+            datasets_new += len(dbe)
             if abort_event and abort_event.is_set():
                 break
             self._mc.upsert_many(dbe, org_id=cdict["id"])
