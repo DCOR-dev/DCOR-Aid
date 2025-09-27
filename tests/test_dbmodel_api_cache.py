@@ -17,7 +17,8 @@ HAS_FIGSHARE_ACCESS = common.get_test_defaults()["user"] == "dcoraid"
 def test_get_circles(tmp_path):
     api = common.get_api()
     db = CachedAPIInterrogator(cache_location=tmp_path, api=api)
-    circles = db.get_circles()
+    circles_dicts = db.get_circles()
+    circles = [c["name"] for c in circles_dicts]
     defaults = common.get_test_defaults()
     assert defaults["circle"] in circles
     # requires that the "dcoraid" user is in the figshare-import circle
@@ -29,7 +30,7 @@ def test_get_circles(tmp_path):
 def test_get_collections(tmp_path):
     api = common.get_api()
     db = CachedAPIInterrogator(cache_location=tmp_path, api=api)
-    collections = db.get_collections()
+    collections = [c["name"] for c in db.get_collections()]
     defaults = common.get_test_defaults()
     assert defaults["collection"] in collections
     # requires that the "dcoraid" user is in figshare-collection collection
@@ -55,9 +56,11 @@ def test_get_users_anonymous(tmp_path):
 def test_public_api_interrogator(tmp_path):
     api = common.get_api()
     db = CachedAPIInterrogator(cache_location=tmp_path, api=api)
+    circles = [c["name"] for c in db.get_circles()]
     defaults = common.get_test_defaults()
-    assert defaults["circle"] in db.get_circles()
-    assert defaults["collection"] in db.get_collections()
+    collections = [c["name"] for c in db.get_collections()]
+    assert defaults["circle"] in circles
+    assert defaults["collection"] in collections
     assert defaults["user"] in db.get_users()
 
 

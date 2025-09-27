@@ -30,12 +30,11 @@ class APIInterrogator(DBInterrogator):
     def get_circles(self):
         """Return the list of DCOR Circle names
         """
-        data = self.api.get("organization_list")
-        return data
+        return self.api.get("organization_list", all_fields=True)
 
     def get_collections(self):
         """Return the list of DCOR Collection names"""
-        data = self.api.get("group_list")
+        data = self.api.get("group_list", all_fields=True, limit=1000)
         if len(data) == 1000:
             raise NotImplementedError(
                 "Reached hard limit of 1000 results! "
@@ -72,14 +71,14 @@ class APIInterrogator(DBInterrogator):
 
             for circles_batch in batched(self.get_circles(), 20):
                 dbe += self.search_dataset_via_api(
-                    circles=list(circles_batch),
+                    circles=[c["name"] for c in circles_batch],
                     filter_queries=[f"-creator_user_id:{self.api.user_id}"],
                     limit=0,
                     )
 
             for collections_batch in batched(self.get_collections(), 20):
                 dbe += self.search_dataset_via_api(
-                    collections=list(collections_batch),
+                    collections=[c["name"] for c in collections_batch],
                     filter_queries=[f"-creator_user_id:{self.api.user_id}"],
                     limit=0,
                     )
@@ -134,7 +133,9 @@ class APIInterrogator(DBInterrogator):
                                since_time: float = None,
                                sort_solr: str = "metadata_created desc",
                                start: int = 0,
-                               limit: int = 100):
+                               limit: int = 100,
+                               ret_db_extract: bool = True,
+                               ):
         """Search datasets via the CKAN API
 
         Parameters
@@ -167,6 +168,10 @@ class APIInterrogator(DBInterrogator):
             returned datasets should begin.
         limit: int
             limit number of search results; Set to 0 to get all results
+        ret_db_extract: bool
+            whether to return an instance of :class:`DBExtract`; if set to
+            `False`, then a list of datasets is returned instead which is
+            faster.
         """
         if filter_queries is None:
             filter_queries = []
@@ -230,7 +235,10 @@ class APIInterrogator(DBInterrogator):
 
         num_total = np.inf  # just the initial value
         num_retrieved = 0
-        dbe = DBExtract()
+        if ret_db_extract:
+            dbe = DBExtract()
+        else:
+            dbe = []
         while start + num_retrieved < min(start + limit, num_total) and rows:
             data = self.api.get(
                 "package_search",
@@ -249,7 +257,7 @@ class APIInterrogator(DBInterrogator):
                 # in the next iteration, only get the final
                 # few results.
                 rows = num_total - num_retrieved
-            dbe.add_datasets(data["results"])
+            dbe += data["results"]
 
         return dbe
 

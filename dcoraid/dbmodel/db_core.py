@@ -28,12 +28,12 @@ class DBInterrogator(abc.ABC):
 
     @abc.abstractmethod
     def get_circles(self):
-        """Return the list of DCOR Circles"""
+        """Return the list of DCOR Circle dictionaries"""
         pass
 
     @abc.abstractmethod
     def get_collections(self):
-        """Return the list of DCOR Collections"""
+        """Return the list of DCOR Collection dictionaries"""
         pass
 
     def get_datasets_user(self):

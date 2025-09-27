@@ -142,15 +142,19 @@ class CachedAPIInterrogator(DBInterrogator):
 
         new_timestamp = time.time()
 
-        dbe = self.ai.search_dataset_via_api(
-            since_time=self.local_timestamp,
-            limit=0,
-        )
-
-        for ds_dict in dbe:
+        for cdict in self.get_circles():
+            logger.info(f"Fetching dataset from circle {cdict['name']}")
+            dbe = self.ai.search_dataset_via_api(
+                since_time=self.local_timestamp,
+                circles=[cdict["name"]],
+                limit=0,
+                ret_db_extract=False,
+            )
             if abort_event and abort_event.is_set():
                 break
-            self._mc.upsert_dataset(ds_dict)
+            self._mc.upsert_many(dbe, org_id=cdict["id"])
+            logger.info(
+                f"Loaded {len(dbe)} datasets from circle {cdict['name']}")
         else:
             # Only update the local timestamp if we actually did
             # update the local database.

@@ -38,18 +38,21 @@ class WidgetMyData(QtWidgets.QWidget):
         self.checkBox_user_shared.clicked.connect(self.on_update_view)
 
     @QtCore.pyqtSlot(dict, list)
-    def on_added_datasets_to_collection(self, collection, dataset_ids):
+    def on_added_datasets_to_collection(self,
+                                        collection: dict,
+                                        dataset_ids: list[str],
+                                        ):
         """User manually added a bunch of datasets to a collection"""
         # Get the collection
         for col in self.database.get_collections():
-            if col == collection["name"]:
+            if col["id"] == collection["id"]:
                 cid = collection["id"]
                 break
         else:
             # we have to reset the database and try again
             self.database.update(reset=True)
             for col in self.database.get_collections():
-                if col == collection["name"]:
+                if col["id"] == collection["id"]:
                     cid = collection["id"]
                     break
             else:

@@ -19,10 +19,13 @@
  - enh: remove unused "Sharing" page
  - enh: add icon for "Find Data"
  - enh: cache CKANAPI instance in GUI
+ - enh: `APIInterrogator.search_dataset_via_api` optionally returns list
+ - enh: `DBExtract.__iadd__` supports lists
  - ref: remove `mode` from `DBInterrogator`
  - ref: replace `user_list` with `user_autocomplete`
  - ref: replace `search_dataset` with `search_dataset_via_api`
    in `APIInterrogator`; `search_dataset` is now only free text search
+ - ref: `get_collections` and `get_circles` now return list of dictionaries
  - ref: rename gui submodules for better overview
  - ref: move "My Data" panel into its own submodule
  - ref: implement `is_dc_resource_dict`
