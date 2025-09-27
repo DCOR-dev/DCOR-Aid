@@ -58,6 +58,13 @@ class SQLiteKeyJSONDatabase:
             (key, json.dumps(value)))
         self.conn.commit()
 
+    def insert_many(self, dataset_dicts):
+        """Insert multiple datasets at once to this database"""
+        db_insert = [(ds["id"], json.dumps(ds)) for ds in dataset_dicts]
+        self.cursor.executemany('INSERT INTO key_value_store VALUES (?, ?)',
+                                db_insert)
+        self.conn.commit()
+
     def read(self, key):
         """
         Read the value associated with a given key from the database.

@@ -4,6 +4,7 @@ import pathlib
 import shutil
 import tempfile
 import time
+import traceback
 
 from PyQt6 import QtCore
 from PyQt6.QtCore import QStandardPaths
@@ -99,19 +100,24 @@ def pytest_sessionstart(session):
     Called after the Session object has been created and
     before performing collection and entering the run test loop.
     """
-    api = common.get_api()
-    defaults = common.get_test_defaults()
     try:
-        api.post("group_create", {"name": defaults["collection"]})
-    except APIConflictError:
-        pass
-    try:
-        api.post("organization_create", {"name": defaults["circle"]})
-    except APIConflictError:
-        pass
-    user_dict = api.get("user_show")
-    user_dict["fullname"] = defaults["user_name"]
-    api.post("user_update", user_dict)
+        api = common.get_api()
+    except BaseException:
+        print("API TESTING DISABLED")
+        print(traceback.format_exc())
+    else:
+        defaults = common.get_test_defaults()
+        try:
+            api.post("group_create", {"name": defaults["collection"]})
+        except APIConflictError:
+            pass
+        try:
+            api.post("organization_create", {"name": defaults["circle"]})
+        except APIConflictError:
+            pass
+        user_dict = api.get("user_show")
+        user_dict["fullname"] = defaults["user_name"]
+        api.post("user_update", user_dict)
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)

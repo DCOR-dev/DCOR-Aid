@@ -1,3 +1,4 @@
+from itertools import chain
 import logging
 import pathlib
 import threading
@@ -12,6 +13,34 @@ from .meta_cache_sqlite import SQLiteKeyJSONDatabase
 logger = logging.getLogger(__name__)
 
 
+BLOB_KEYS = [
+    # dataset
+    "authors",
+    "creator_user_id",
+    "doi",
+    "id",
+    "name",
+    "notes",
+    "title",
+    # resource
+    "resources",
+    "dc:experiment:date",
+    "dc:experiment:sample",
+    "dc:setup:chip region",
+    "dc:setup:identifier",
+    "dc:setup:module composition",
+    "description",
+    # "id",  # duplicate
+    # "name",  # duplicate
+    "organization",
+    # tags
+    "tags",
+    "display_name",
+    # groups
+    "groups",
+    ]
+
+
 class MetaCache:
     """Cache dataset dictionaries (metadata)
 
@@ -22,21 +51,21 @@ class MetaCache:
     def __init__(self,
                  directory: str | pathlib.Path,
                  user_id: str = None,
-                 circle_ids: list[str] = None,
+                 org_ids: list[str] = None,
                  ) -> None:
         """
-        Scan *directory* for ``circle_*.db`` files, load all of them
+        Scan *directory* for ``org_*.db`` files, load all of them
         and fill the numpy backing store.
 
         Parameters
         ----------
         directory: str | pathlib.Path
-            Path to the folder that will hold the ``circle_<org_id>.db`` files.
+            Path to the folder that will hold the ``org_<org_id>.db`` files.
             The folder is created automatically if it does not exist.
         user_id: str
             The ID of the user operating the database.
-        circle_ids: list[str]
-            List of circle IDs that should be taken into consideration.
+        org_ids: list[str]
+            List of organization IDs that should be taken into consideration.
             If set to None (default), all databases in the `directory`
             are loaded.
         """
@@ -44,7 +73,7 @@ class MetaCache:
         self.base_dir.mkdir(parents=True, exist_ok=True)
         self.user_id = user_id
 
-        # The organization registry is a dictionary with circle IDs and
+        # The organization registry is a dictionary with organization IDs and
         # a list of dataset IDs as values.
         self._registry_org = {}
 
@@ -69,19 +98,19 @@ class MetaCache:
         self._lock = threading.Lock()
 
         with self._lock:
-            self._initialize(circle_ids)
+            self._initialize(org_ids)
 
-    def _initialize(self, circle_ids=None):
+    def _initialize(self, org_ids=None):
         # List of all dataset dictionaries (only used during init)
         datasets = []
         # List of search data (only used during init)
         rows: list[tuple] = []
 
         # Initialize the databases
-        if circle_ids is None:
-            db_paths = list(self.base_dir.glob("circle_*.db"))
+        if org_ids is None:
+            db_paths = list(self.base_dir.glob("org_*.db"))
         else:
-            db_paths = [self.base_dir / f"circle_{c}.db" for c in circle_ids]
+            db_paths = [self.base_dir / f"org_{c}.db" for c in org_ids]
 
         for cp in db_paths:
             cid = cp.stem.split("_", 1)[-1]
@@ -162,6 +191,73 @@ class MetaCache:
         for db in self._databases.values():
             db.close()
 
+    def insert_many(self, org_id, dataset_dicts):
+        """Insert multiple datasets at once for one organization
+
+        This is essentially the vectorization of
+        :meth:`MetaCache._upsert_dataset_insert`.
+        This method MUST NOT be used for "updating" datasets.
+        """
+        ds_ids = [ds_dict["id"] for ds_dict in dataset_dicts]
+        ms_created = [ds_dict["metadata_created"] for ds_dict in dataset_dicts]
+        blobs_new = [
+            _create_blob_for_search(ds_dict) for ds_dict in dataset_dicts]
+        blob_max_len = max(len(b) for b in blobs_new)
+
+        if blob_max_len > int(self._srt_blobs.dtype["blob"].str[2:]):
+            # Increase the search blob size.
+            new_dtype = [("id", "<U36"),
+                         ("created", "<U26"),
+                         ("blob", f"<U{blob_max_len + 10}")
+                         ]
+        else:
+            new_dtype = self._srt_blobs.dtype
+
+        # registry
+        self._registry_org.setdefault(org_id, []).__add__(ds_ids)
+
+        # search array
+        dates_cur = np.array(self._srt_blobs["created"], copy=True)
+        size_old = dates_cur.size
+        dates_new = np.array(ms_created)
+        dates_comb = np.concatenate((dates_cur, dates_new))
+        sorter = np.argsort(dates_comb)
+        sorter_cur = sorter[:size_old]
+        sorter_new = sorter[size_old:]
+
+        new_blobs = np.empty(dates_comb.size, dtype=new_dtype)
+        new_blobs[sorter_cur] = self._srt_blobs
+        new_blobs["blob"][sorter_new] = blobs_new
+        new_blobs["created"][sorter_new] = dates_new
+        new_blobs["id"][sorter_new] = ds_ids
+
+        self._srt_blobs = new_blobs
+
+        # datasets
+        datasets_unsrt = self.datasets + dataset_dicts
+        self.datasets = [datasets_unsrt[ii] for ii in sorter]
+
+        # persistent database
+        if org_id not in self._databases:
+            self._databases[org_id] = SQLiteKeyJSONDatabase(
+                db_name=self.base_dir / f"org_{org_id}.db")
+        self._databases[org_id].insert_many(dataset_dicts)
+
+        # user's dataset list
+        datasets_user_owned_unsrt = (
+            self.datasets_user_owned
+            + [ds["creator_user_id"] == self.user_id for ds in dataset_dicts]
+        )
+        self.datasets_user_owned = [
+            datasets_user_owned_unsrt[ii] for ii in sorter]
+
+        # dataset IDs
+        dataset_ids_unsr = self._dataset_ids + ds_ids
+        self._dataset_ids = [dataset_ids_unsr[ii] for ii in sorter]
+
+        for (idx, ds_id) in enumerate(self._dataset_ids):
+            self._dataset_index_dict[ds_id] = idx
+
     def reset(self):
         """Reset the entire database"""
         with self._lock:
@@ -172,7 +268,7 @@ class MetaCache:
             self._dataset_ids.clear()
             self._dataset_index_dict.clear()
             self._registry_org.clear()
-            for path in self.base_dir.glob("circle_*.db"):
+            for path in self.base_dir.glob("org_*.db"):
                 path.unlink()
             self._initialize()
 
@@ -259,6 +355,7 @@ class MetaCache:
         ds_id = ds_dict["id"]
         org_id = ds_dict["owner_org"]
         m_created = ds_dict["metadata_created"]
+
         blob = _create_blob_for_search(ds_dict)
         if len(blob) > int(self._srt_blobs.dtype["blob"].str[2:]):
             # Increase the search blob size.
@@ -290,7 +387,7 @@ class MetaCache:
         # persistent database
         if org_id not in self._databases:
             self._databases[org_id] = SQLiteKeyJSONDatabase(
-                db_name=self.base_dir / f"circle_{org_id}.db")
+                db_name=self.base_dir / f"org_{org_id}.db")
         self._databases[org_id][ds_id] = ds_dict
 
         # user's dataset list
@@ -301,7 +398,10 @@ class MetaCache:
 
         # dataset IDs
         self._dataset_ids.insert(new_idx, ds_id)
-        self._dataset_index_dict[ds_id] = new_idx
+
+        # update the ds_id to index dictionary
+        for idx in range(new_idx, new_size):
+            self._dataset_index_dict[self._dataset_ids[idx]] = idx
 
     def _upsert_dataset_update(self, ds_dict):
         """Update an existing dataset
@@ -336,35 +436,9 @@ class MetaCache:
         self._databases[org_id][ds_id] = ds_dict
 
 
-def _create_blob_for_search(ds_dict):
+def _create_blob_for_search(ds_dict: dict) -> str:
     """Create a string blob from a dataset dictionary for free text search"""
-    values = _values_only(ds_dict,
-                          only_keys=[
-                              # dataset
-                              "authors",
-                              "creator_user_id",
-                              "doi",
-                              "id",
-                              "name",
-                              "notes",
-                              "title",
-                              # resource
-                              "resources",
-                              "dc:experiment:date",
-                              "dc:experiment:sample",
-                              "dc:setup:chip region",
-                              "dc:setup:identifier",
-                              "dc:setup:module composition",
-                              "description",
-                              # "id",  # duplicate
-                              # "name",  # duplicate
-                              "organization",
-                              # tags
-                              "tags",
-                              "display_name",
-                              # groups
-                              "groups",
-                          ])
+    values = _values_only(ds_dict, BLOB_KEYS)
     value_blob: str = "  ".join(values).lower()
     return value_blob
 
@@ -378,17 +452,20 @@ def _values_only(obj: Any,
     Lists, tuples and dicts are traversed; other scalar types are converted
     with ``str``.
     """
-    vals = []
-
     if isinstance(obj, dict):
-        for k, v in obj.items():
-            if k in only_keys:
-                vals += _values_only(v, only_keys)
+        return chain.from_iterable(
+            [_values_only(v, only_keys) for (k, v) in obj.items()
+             if k in only_keys])
+        # for k, v in obj.items():
+        #     if k in only_keys:
+        #         vals += _values_only(v, only_keys)
     elif isinstance(obj, (list, tuple)):
-        for v in obj:
-            vals += _values_only(v, only_keys)
+        return chain.from_iterable([_values_only(v, only_keys) for v in obj])
+        # for v in obj:
+        #    vals += _values_only(v, only_keys)
     else:
         # scalar (str, int, float, bool, None)
         if obj not in [None, ""]:
-            vals.append(str(obj))
-    return vals
+            return [str(obj)]
+        else:
+            return []

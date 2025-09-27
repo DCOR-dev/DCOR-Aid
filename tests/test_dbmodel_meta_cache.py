@@ -1,3 +1,4 @@
+import time
 import uuid
 
 from dcoraid.dbmodel import meta_cache
@@ -7,8 +8,8 @@ from .common import make_dataset_dict_full_fake
 import pytest
 
 
-def test_cache_append_to_one_circle(tmp_path):
-    """Append 100 datasets to a circle and make sure they persist"""
+def test_cache_append_to_one_org(tmp_path):
+    """Append 100 datasets to a org and make sure they persist"""
     org_id = str(uuid.uuid4())
     with meta_cache.MetaCache(tmp_path) as mc:
         for _ in range(100):
@@ -63,7 +64,220 @@ def test_cache_creates_databases(tmp_path):
 
     # Check whether the databases exist
     for org_id in org_ids:
-        assert (tmp_path / f"circle_{org_id}.db").is_file()
+        assert (tmp_path / f"org_{org_id}.db").is_file()
+
+
+def test_cache_dataset_index_dict(tmp_path):
+    t0 = time.time()
+    with meta_cache.MetaCache(tmp_path) as mc:
+        ds1 = make_dataset_dict_full_fake(time_created=t0)
+        ds2 = make_dataset_dict_full_fake(time_created=t0 - 50)
+        ds3 = make_dataset_dict_full_fake(time_created=t0 + 50)
+        mc.upsert_dataset(ds1)
+        mc.upsert_dataset(ds2)
+        mc.upsert_dataset(ds3)
+
+        assert mc._dataset_index_dict[ds1["id"]] == 1
+        assert mc._dataset_index_dict[ds2["id"]] == 0
+        assert mc._dataset_index_dict[ds3["id"]] == 2
+
+
+def test_cache_dataset_index_dict_2(tmp_path):
+    t0 = time.time()
+
+    ds_list = []
+    for ii in range(200):
+        ds_list.append(make_dataset_dict_full_fake(time_created=t0 + ii))
+
+    # sort dataset list according to ID
+    ds_list_edit = sorted(ds_list, key = lambda x: x["id"])
+    assert ds_list_edit != ds_list
+
+    with meta_cache.MetaCache(tmp_path) as mc:
+        for ds_dict in ds_list_edit:
+            mc.upsert_dataset(ds_dict)
+
+    for ii in range(200):
+        assert mc._dataset_index_dict[ds_list[ii]["id"]] == ii
+
+    assert mc.datasets == ds_list
+
+
+def test_cache_dataset_index_dict_2_multi(tmp_path):
+    t0 = time.time()
+    org_id = str(uuid.uuid4())
+
+    ds_list = []
+    for ii in range(200):
+        ds_list.append(make_dataset_dict_full_fake(time_created=t0 + ii,
+                                                   org_id=org_id))
+
+    # sort dataset list according to ID
+    ds_list_edit = sorted(ds_list, key = lambda x: x["id"])
+    assert ds_list_edit != ds_list
+
+    with meta_cache.MetaCache(tmp_path) as mc:
+        mc.insert_many(org_id, ds_list_edit)
+
+    for ii in range(200):
+        assert mc._dataset_index_dict[ds_list[ii]["id"]] == ii
+
+    assert mc.datasets == ds_list
+
+
+def test_cache_datasets_user_owned(tmp_path):
+    user_id = str(uuid.uuid4())
+    ds_user = []
+    ds_other = []
+    with meta_cache.MetaCache(tmp_path, user_id=user_id) as mc:
+        # single datasets
+        for ii in range(10):
+            ds_dict = make_dataset_dict_full_fake(user_id=user_id)
+            ds_user.append(ds_dict)
+            mc.upsert_dataset(ds_dict)
+        for ii in range(10):
+            ds_dict = make_dataset_dict_full_fake()
+            ds_other.append(ds_dict)
+            mc.upsert_dataset(ds_dict)
+
+        # Make sure that the user dictionaries are stored correctly
+        for ds in ds_user:
+            idx = mc._dataset_index_dict[ds["id"]]
+            assert mc.datasets[idx] == ds
+            assert mc.datasets_user_owned[idx]
+
+        for ds in ds_other:
+            idx = mc._dataset_index_dict[ds["id"]]
+            assert mc.datasets[idx] == ds
+            assert not mc.datasets_user_owned[idx]
+
+
+    with meta_cache.MetaCache(tmp_path, user_id=user_id) as mc:
+        # Make sure that the user dictionaries are recovered correctly
+        for ds in ds_user:
+            idx = mc._dataset_index_dict[ds["id"]]
+            assert mc.datasets[idx] == ds
+            assert mc.datasets_user_owned[idx]
+
+        for ds in ds_other:
+            idx = mc._dataset_index_dict[ds["id"]]
+            assert mc.datasets[idx] == ds
+            assert not mc.datasets_user_owned[idx]
+
+
+def test_cache_datasets_user_owned_full(tmp_path):
+    user_id = str(uuid.uuid4())
+    ds_user = []
+    ds_other = []
+    with meta_cache.MetaCache(tmp_path, user_id=user_id) as mc:
+        # single datasets
+        for ii in range(10):
+            ds_dict = make_dataset_dict_full_fake(user_id=user_id)
+            ds_user.append(ds_dict)
+            mc.upsert_dataset(ds_dict)
+        for ii in range(10):
+            ds_dict = make_dataset_dict_full_fake()
+            ds_other.append(ds_dict)
+            mc.upsert_dataset(ds_dict)
+
+        # multiple datasets
+        org_id = str(uuid.uuid4())
+        ds_dicts_a = [
+            make_dataset_dict_full_fake(org_id=org_id, user_id=user_id)
+            for _ in range(10)
+            ]
+        ds_user += ds_dicts_a
+        mc.insert_many(org_id, ds_dicts_a)
+        ds_dicts_b = [
+            make_dataset_dict_full_fake(org_id=org_id)
+            for _ in range(10)
+            ]
+        mc.insert_many(org_id, ds_dicts_b)
+        ds_other += ds_dicts_b
+
+        # Make sure that the user dictionaries are stored correctly
+        for ds in ds_user:
+            idx = mc._dataset_index_dict[ds["id"]]
+            assert mc.datasets[idx] == ds
+            assert mc.datasets_user_owned[idx]
+
+        for ds in ds_other:
+            idx = mc._dataset_index_dict[ds["id"]]
+            assert mc.datasets[idx] == ds
+            assert not mc.datasets_user_owned[idx]
+
+
+    with meta_cache.MetaCache(tmp_path, user_id=user_id) as mc:
+        # Make sure that the user dictionaries are recovered correctly
+        for ds in ds_user:
+            idx = mc._dataset_index_dict[ds["id"]]
+            assert mc.datasets[idx] == ds
+            assert mc.datasets_user_owned[idx]
+
+        for ds in ds_other:
+            idx = mc._dataset_index_dict[ds["id"]]
+            assert mc.datasets[idx] == ds
+            assert not mc.datasets_user_owned[idx]
+
+
+
+@pytest.mark.parametrize("previous_datasets", [0, 10, 100])
+def test_cache_insert_many(tmp_path, previous_datasets):
+    # generate datasets
+    all_ds_dicts = []
+    org_ids = [str(uuid.uuid4()), str(uuid.uuid4())]
+    for org_id in org_ids:
+        ds_dicts = []
+        for ii in range(15):
+            ds_dicts.append(make_dataset_dict_full_fake(org_id=org_id))
+        all_ds_dicts.append(ds_dicts)
+
+    # populate cache
+    with meta_cache.MetaCache(tmp_path) as mc:
+        for ii in range(previous_datasets):
+            # Before inserting many datasets for the two organizations,
+            # add `previous_datasets` other datasets that each will have
+            # its own unique org.
+            mc.upsert_dataset(make_dataset_dict_full_fake())
+
+        for (org_id, ds_dicts) in zip(org_ids, all_ds_dicts):
+            mc.insert_many(org_id, ds_dicts)
+
+    # Check whether the databases exist
+    for org_id in org_ids:
+        assert (tmp_path / f"org_{org_id}.db").is_file()
+
+    # Check a few other things
+    with meta_cache.MetaCache(tmp_path) as mc:
+        # The registry should contain 100 datasets
+        assert len(mc._registry_org) == 2 + previous_datasets
+
+        # The search store should contain 30 entries
+        assert len(mc._srt_blobs) == 30 + previous_datasets
+
+        assert len(mc.datasets) == 30 + previous_datasets
+
+        # All datasets must be unique
+        found_dicts = {}
+        for org_id in org_ids:
+            assert len(mc._registry_org[org_id]) == 15
+            for ds_dict in mc._databases[org_id]:
+                ds_id = ds_dict["id"]
+                assert ds_id in mc._registry_org[org_id]
+                assert ds_id not in found_dicts
+                found_dicts[ds_id] = ds_dict
+                assert mc[ds_id] == ds_dict
+
+                # Test dataset indices
+                idx = mc._dataset_index_dict[ds_id]
+                assert mc.datasets[idx] == ds_dict
+                assert mc._dataset_ids[idx] == ds_dict["id"]
+
+    # check whether every single dataset exists
+    with meta_cache.MetaCache(tmp_path) as mc:
+        for ds_dicts in all_ds_dicts:
+            for ds_dict in ds_dicts:
+                assert mc[ds_dict["id"]] == ds_dict
 
 
 def test_cache_search(tmp_path):
@@ -192,7 +406,7 @@ def test_cache_search_updated_dataset_case(tmp_path):
     [[2, {"other-key": "dop"}, [["sinn"]]], ["2", "sinn"]],
     ])
 def test_values_only(input, output):
-    assert meta_cache._values_only(input, only_keys=["peter", "rin"]) == output
+    assert list(meta_cache._values_only(input, only_keys=["peter", "rin"])) == output
 
 
 def test_create_blob_for_search():

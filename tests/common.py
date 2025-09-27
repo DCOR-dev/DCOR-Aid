@@ -67,12 +67,16 @@ def make_dataset_dict(hint=""):
     return dataset_dict
 
 
-def make_dataset_dict_full_fake(org_id=None, ds_id=None, title=None):
+def make_dataset_dict_full_fake(org_id=None, ds_id=None, user_id=None,
+                                time_created=None, time_modified=None,
+                                title=None):
     org_id = org_id or f"{uuid.uuid4()}"
     ds_id = ds_id or f"{uuid.uuid4()}"
-    user_id = f"{uuid.uuid4()}"
-    created = datetime.date.fromtimestamp(time.time() - 50).isoformat()
-    modified = datetime.date.fromtimestamp(time.time()).isoformat()
+    user_id = user_id or f"{uuid.uuid4()}"
+    time_created = time_created or time.time() - 50
+    time_modified = time_modified or time_created + 50
+    created = datetime.datetime.fromtimestamp(time_created).isoformat()
+    modified = datetime.datetime.fromtimestamp(time_modified).isoformat()
     title = title or "Standard title"
 
     return {"authors": "John Doe",
