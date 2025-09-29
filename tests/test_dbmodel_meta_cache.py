@@ -20,9 +20,6 @@ def test_cache_append_to_one_org(tmp_path):
         assert len(mc._registry_org) == 1
         assert len(mc._registry_org[org_id]) == 100
 
-        # The search store should contain 100 entries
-        assert len(mc._srt_blobs) == 100
-
         assert len(mc.datasets) == 100
 
     # There should only be one database file
@@ -33,9 +30,6 @@ def test_cache_append_to_one_org(tmp_path):
         # The registry should contain 100 datasets
         assert len(mc._registry_org) == 1
         assert len(mc._registry_org[org_id]) == 100
-
-        # The search store should contain 100 entries
-        assert len(mc._srt_blobs) == 100
 
         # All datasets must be unique
         found_dicts = {}
@@ -329,9 +323,6 @@ def test_cache_upsert_many_insert(tmp_path, previous_datasets):
         # The registry should contain 100 datasets
         assert len(mc._registry_org) == 2 + previous_datasets
 
-        # The search store should contain 30 entries
-        assert len(mc._srt_blobs) == 30 + previous_datasets
-
         assert len(mc.datasets) == 30 + previous_datasets
 
         # All datasets must be unique
@@ -376,25 +367,6 @@ def test_cache_search(tmp_path):
         ds_list = mc.search("fertig-nein-hann-solo")
         assert len(ds_list) == 1
         assert ds_list[0] == ds_dict
-
-
-def test_cache_search_blob_size_increases(tmp_path):
-    with meta_cache.MetaCache(tmp_path) as mc:
-        mc.upsert_dataset(make_dataset_dict_full_fake(title="1" * 300))
-        start_size = int(mc._srt_blobs.dtype["blob"].str[2:])
-
-        # insert a dataset
-        mc.upsert_dataset(make_dataset_dict_full_fake(title="1" * 400))
-        insert_size = int(mc._srt_blobs.dtype["blob"].str[2:])
-        assert start_size + 100 == insert_size
-
-        # update a dataset
-        ds_dict = make_dataset_dict_full_fake()
-        mc.upsert_dataset(ds_dict)
-        ds_dict["title"] = "1" * 500
-        mc.upsert_dataset(ds_dict)
-        update_size = int(mc._srt_blobs.dtype["blob"].str[2:])
-        assert start_size + 200 == update_size
 
 
 def test_cache_search_multiple_results(tmp_path):

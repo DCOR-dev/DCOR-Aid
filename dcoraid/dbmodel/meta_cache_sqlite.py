@@ -18,12 +18,12 @@ class SQLiteKeyJSONDatabase:
         self.conn = sqlite3.connect(db_name, check_same_thread=False)
         self.cursor = self.conn.cursor()
         self.cursor.execute("""
-            CREATE TABLE IF NOT EXISTS key_value_store
-            (key TEXT PRIMARY KEY, value TEXT)
+            CREATE TABLE IF NOT EXISTS kv_store
+            (key TEXT PRIMARY KEY, json_data TEXT, blob_data TEXT)
         """)
 
     def __iter__(self):
-        self.cursor.execute("SELECT value FROM key_value_store")
+        self.cursor.execute("SELECT json_data FROM kv_store")
         while True:
             row = self.cursor.fetchone()
             if row is None:
@@ -39,29 +39,32 @@ class SQLiteKeyJSONDatabase:
     def __getitem__(self, key):
         return self.read(key)
 
-    def __setitem__(self, key, value):
-        self.create(key, value)
+    def __setitem__(self, key, data):
+        ddict, blob = data
+        self.create(key, ddict, blob)
 
-    def create(self, key, value):
+    def create(self, key: str, ddict: dict, blob: str):
         """
-        Create a new key-value pair in the database.
+        Create a new key-value-blob triple in the database.
 
-        Args:
-            key (str): The key for the new value.
-            value (str): The value associated with the key.
+        Parameters
+        ----------
+        key
+            The key for the new value.
+        ddict
+            Data dictionary that is encoded in JSON
+        blob
+            Text blob to store alongside data for searching
 
-        Returns:
-            None
         """
         self.cursor.execute(
-            'INSERT OR REPLACE INTO key_value_store VALUES (?, ?)',
-            (key, json.dumps(value)))
+            'INSERT OR REPLACE INTO kv_store VALUES (?, ?, ?)',
+            (key, json.dumps(ddict), blob))
         self.conn.commit()
 
-    def insert_many(self, dataset_dicts):
+    def insert_many(self, db_insert):
         """Insert multiple datasets at once to this database"""
-        db_insert = [(ds["id"], json.dumps(ds)) for ds in dataset_dicts]
-        self.cursor.executemany('INSERT INTO key_value_store VALUES (?, ?)',
+        self.cursor.executemany('INSERT INTO kv_store VALUES (?, ?, ?)',
                                 db_insert)
         self.conn.commit()
 
@@ -69,41 +72,46 @@ class SQLiteKeyJSONDatabase:
         """
         Read the value associated with a given key from the database.
 
-        Args:
-            key (str): The key to read the value for.
+        Parameters
+        ----------
+        key
+            The key to read the dictionary for.
 
-        Returns:
-            str: The value associated with the key, or None
-             if the key does not exist.
+        Returns
+        -------
+        ddict
+            The corresponding dictionary extracted from `json_data`
         """
         self.cursor.execute(
-            "SELECT value FROM key_value_store WHERE key = ?",
+            "SELECT json_data FROM kv_store WHERE key = ?",
             (key,))
         result = self.cursor.fetchone()
         if result is None:
             raise KeyError(f"Key '{key}' does not exist.")
         return json.loads(result[0])
 
+    def search(self, query):
+        """Search for a string in the blob_data"""
+        self.cursor.execute(
+            'SELECT key FROM kv_store WHERE blob_data LIKE ?', (f'%{query}%',))
+        return [item[0] for item in self.cursor.fetchall()]
+
     def pop(self, key):
         """
-        Delete a key-value pair from the database.
+        Delete a key from the database.
 
-        Args:
-            key (str): The key to delete.
-
-        Returns:
-            None
+        Parameters
+        ----------
+        key
+            The key to delete.
         """
         self.cursor.execute(
-            'DELETE FROM key_value_store WHERE key = ?',
+            'DELETE FROM kv_store WHERE key = ?',
             (key,))
         self.conn.commit()
 
     def close(self):
         """
         Close the database connection.
-
-        Returns:
-            None
         """
         self.conn.close()

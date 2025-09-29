@@ -1,4 +1,5 @@
 from itertools import chain
+import json
 import logging
 import pathlib
 import threading
@@ -92,11 +93,11 @@ class MetaCache:
         #: Dict of dataset ID indices, mapping dataset ID to organization
         self._map_id_org = {}
 
+        #: List of dates
+        self._dates = []
+
         #: List of booleans indicating whether dataset was created by the user
         self.datasets_user_owned = []
-
-        # Search blob array
-        self._srt_blobs = None
 
         self._lock = threading.Lock()
 
@@ -104,11 +105,6 @@ class MetaCache:
             self._initialize(org_ids)
 
     def _initialize(self, org_ids=None):
-        # List of all dataset dictionaries (only used during init)
-        datasets: list[dict] = []
-        # List of search data (only used during init)
-        rows: list[tuple] = []
-
         # Initialize the databases
         if org_ids is None:
             db_paths = list(self.base_dir.glob("org_*.db"))
@@ -127,58 +123,35 @@ class MetaCache:
 
         # populate registry, dataset list, and search array data
         # initial blob size for dataset search
-        blob_size = 256
+        data_created = []
+        data_ids = []
+        data_user = []
+        #: Dict of dataset ID organizations
+        self._map_id_org = {}
+        #: List of dates
         for db in self._databases.values():
             for ds_dict in db:
-                ds_id: str = ds_dict.get("id", "")
-                m_created: str = ds_dict.get("metadata_created", "")
-
-                # Build a double-space‑separated string of **only values**
-                value_blob = _create_blob_for_search(ds_dict)
-                blob_size = max(blob_size, len(value_blob))
-
-                rows.append((ds_id, m_created, value_blob))
-                datasets.append(ds_dict)
+                data_created.append(ds_dict["metadata_created"])
+                data_ids.append(ds_dict["id"])
+                data_user.append(ds_dict["creator_user_id"] == self.user_id)
+                self._map_id_org[ds_dict["id"]] = ds_dict["owner_org"]
                 self._registry_org.setdefault(ds_dict["owner_org"],
                                               []).append(ds_dict["id"])
 
-        # Convert the Python list of tuples into a NumPy 2‑D object array
-        # TODO: If there are performance issues, we can create these arrays
-        #       in chunks of e.g. 10000 in the above for-loop.
-        data_dtype = [
-            # "4b1f7c53-9d7f-2c53-aeb6-eaa8ecf10ca9"
-            ("id", "<U36"),
-            # 2025-09-18T08:09:52.947634
-            ("created", "<U26"),
-            # initialize with maximum size
-            ("blob", f"<U{blob_size}")
-        ]
-        if rows:
-            data = np.array(rows, dtype=data_dtype)   # shape (n_records, 3)
-        else:
-            # initialize emtpy cache
-            data = np.empty(0, dtype=data_dtype)
-
         # Sort the dataset according to creation date, descending
-        sort_idx = np.argsort(data["created"])[::-1]
-        #: Blobs for searching, sorted by creation date descending
-        self._srt_blobs = data[sort_idx]
+        sort_idx = np.argsort(data_created)[::-1]
+
+        self._dates = [data_created[ii] for ii in sort_idx]
 
         #: List of booleans indicating whether dataset was created by the user
-        self.datasets_user_owned = [
-            datasets[ii]["creator_user_id"] == self.user_id
-            for ii in sort_idx
-        ]
+        self.datasets_user_owned = [data_user[ii] for ii in sort_idx]
 
         #: List of dataset IDs
-        self._map_index_id = [datasets[idx]["id"] for idx in sort_idx]
+        self._map_index_id = [data_ids[idx] for idx in sort_idx]
 
         #: Dict of dataset ID indices
         self._map_id_index = {
             ds_id: ii for (ii, ds_id) in enumerate(self._map_index_id)}
-
-        #: Dict of dataset ID organizations
-        self._map_id_org = {ds["id"]: ds["owner_org"] for ds in datasets}
 
         #: List of dataset dictionaries
         self.datasets = SQLiteBackedROListOfDicts(
@@ -243,21 +216,18 @@ class MetaCache:
         if not norm_query:
             return []  # empty query -> no results
 
-        # `np.strings.find` works element‑wise on an array of strings
-        # and returns the index of the first occurrence (or -1 if not found).
-        # `self._srt_blobs[:, 2]` is the column that holds the lower‑cased
-        # blobs.
-        match_mask = np.strings.find(self._srt_blobs["blob"], norm_query) != -1
+        data_ids = []
+        for db in self._databases.values():
+            data_ids += db.search(norm_query)
 
-        if limit is not None:
-            # Remove all items that are above a threshold.
-            # TODO: apply the limit already during search by chunking?
-            idx_lim = np.where(np.cumsum(match_mask) > limit)[0]
-            if idx_lim.size:
-                match_mask[idx_lim.min():] = False
+        if limit:
+            # sort the data_ids according to their creation date
+            data_dates = [
+                self._dates[self._map_id_index[ds_id]] for ds_id in data_ids]
+            sorter = np.argsort(data_dates)[::-1]
+            data_ids = [data_ids[idx] for idx in sorter[:limit]]
 
-        idx_result = np.where(match_mask)[0]
-        return [self.datasets[idx] for idx in idx_result]
+        return [self[ds_id] for ds_id in data_ids]
 
     def upsert_dataset(self, ds_dict: dict[str, Any]) -> None:
         """Insert a new dataset or update an existing one
@@ -300,35 +270,19 @@ class MetaCache:
         m_created = ds_dict["metadata_created"]
 
         blob = _create_blob_for_search(ds_dict)
-        if len(blob) > int(self._srt_blobs.dtype["blob"].str[2:]):
-            # Increase the search blob size.
-            new_dtype = [("id", "<U36"),
-                         ("created", "<U26"),
-                         ("blob", f"<U{len(blob) + 10}")
-                         ]
-        else:
-            new_dtype = self._srt_blobs.dtype
 
         # registry
         self._registry_org.setdefault(org_id, []).append(ds_id)
 
         # search array
-        dates = np.array(self._srt_blobs["created"], copy=True)
-        new_size = dates.size + 1
-        new_idx = np.searchsorted(dates, m_created)
-        # we can set refcheck to False, since we created a copy above
-        dates.resize(new_size, refcheck=False)
-        new_blobs = np.empty(new_size, dtype=new_dtype)
-        new_blobs[:new_idx] = self._srt_blobs[:new_idx]
-        new_blobs[new_idx] = (ds_id, m_created, blob)
-        new_blobs[new_idx + 1:] = self._srt_blobs[new_idx:]
-        self._srt_blobs = new_blobs
+        new_idx = np.searchsorted(self._dates, m_created)
+        self._dates.insert(new_idx, m_created)
 
         # persistent database
         if org_id not in self._databases:
             self._databases[org_id] = SQLiteKeyJSONDatabase(
                 db_name=self.base_dir / f"org_{org_id}.db")
-        self._databases[org_id][ds_id] = ds_dict
+        self._databases[org_id][ds_id] = (ds_dict, blob)
 
         # user's dataset list
         self.datasets_user_owned.insert(
@@ -340,7 +294,7 @@ class MetaCache:
         self._map_index_id.insert(new_idx, ds_id)
 
         # update the ds_id to index dictionary
-        for idx in range(new_idx, new_size):
+        for idx in range(new_idx, len(self._dates)):
             self._map_id_index[self._map_index_id[idx]] = idx
 
         # insert the organization
@@ -357,23 +311,11 @@ class MetaCache:
 
         # registry does not need updating (only contains ds_id)
 
-        # Find the index in the database
-        idx = np.where(self._srt_blobs["id"] == ds_id)[0][0]
-
         # search array
         blob = _create_blob_for_search(ds_dict)
-        if len(blob) > int(self._srt_blobs.dtype["blob"].str[2:]):
-            # Rewrite the search blobs, because this blob is bigger than any
-            # of the blobs before.
-            new_dtype = [("id", "<U36"),
-                         ("created", "<U26"),
-                         ("blob", f"<U{len(blob) + 10}")
-                         ]
-            self._srt_blobs = np.array(self._srt_blobs, dtype=new_dtype)
-        self._srt_blobs["blob"][idx] = blob
 
         # persistent database
-        self._databases[org_id][ds_id] = ds_dict
+        self._databases[org_id][ds_id] = (ds_dict, blob)
 
     def upsert_many(self, dataset_dicts, org_id=None):
         """Insert or update multiple datasets at once
@@ -427,44 +369,28 @@ class MetaCache:
         """
         ds_ids = [ds_dict["id"] for ds_dict in dataset_dicts]
         ms_created = [ds_dict["metadata_created"] for ds_dict in dataset_dicts]
-        blobs_new = [
-            _create_blob_for_search(ds_dict) for ds_dict in dataset_dicts]
-        blob_max_len = max(len(b) for b in blobs_new)
-
-        if blob_max_len > int(self._srt_blobs.dtype["blob"].str[2:]):
-            # Increase the search blob size.
-            new_dtype = [("id", "<U36"),
-                         ("created", "<U26"),
-                         ("blob", f"<U{blob_max_len + 10}")
-                         ]
-        else:
-            new_dtype = self._srt_blobs.dtype
 
         # registry
         self._registry_org.setdefault(org_id, []).__add__(ds_ids)
 
         # search array
-        dates_cur = np.array(self._srt_blobs["created"], copy=True)
-        size_old = dates_cur.size
+        dates_cur = np.array(self._dates, copy=True)
         dates_new = np.array(ms_created)
         dates_comb = np.concatenate((dates_cur, dates_new))
         # sort according to dates descending
         sorter = np.argsort(dates_comb)[::-1]
-
-        new_blobs = np.empty(dates_comb.size, dtype=new_dtype)
-        new_blobs[:size_old] = self._srt_blobs["blob"]
-        new_blobs["blob"][size_old:] = blobs_new
-        new_blobs["created"][size_old:] = dates_new
-        new_blobs["id"][size_old:] = ds_ids
-        new_blobs = new_blobs[sorter]
-
-        self._srt_blobs = new_blobs
+        self._dates = [dates_comb[ii] for ii in sorter]
 
         # persistent database
         if org_id not in self._databases:
             self._databases[org_id] = SQLiteKeyJSONDatabase(
                 db_name=self.base_dir / f"org_{org_id}.db")
-        self._databases[org_id].insert_many(dataset_dicts)
+        # TODO: Do this in batches of 1000 to save memory?
+        insert_data = [
+            (ds_dict["id"],
+             json.dumps(ds_dict),
+             _create_blob_for_search(ds_dict)) for ds_dict in dataset_dicts]
+        self._databases[org_id].insert_many(insert_data)
 
         # user's dataset list
         datasets_user_owned_unsrt = (
