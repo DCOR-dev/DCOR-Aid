@@ -8,6 +8,7 @@ from typing import Any
 import numpy as np
 
 from .meta_cache_sqlite import SQLiteKeyJSONDatabase
+from .meta_cache_datasets import SQLiteBackedROListOfDicts
 
 
 logger = logging.getLogger(__name__)
@@ -82,14 +83,14 @@ class MetaCache:
         #: Dictionary of databases for persistent storage
         self._databases = {}
 
-        #: List of dataset dictionaries
-        self.datasets = []
-
         #: List of dataset IDs, mapping database index to dataset ID
-        self._dataset_ids = []
+        self._map_index_id = []
 
         #: Dict of dataset ID indices, mapping dataset ID to database index
-        self._dataset_index_dict = {}
+        self._map_id_index = {}
+
+        #: Dict of dataset ID indices, mapping dataset ID to organization
+        self._map_id_org = {}
 
         #: List of booleans indicating whether dataset was created by the user
         self.datasets_user_owned = []
@@ -104,7 +105,7 @@ class MetaCache:
 
     def _initialize(self, org_ids=None):
         # List of all dataset dictionaries (only used during init)
-        datasets = []
+        datasets: list[dict] = []
         # List of search data (only used during init)
         rows: list[tuple] = []
 
@@ -163,21 +164,28 @@ class MetaCache:
         #: Blobs for searching, sorted by creation date descending
         self._srt_blobs = data[sort_idx]
 
-        #: list of datasets, sorted by creation date descending
-        self.datasets = [datasets[ii] for ii in sort_idx]
-
         #: List of booleans indicating whether dataset was created by the user
         self.datasets_user_owned = [
-            ds_dict["creator_user_id"] == self.user_id
-            for ds_dict in self.datasets
+            datasets[ii]["creator_user_id"] == self.user_id
+            for ii in sort_idx
         ]
 
         #: List of dataset IDs
-        self._dataset_ids = [ds_dict["id"] for ds_dict in self.datasets]
+        self._map_index_id = [datasets[idx]["id"] for idx in sort_idx]
 
         #: Dict of dataset ID indices
-        self._dataset_index_dict = {
-            ds_id: ii for (ii, ds_id) in enumerate(self._dataset_ids)}
+        self._map_id_index = {
+            ds_id: ii for (ii, ds_id) in enumerate(self._map_index_id)}
+
+        #: Dict of dataset ID organizations
+        self._map_id_org = {ds["id"]: ds["owner_org"] for ds in datasets}
+
+        #: List of dataset dictionaries
+        self.datasets = SQLiteBackedROListOfDicts(
+            sqlite_dbs=self._databases,
+            map_index_id=self._map_index_id,
+            map_id_org=self._map_id_org,
+        )
 
     def __enter__(self):
         return self
@@ -187,7 +195,8 @@ class MetaCache:
 
     def __getitem__(self, ds_id):
         """Return the dataset dictionary given its ID"""
-        return self.datasets[self._dataset_index_dict[ds_id]]
+        org = self._map_id_org[ds_id]
+        return self._databases[org][ds_id]
 
     def close(self):
         for db in self._databases.values():
@@ -198,10 +207,10 @@ class MetaCache:
         with self._lock:
             self.close()
             self._databases.clear()
-            self.datasets.clear()
             self.datasets_user_owned.clear()
-            self._dataset_ids.clear()
-            self._dataset_index_dict.clear()
+            self._map_index_id.clear()
+            self._map_id_index.clear()
+            self._map_id_org.clear()
             self._registry_org.clear()
             for path in self.base_dir.glob("org_*.db"):
                 path.unlink()
@@ -248,7 +257,6 @@ class MetaCache:
                 match_mask[idx_lim.min():] = False
 
         idx_result = np.where(match_mask)[0]
-
         return [self.datasets[idx] for idx in idx_result]
 
     def upsert_dataset(self, ds_dict: dict[str, Any]) -> None:
@@ -316,9 +324,6 @@ class MetaCache:
         new_blobs[new_idx + 1:] = self._srt_blobs[new_idx:]
         self._srt_blobs = new_blobs
 
-        # datasets
-        self.datasets.insert(new_idx, ds_dict)
-
         # persistent database
         if org_id not in self._databases:
             self._databases[org_id] = SQLiteKeyJSONDatabase(
@@ -332,11 +337,14 @@ class MetaCache:
             )
 
         # dataset IDs
-        self._dataset_ids.insert(new_idx, ds_id)
+        self._map_index_id.insert(new_idx, ds_id)
 
         # update the ds_id to index dictionary
         for idx in range(new_idx, new_size):
-            self._dataset_index_dict[self._dataset_ids[idx]] = idx
+            self._map_id_index[self._map_index_id[idx]] = idx
+
+        # insert the organization
+        self._map_id_org[ds_id] = org_id
 
     def _upsert_dataset_update(self, ds_dict):
         """Update an existing dataset
@@ -364,9 +372,6 @@ class MetaCache:
             self._srt_blobs = np.array(self._srt_blobs, dtype=new_dtype)
         self._srt_blobs["blob"][idx] = blob
 
-        # cached datasets
-        self.datasets[idx] = ds_dict
-
         # persistent database
         self._databases[org_id][ds_id] = ds_dict
 
@@ -380,7 +385,7 @@ class MetaCache:
         if self._registry_org.get(org_id):
             # Separate the datasets into new and existing datasets.
             ds_list_update = [ds_dict for ds_dict in dataset_dicts
-                              if ds_dict["id"] in self._dataset_ids]
+                              if ds_dict["id"] in self._map_index_id]
         else:
             # We have not seen this organization before
             ds_list_update = []
@@ -390,7 +395,7 @@ class MetaCache:
             ds_list_insert = dataset_dicts
         else:
             ds_list_insert = [ds_dict for ds_dict in dataset_dicts
-                              if ds_dict["id"] not in self._dataset_ids]
+                              if ds_dict["id"] not in self._map_index_id]
 
         # Update datasets
         for ds_dict in ds_list_update:
@@ -455,10 +460,6 @@ class MetaCache:
 
         self._srt_blobs = new_blobs
 
-        # datasets
-        datasets_unsrt = self.datasets + dataset_dicts
-        self.datasets = [datasets_unsrt[ii] for ii in sorter]
-
         # persistent database
         if org_id not in self._databases:
             self._databases[org_id] = SQLiteKeyJSONDatabase(
@@ -474,11 +475,15 @@ class MetaCache:
             datasets_user_owned_unsrt[ii] for ii in sorter]
 
         # dataset IDs
-        dataset_ids_unsr = self._dataset_ids + ds_ids
-        self._dataset_ids = [dataset_ids_unsr[ii] for ii in sorter]
+        dataset_ids_unsrt = self._map_index_id + ds_ids
+        self._map_index_id.clear()
+        self._map_index_id += [dataset_ids_unsrt[ii] for ii in sorter]
 
-        for (idx, ds_id) in enumerate(self._dataset_ids):
-            self._dataset_index_dict[ds_id] = idx
+        for (idx, ds_id) in enumerate(self._map_index_id):
+            self._map_id_index[ds_id] = idx
+
+        for ds_id in ds_ids:
+            self._map_id_org[ds_id] = org_id
 
 
 def _create_blob_for_search(ds_dict: dict) -> str:

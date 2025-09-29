@@ -222,9 +222,6 @@ class DCORAid(QtWidgets.QMainWindow):
                 prog.setLabelText(f"Fetching '{circle_name}'\n"
                                   f"Imported {new_ds} datasets so far.")
 
-                QtWidgets.QApplication.processEvents(
-                    QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
-
             thr = threading.Thread(target=self.database.update,
                                    args=(reset, abort_event,
                                          prog_update_callback))

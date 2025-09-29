@@ -47,9 +47,9 @@ def test_cache_append_to_one_org(tmp_path):
             assert mc[ds_id] == ds_dict
 
             # Test dataset indices
-            idx = mc._dataset_index_dict[ds_id]
+            idx = mc._map_id_index[ds_id]
             assert mc.datasets[idx] == ds_dict
-            assert mc._dataset_ids[idx] == ds_dict["id"]
+            assert mc._map_index_id[idx] == ds_dict["id"]
 
         assert len(mc.datasets) == 100
 
@@ -77,9 +77,9 @@ def test_cache_dataset_index_dict(tmp_path):
         mc.upsert_dataset(ds2)
         mc.upsert_dataset(ds3)
 
-        assert mc._dataset_index_dict[ds1["id"]] == 1
-        assert mc._dataset_index_dict[ds2["id"]] == 0
-        assert mc._dataset_index_dict[ds3["id"]] == 2
+        assert mc._map_id_index[ds1["id"]] == 1
+        assert mc._map_id_index[ds2["id"]] == 0
+        assert mc._map_id_index[ds3["id"]] == 2
 
 
 def test_cache_dataset_index_dict_2(tmp_path):
@@ -97,10 +97,11 @@ def test_cache_dataset_index_dict_2(tmp_path):
         for ds_dict in ds_list_edit:
             mc.upsert_dataset(ds_dict)
 
-    for ii in range(200):
-        assert mc._dataset_index_dict[ds_list[ii]["id"]] == ii
+        for ii in range(200):
+            assert mc._map_id_index[ds_list[ii]["id"]] == ii
 
-    assert mc.datasets == ds_list
+        for ds1, ds2 in zip(mc.datasets, ds_list):
+            assert ds1 == ds2
 
 
 def test_cache_dataset_index_dict_2_multi(tmp_path):
@@ -119,10 +120,11 @@ def test_cache_dataset_index_dict_2_multi(tmp_path):
     with meta_cache.MetaCache(tmp_path) as mc:
         mc._upsert_many_insert(org_id, ds_list_edit)
 
-    for ii in range(200):
-        assert mc._dataset_index_dict[ds_list[ii]["id"]] == ii
+        for ii in range(200):
+            assert mc._map_id_index[ds_list[ii]["id"]] == ii
 
-    assert mc.datasets == ds_list
+        for ds1, ds2 in zip(mc.datasets, ds_list):
+            assert ds1 == ds2
 
 
 def test_cache_datasets_user_owned(tmp_path):
@@ -142,24 +144,24 @@ def test_cache_datasets_user_owned(tmp_path):
 
         # Make sure that the user dictionaries are stored correctly
         for ds in ds_user:
-            idx = mc._dataset_index_dict[ds["id"]]
+            idx = mc._map_id_index[ds["id"]]
             assert mc.datasets[idx] == ds
             assert mc.datasets_user_owned[idx]
 
         for ds in ds_other:
-            idx = mc._dataset_index_dict[ds["id"]]
+            idx = mc._map_id_index[ds["id"]]
             assert mc.datasets[idx] == ds
             assert not mc.datasets_user_owned[idx]
 
     with meta_cache.MetaCache(tmp_path, user_id=user_id) as mc:
         # Make sure that the user dictionaries are recovered correctly
         for ds in ds_user:
-            idx = mc._dataset_index_dict[ds["id"]]
+            idx = mc._map_id_index[ds["id"]]
             assert mc.datasets[idx] == ds
             assert mc.datasets_user_owned[idx]
 
         for ds in ds_other:
-            idx = mc._dataset_index_dict[ds["id"]]
+            idx = mc._map_id_index[ds["id"]]
             assert mc.datasets[idx] == ds
             assert not mc.datasets_user_owned[idx]
 
@@ -196,24 +198,24 @@ def test_cache_datasets_user_owned_full(tmp_path):
 
         # Make sure that the user dictionaries are stored correctly
         for ds in ds_user:
-            idx = mc._dataset_index_dict[ds["id"]]
+            idx = mc._map_id_index[ds["id"]]
             assert mc.datasets[idx] == ds
             assert mc.datasets_user_owned[idx]
 
         for ds in ds_other:
-            idx = mc._dataset_index_dict[ds["id"]]
+            idx = mc._map_id_index[ds["id"]]
             assert mc.datasets[idx] == ds
             assert not mc.datasets_user_owned[idx]
 
     with meta_cache.MetaCache(tmp_path, user_id=user_id) as mc:
         # Make sure that the user dictionaries are recovered correctly
         for ds in ds_user:
-            idx = mc._dataset_index_dict[ds["id"]]
+            idx = mc._map_id_index[ds["id"]]
             assert mc.datasets[idx] == ds
             assert mc.datasets_user_owned[idx]
 
         for ds in ds_other:
-            idx = mc._dataset_index_dict[ds["id"]]
+            idx = mc._map_id_index[ds["id"]]
             assert mc.datasets[idx] == ds
             assert not mc.datasets_user_owned[idx]
 
@@ -285,7 +287,7 @@ def test_cache_upsert_many_search(tmp_path):
             ))
 
     with meta_cache.MetaCache(tmp_path) as mc:
-        mc.upsert_many(ds_list, org_id=org_id)
+        mc.upsert_many(ds_list)
         # search for them in freshly-modified cache
         assert mc.search(query="Frodo")[0]["title"] == "Frodo"
         assert mc.search(query="Mordor")[0]["title"] == "Mordor"
@@ -344,9 +346,9 @@ def test_cache_upsert_many_insert(tmp_path, previous_datasets):
                 assert mc[ds_id] == ds_dict
 
                 # Test dataset indices
-                idx = mc._dataset_index_dict[ds_id]
+                idx = mc._map_id_index[ds_id]
                 assert mc.datasets[idx] == ds_dict
-                assert mc._dataset_ids[idx] == ds_dict["id"]
+                assert mc._map_index_id[idx] == ds_dict["id"]
 
     # check whether every single dataset exists
     with meta_cache.MetaCache(tmp_path) as mc:
