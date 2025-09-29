@@ -36,10 +36,20 @@ class SQLiteKeyJSONDatabase:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> dict:
+        """Read the dataset dictionary given the dataset ID"""
         return self.read(key)
 
-    def __setitem__(self, key, data):
+    def __setitem__(self, key: str, data: tuple[dict, str]) -> None:
+        """When setting data, you must pass the search glob alongside the dict
+
+        Parameters
+        ----------
+        key
+            dataset identifier
+        data
+            tuple of dataset dictionary and search blob
+        """
         ddict, blob = data
         self.create(key, ddict, blob)
 
@@ -62,15 +72,18 @@ class SQLiteKeyJSONDatabase:
             (key, json.dumps(ddict), blob))
         self.conn.commit()
 
-    def insert_many(self, db_insert):
-        """Insert multiple datasets at once to this database"""
+    def insert_many(self, db_insert: list[tuple[str, dict, str]]) -> None:
+        """Insert multiple datasets at once to this database
+
+        The `db_insert` is a list tuples of the form
+        `(dataset_id, dataset_dictionary, search_blob)`.
+        """
         self.cursor.executemany('INSERT INTO kv_store VALUES (?, ?, ?)',
                                 db_insert)
         self.conn.commit()
 
-    def read(self, key):
-        """
-        Read the value associated with a given key from the database.
+    def read(self, key: str) -> dict:
+        """Return dataset dictionary for given dataset ID
 
         Parameters
         ----------

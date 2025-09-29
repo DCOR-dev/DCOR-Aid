@@ -9,7 +9,9 @@ def test_create_write_read(tmp_path):
 
     with meta_cache_sqlite.SQLiteKeyJSONDatabase(db_path) as db:
         ds_dict = make_dataset_dict_full_fake()
-        db[ds_dict["id"]] = ds_dict
+        # Setting always involves the search glob.
+        db[ds_dict["id"]] = (ds_dict, "Kassierer")
+        # Fetching only returns the dict.
         ds_dict2 = db[ds_dict["id"]]
         assert ds_dict == ds_dict2
 
@@ -24,11 +26,11 @@ def test_create_multiple_and_iter(tmp_path):
 
     with meta_cache_sqlite.SQLiteKeyJSONDatabase(db_path) as db:
         ds_dict = make_dataset_dict_full_fake()
-        db[ds_dict["id"]] = ds_dict
+        db[ds_dict["id"]] = (ds_dict, "Kassierer")
 
         for ii in range(10):
             dsi = make_dataset_dict_full_fake()
-            db[dsi["id"]] = dsi
+            db[dsi["id"]] = (dsi, "Kassierer")
 
         assert db[ds_dict["id"]] == ds_dict
 
@@ -44,7 +46,7 @@ def test_pop(tmp_path):
 
     with meta_cache_sqlite.SQLiteKeyJSONDatabase(db_path) as db:
         ds_dict = make_dataset_dict_full_fake()
-        db[ds_dict["id"]] = ds_dict
+        db[ds_dict["id"]] = (ds_dict, "Kassierer")
         ds_dict2 = db[ds_dict["id"]]
         assert ds_dict == ds_dict2
         db.pop(ds_dict["id"])
