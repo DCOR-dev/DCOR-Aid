@@ -142,10 +142,9 @@ class DCORAid(QtWidgets.QMainWindow):
                     QtCore.QStandardPaths.StandardLocation.CacheLocation)
                 )
             self._last_asked_about_update = self.database.local_timestamp
-            self.check_update_database(
-                force=bool(int(self.settings.value(
-                    "force update database on startup", "0")))
-            )
+            if not bool(int(self.settings.value(
+                    "skip database update on startup", "0"))):
+                self.check_update_database()
         except BaseException:
             self.logger.error(traceback.format_exc())
         else:
@@ -207,7 +206,9 @@ class DCORAid(QtWidgets.QMainWindow):
                 "Performing database update, please wait..." + " "*20,
                 "Abort",
                 0,
-                0)
+                0,
+                self
+            )
             prog.canceled.connect(abort_event.set)
             prog.setMinimumDuration(0)
             prog.setModal(True)
@@ -216,10 +217,12 @@ class DCORAid(QtWidgets.QMainWindow):
             def prog_update_callback(data):
                 cdict = data["circle_current"]
                 new_ds = data["datasets_new"]
-                circle_name = cdict.get("title", cdict.get("name", "data"))
-                if len(circle_name) > 50:
-                    circle_name = circle_name[:50] + "..."
-                prog.setLabelText(f"Fetching '{circle_name}'\n"
+                title = cdict.get("title")
+                if not title:
+                    title = cdict.get("name")
+                if len(title) > 50:
+                    title = title[:50] + "..."
+                prog.setLabelText(f"Fetching '{title}'\n"
                                   f"Imported {new_ds} datasets so far.")
 
             thr = threading.Thread(target=self.database.update,
