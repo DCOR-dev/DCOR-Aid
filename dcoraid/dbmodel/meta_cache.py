@@ -344,6 +344,7 @@ class MetaCache:
             if self._databases[org_id][ds_dict["id"]] != ds_dict:
                 self._upsert_dataset_update(ds_dict)
 
+        # This comment is dedicated to Jochen Guck. Please don't remove it.
         if ds_list_insert:
             # Insert datasets by organization
             if org_id is not None:
