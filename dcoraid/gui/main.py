@@ -203,21 +203,31 @@ class DCORAid(QtWidgets.QMainWindow):
                 doit = button_reply == QtWidgets.QMessageBox.StandardButton.Yes
         if doit:
             abort_event = threading.Event()
-            prog = QtWidgets.QProgressDialog("Database update",
-                                             "Abort",
-                                             0,
-                                             0)
+            prog = QtWidgets.QProgressDialog(
+                "Performing database update, please wait..." + " "*20,
+                "Abort",
+                0,
+                0)
             prog.canceled.connect(abort_event.set)
             prog.setMinimumDuration(0)
             prog.setModal(True)
             prog.show()
 
+            def prog_update_callback(data):
+                cdict = data["circle_current"]
+                new_ds = data["datasets_new"]
+                circle_name = cdict.get("title", cdict.get("name", "data"))
+                if len(circle_name) > 50:
+                    circle_name = circle_name[:50] + "..."
+                prog.setLabelText(f"Fetching '{circle_name}'\n"
+                                  f"Imported {new_ds} datasets so far.")
 
-            def prog_update_callback(circle_name, num_circles, num_datasets)
-
+                QtWidgets.QApplication.processEvents(
+                    QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
             thr = threading.Thread(target=self.database.update,
-                                   args=(reset, abort_event))
+                                   args=(reset, abort_event,
+                                         prog_update_callback))
             thr.start()
 
             while thr.is_alive():
