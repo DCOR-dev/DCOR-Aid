@@ -39,6 +39,8 @@ QtGui.QIcon.setThemeName(".")
 
 
 class DCORAid(QtWidgets.QMainWindow):
+    progress_update_event = QtCore.pyqtSignal()
+
     def __init__(self, *args, **kwargs):
         """Initialize DCOR-Aid
 
@@ -70,6 +72,11 @@ class DCORAid(QtWidgets.QMainWindow):
             QtWidgets.QApplication.processEvents(
                 QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
             sys.exit(0)
+
+        # Progressbar for database updates
+        self._prog_update_db = None
+        self._dbup_thread = None
+        self._dbup_worker = None
 
         #: DCOR-Aid settings
         self.settings = QtCore.QSettings()
@@ -201,39 +208,34 @@ class DCORAid(QtWidgets.QMainWindow):
                     QtWidgets.QMessageBox.StandardButton.Yes)
                 doit = button_reply == QtWidgets.QMessageBox.StandardButton.Yes
         if doit:
-            abort_event = threading.Event()
-            prog = QtWidgets.QProgressDialog(
-                "Performing database update, please wait..." + " "*20,
+            self._prog_update_db = QtWidgets.QProgressDialog(
+                "Performing database update, please wait...\n" + " " * 200,
                 "Abort",
                 0,
                 0,
                 self
             )
-            prog.canceled.connect(abort_event.set)
-            prog.setMinimumDuration(0)
-            prog.setModal(True)
-            prog.show()
+            self._prog_update_db.setMinimumDuration(0)
+            self._prog_update_db.show()
 
-            def prog_update_callback(data):
-                cdict = data["circle_current"]
-                new_ds = data["datasets_new"]
-                title = cdict.get("title")
-                if not title:
-                    title = cdict.get("name")
-                if len(title) > 50:
-                    title = title[:50] + "..."
-                prog.setLabelText(f"Fetching '{title}'\n"
-                                  f"Imported {new_ds} datasets so far.")
+            # This is hell of a lot of boilerplate for just one progress bar.
+            self._dbup_thread = QtCore.QThread()
+            self._dbup_worker = UpdateDatabaseWorker(
+                update=self.database.update, reset=reset)
+            self._dbup_worker.moveToThread(self._dbup_thread)
+            self._dbup_thread.started.connect(self._dbup_worker.run)
+            self._dbup_worker.finished.connect(self._dbup_thread.quit)
+            self._dbup_worker.finished.connect(self._dbup_worker.deleteLater)
+            self._dbup_worker.progress.connect(self.on_progress_db_update)
+            self._prog_update_db.canceled.connect(self._dbup_worker.cancelled)
+            self._dbup_thread.start()
 
-            thr = threading.Thread(target=self.database.update,
-                                   args=(reset, abort_event,
-                                         prog_update_callback))
-            thr.start()
-
-            while thr.is_alive():
+            while self._dbup_thread.isRunning():
                 QtWidgets.QApplication.processEvents(
                     QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
                 QtTest.QTest.qWait(500)
+
+            self._prog_update_db.deleteLater()
 
         self._last_asked_about_update = time.time()
 
@@ -338,10 +340,52 @@ class DCORAid(QtWidgets.QMainWindow):
     def on_dataset_changed(self, ds_dict):
         self.database.update_dataset(ds_dict)
 
+    @QtCore.pyqtSlot(dict)
+    def on_progress_db_update(self, data):
+        cdict = data["circle_current"]
+        new_ds = data["datasets_new"]
+        title = cdict.get("title")
+        if not title:
+            title = cdict.get("name")
+        if len(title) > 50:
+            title = title[:50] + "..."
+        if self._prog_update_db is not None:
+            self._prog_update_db.setLabelText(
+                f"Fetching '{title}'\n"
+                f"Imported {new_ds} datasets so far.")
+            circle_ids = [c["id"] for c in data["circles"]]
+            cur_index = circle_ids.index(cdict["id"])
+            self._prog_update_db.setMaximum(len(circle_ids))
+            self._prog_update_db.setValue(cur_index + 1)
+        else:
+            self.logger.error("Progress dialog not defined")
+
     @QtCore.pyqtSlot()
     def on_wizard(self):
         self.wizard = SetupWizard(self)
         self.wizard.exec()
+
+
+class UpdateDatabaseWorker(QtCore.QObject):
+    finished = QtCore.pyqtSignal()
+    progress = QtCore.pyqtSignal(dict)
+
+    def __init__(self, update, reset, *args, **kwargs):
+        self.update = update
+        self.reset = reset
+        self.abort_event = threading.Event()
+        super(UpdateDatabaseWorker, self).__init__(*args, **kwargs)
+
+    @QtCore.pyqtSlot()
+    def cancelled(self):
+        self.abort_event.set()
+
+    def run(self):
+        """Long-running task."""
+        self.update(reset=self.reset,
+                    abort_event=self.abort_event,
+                    callback=self.progress.emit)
+        self.finished.emit()
 
 
 def excepthook(etype, value, trace):
