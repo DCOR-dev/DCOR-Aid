@@ -1,3 +1,5 @@
+0.18.1
+ - ci: fix build pipeline (innosetup missing in win 2025 image)
 0.18.0
  - feat: implement local database for caching (partially #5)
  - fix: missing .rtdc resource files in filter view
