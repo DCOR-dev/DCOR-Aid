@@ -14,6 +14,8 @@ from . import filter_base
 class FilterCircles(filter_base.FilterBase):
     def __init__(self, *args, **kwargs):
         super(FilterCircles, self).__init__(*args, **kwargs)
+        self.active_actions = ["view-online"]
+
         self.label.setText("Circles")
         self.lineEdit.setPlaceholderText("filter names...")
         self.checkBox.setVisible(False)
@@ -23,7 +25,8 @@ class FilterCircles(filter_base.FilterBase):
         api = get_ckan_api()
         url = f"{api.server}/organization/{entry['name']}"
         actions = [
-            {"icon": "eye",
+            {"name": "view-online",
+             "icon": "eye",
              "tooltip": f"view circle {entry['name']} online",
              "function": partial(webbrowser.open, url)}
         ]
@@ -33,6 +36,7 @@ class FilterCircles(filter_base.FilterBase):
 class FilterCollections(filter_base.FilterBase):
     def __init__(self, *args, **kwargs):
         super(FilterCollections, self).__init__(*args, **kwargs)
+        self.active_actions = ["download", "download-condensed", "view-online"]
         self.label.setText("Collections")
         self.lineEdit.setPlaceholderText("filter names...")
         self.checkBox.setVisible(False)
@@ -42,15 +46,18 @@ class FilterCollections(filter_base.FilterBase):
         api = get_ckan_api()
         url = f"{api.server}/group/{entry['name']}"
         actions = [
-            {"icon": "angle-down",
+            {"name": "download",
+             "icon": "angle-down",
              "tooltip": f"download collection {entry['name']}",
              "function": partial(self.download_item.emit,
                                  "collection", entry["name"], False)},
-            {"icon": "angles-down",
+            {"name": "download-condensed",
+             "icon": "angles-down",
              "tooltip": f"download condensed collection {entry['name']}",
              "function": partial(self.download_item.emit,
                                  "collection", entry["name"], True)},
-            {"icon": "eye",
+            {"name": "view-online",
+             "icon": "eye",
              "tooltip": f"view collection {entry['name']} online",
              "function": partial(webbrowser.open, url)}
         ]
@@ -60,6 +67,7 @@ class FilterCollections(filter_base.FilterBase):
 class FilterDatasets(filter_base.FilterBase):
     def __init__(self, *args, **kwargs):
         super(FilterDatasets, self).__init__(*args, **kwargs)
+        self.active_actions = ["download", "download-condensed", "view-online"]
         self.label.setText("Datasets")
         self.lineEdit.setPlaceholderText("filter titles...")
         self.checkBox.setVisible(False)
@@ -69,15 +77,18 @@ class FilterDatasets(filter_base.FilterBase):
         api = get_ckan_api()
         url = f"{api.server}/dataset/{entry['name']}"
         actions = [
-            {"icon": "angle-down",
+            {"name": "download",
+             "icon": "angle-down",
              "tooltip": f"download dataset {entry['name']}",
              "function": partial(self.download_item.emit,
                                  "dataset", entry["id"], False)},
-            {"icon": "angles-down",
+            {"name": "download-condensed",
+             "icon": "angles-down",
              "tooltip": f"download condensed dataset {entry['name']}",
              "function": partial(self.download_item.emit,
                                  "dataset", entry["id"], True)},
-            {"icon": "eye",
+            {"name": "view-online",
+             "icon": "eye",
              "tooltip": f"view dataset {entry['name']} online",
              "function": partial(webbrowser.open, url)},
         ]
@@ -87,6 +98,7 @@ class FilterDatasets(filter_base.FilterBase):
 class FilterResources(filter_base.FilterBase):
     def __init__(self, *args, **kwargs):
         super(FilterResources, self).__init__(*args, **kwargs)
+        self.active_actions = ["download", "download-condensed", "view-online"]
         self.label.setText("Resources")
         self.lineEdit.setPlaceholderText("filter file names...")
         self.checkBox.setVisible(True)
@@ -104,11 +116,13 @@ class FilterResources(filter_base.FilterBase):
         url = f"{api.server}/dataset/{entry['package_id']}/" \
               + f"resource/{entry['id']}"
         actions = [
-            {"icon": "angle-down",
+            {"name": "download",
+             "icon": "angle-down",
              "tooltip": f"download resource {entry['name']}",
              "function": partial(self.download_item.emit,
                                  "resource", entry["id"], False)},
-            {"icon": "eye",
+            {"name": "view-online",
+             "icon": "eye",
              "tooltip": f"view resource {entry['name']} online",
              "function": partial(webbrowser.open, url)},
         ]
@@ -116,7 +130,8 @@ class FilterResources(filter_base.FilterBase):
             # only show condensed-download-button for .rtdc files
             actions.insert(
                 1,
-                {"icon": "angles-down",
+                {"name": "download-condensed",
+                 "icon": "angles-down",
                  "tooltip": f"download condensed resource {entry['name']}",
                  "function": partial(self.download_item.emit,
                                      "resource", entry["id"], True)},

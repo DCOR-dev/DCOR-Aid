@@ -17,6 +17,8 @@ class FilterBase(QtWidgets.QWidget):
         """Filter view widget with title, edit, checkbox, and table
         """
         super(FilterBase, self).__init__(*args, **kwargs)
+        # to be populated by subclasses
+        self.active_actions = []
         ref_ui = resources.files("dcoraid.gui.dbview") / "filter_base.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
@@ -95,13 +97,15 @@ class FilterBase(QtWidgets.QWidget):
         horz_layout.setContentsMargins(2, 0, 2, 0)
 
         for action in self.get_entry_actions(row, entry):
-            tbact = QtWidgets.QToolButton(widact)
-            icon = QtGui.QIcon.fromTheme(action["icon"])
-            tbact.setIcon(icon)
-            tbact.setToolTip(action["tooltip"])
-            tbact.clicked.connect(action["function"])
-            horz_layout.addWidget(tbact)
-            horz_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
+
+            if action["name"] in self.active_actions:
+                tbact = QtWidgets.QToolButton(widact)
+                icon = QtGui.QIcon.fromTheme(action["icon"])
+                tbact.setIcon(icon)
+                tbact.setToolTip(action["tooltip"])
+                tbact.clicked.connect(action["function"])
+                horz_layout.addWidget(tbact)
+                horz_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
         self.tableWidget.setCellWidget(row, 1, widact)
         return widact
 

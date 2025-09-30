@@ -1,4 +1,6 @@
 0.18.2
+ - ref: make action buttons in filter view hideable
+0.18.2
  - ci: fix build pipeline (innosetup missing in win 2025 image)
 0.18.1
  - ci: fix build pipeline (innosetup missing in win 2025 image)
