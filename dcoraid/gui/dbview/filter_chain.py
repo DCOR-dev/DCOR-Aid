@@ -236,10 +236,10 @@ class FilterChainUser(FilterChain):
         if user:
             api = get_ckan_api()
             api.post("member_create",
-                     data = {"id": identifier,
-                             "object": user,
-                             "object_type": "user",
-                             "capacity": "member"})
+                     data={"id": identifier,
+                           "object": user,
+                           "object_type": "user",
+                           "capacity": "member"})
             # TODO: add a success message in the status widget
 
     @QtCore.pyqtSlot(str, str)
@@ -256,7 +256,7 @@ class FilterChainUser(FilterChain):
         if user:
             api = get_ckan_api()
             api.post("package_collaborator_create",
-                     data = {"id": identifier,
-                             "user_id": user,
-                             "capacity": "member"})
+                     data={"id": identifier,
+                           "user_id": user,
+                           "capacity": "member"})
             # TODO: add a success message in the status widget
