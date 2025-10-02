@@ -55,6 +55,9 @@ class FilterBase(QtWidgets.QWidget):
             QtCore.Qt.DropAction.IgnoreAction)  # no drop by default
         self.tableWidget.horizontalHeader().setSectionResizeMode(
             0, QtWidgets.QHeaderView.ResizeMode.Stretch)
+        self.tableWidget.horizontalHeader().setSectionResizeMode(
+            1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+
 
     def get_entry_actions(self, row, entry):
         """This is defined in the subclasses (Circle, Collection, etc)"""
@@ -98,8 +101,10 @@ class FilterBase(QtWidgets.QWidget):
         # tool buttons (2nd column)
         widact = QtWidgets.QWidget(self)
         horz_layout = QtWidgets.QHBoxLayout(widact)
-        horz_layout.setContentsMargins(2, 0, 2, 0)
+        horz_layout.setContentsMargins(0, 0, 5, 0)
+        horz_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
 
+        col_width = 0
         for action in self.get_entry_actions(row, entry):
             if action["name"] in self.active_actions:
                 tbact = QtWidgets.QToolButton(widact)
@@ -108,8 +113,13 @@ class FilterBase(QtWidgets.QWidget):
                 tbact.setToolTip(action["tooltip"])
                 tbact.clicked.connect(action["function"])
                 horz_layout.addWidget(tbact)
-                horz_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
+                row_height = tbact.geometry().height()
+                col_width += row_height
+                tbact.setFixedWidth(row_height)
+
+        self.tableWidget.setColumnWidth(1, col_width)
         self.tableWidget.setCellWidget(row, 1, widact)
+
         return widact
 
     def set_entry_label(self, row, entry):
