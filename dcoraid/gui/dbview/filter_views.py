@@ -14,7 +14,7 @@ from . import filter_base
 class FilterCircles(filter_base.FilterBase):
     def __init__(self, *args, **kwargs):
         super(FilterCircles, self).__init__(*args, **kwargs)
-        self.active_actions = ["view-online"]
+        self.active_actions += ["view-online"]
 
         self.label.setText("Circles")
         self.lineEdit.setPlaceholderText("filter names...")
@@ -36,7 +36,8 @@ class FilterCircles(filter_base.FilterBase):
 class FilterCollections(filter_base.FilterBase):
     def __init__(self, *args, **kwargs):
         super(FilterCollections, self).__init__(*args, **kwargs)
-        self.active_actions = ["download", "download-condensed", "view-online"]
+        self.active_actions += [
+            "download", "download-condensed", "view-online"]
         self.label.setText("Collections")
         self.lineEdit.setPlaceholderText("filter names...")
         self.checkBox.setVisible(False)
@@ -56,6 +57,11 @@ class FilterCollections(filter_base.FilterBase):
              "tooltip": f"download condensed collection {entry['name']}",
              "function": partial(self.download_item.emit,
                                  "collection", entry["name"], True)},
+            {"name": "share",
+             "icon": "share-nodes",
+             "tooltip": f"Share collection '{entry['name']}' with a user",
+             "function": partial(self.share_item.emit,
+                                 "collection", entry["name"])},
             {"name": "view-online",
              "icon": "eye",
              "tooltip": f"view collection {entry['name']} online",
@@ -67,7 +73,8 @@ class FilterCollections(filter_base.FilterBase):
 class FilterDatasets(filter_base.FilterBase):
     def __init__(self, *args, **kwargs):
         super(FilterDatasets, self).__init__(*args, **kwargs)
-        self.active_actions = ["download", "download-condensed", "view-online"]
+        self.active_actions += [
+            "download", "download-condensed", "view-online"]
         self.label.setText("Datasets")
         self.lineEdit.setPlaceholderText("filter titles...")
         self.checkBox.setVisible(False)
@@ -87,6 +94,11 @@ class FilterDatasets(filter_base.FilterBase):
              "tooltip": f"download condensed dataset {entry['name']}",
              "function": partial(self.download_item.emit,
                                  "dataset", entry["id"], True)},
+            {"name": "share",
+             "icon": "share-nodes",
+             "tooltip": f"Share dataset '{entry['name']}' with a user",
+             "function": partial(self.share_item.emit,
+                                 "dataset", entry["name"])},
             {"name": "view-online",
              "icon": "eye",
              "tooltip": f"view dataset {entry['name']} online",
@@ -98,7 +110,8 @@ class FilterDatasets(filter_base.FilterBase):
 class FilterResources(filter_base.FilterBase):
     def __init__(self, *args, **kwargs):
         super(FilterResources, self).__init__(*args, **kwargs)
-        self.active_actions = ["download", "download-condensed", "view-online"]
+        self.active_actions += [
+            "download", "download-condensed", "view-online"]
         self.label.setText("Resources")
         self.lineEdit.setPlaceholderText("filter file names...")
         self.checkBox.setVisible(True)

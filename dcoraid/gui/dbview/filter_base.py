@@ -12,6 +12,10 @@ class FilterBase(QtWidgets.QWidget):
     #: - `id_or_name` is the identifier or name of the thing
     #: - `condensed` determines whether to download condensed resources only
     download_item = QtCore.pyqtSignal(str, str, bool)
+    #: Share something (collection, dataset) with another user.
+    #: - `which` is "dataset" or "collection"
+    #: - `id_or_name` is the identifier or name of the thing
+    share_item = QtCore.pyqtSignal(str, str)
 
     def __init__(self, *args, **kwargs):
         """Filter view widget with title, edit, checkbox, and table
@@ -97,7 +101,6 @@ class FilterBase(QtWidgets.QWidget):
         horz_layout.setContentsMargins(2, 0, 2, 0)
 
         for action in self.get_entry_actions(row, entry):
-
             if action["name"] in self.active_actions:
                 tbact = QtWidgets.QToolButton(widact)
                 icon = QtGui.QIcon.fromTheme(action["icon"])

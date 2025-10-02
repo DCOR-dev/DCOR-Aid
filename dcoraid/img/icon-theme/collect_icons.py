@@ -68,6 +68,7 @@ icons = {
         "puzzle-piece",
         "redo",
         "scroll",
+        "share-nodes",
         "shipping-fast",
         "slash",
         "street-view",
@@ -125,6 +126,13 @@ def process_svg(svgdata):
     return parsed.toxml()
 
 
+def copy_replace_string(string_dict, source, destination):
+    text = source.read_text()
+    for key in string_dict:
+        text = text.replace(key, string_dict[key])
+    destination.write_text(text)
+
+
 def find_icons(name, theme):
     cands = []
     if theme in web_roots:  # download icons
@@ -164,7 +172,12 @@ if __name__ == "__main__":
                 dest = here / relp
                 directories.append(str(relp))
                 dest.mkdir(exist_ok=True, parents=True)
-                shutil.copy(ipath, dest)
+                if ipath.suffix == ".svg":
+                    copy_replace_string({"color:#232629": "color:#888888"},
+                                        ipath,
+                                        dest / ipath.name)
+                else:
+                    shutil.copy(ipath, dest)
 
     with (here / "index.theme").open("w") as fd:
         directories = sorted(set(directories))
