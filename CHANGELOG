@@ -1,3 +1,5 @@
+0.18.3
+ - enh: allow sharing individual datasets instead of collections (#32)
 0.18.2
  - ref: make action buttons in filter view hideable
 0.18.2
