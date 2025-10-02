@@ -107,6 +107,17 @@ class UploadDialog(QtWidgets.QDialog):
         validator = QtGui.QRegularExpressionValidator(regex)
         self.lineEdit_res_filename.setValidator(validator)
 
+        # corner widget for markdown help
+        self.label_link_markdown_help = QtWidgets.QLabel()
+        self.label_link_markdown_help.setTextFormat(
+            QtCore.Qt.TextFormat.RichText)
+        self.label_link_markdown_help.setText(
+            "<a href='https://dc.readthedocs.io/en/latest/sec_user_guide/"
+            "upload.html#markdown-reference'>Show Markdown help</a>"
+        )
+        self.label_link_markdown_help.setOpenExternalLinks(True)
+        self.tabWidget_notes.setCornerWidget(self.label_link_markdown_help)
+
         # Signals and slots
         # general buttons
         self.toolButton_add.clicked.connect(self.on_add_resources)
@@ -133,6 +144,10 @@ class UploadDialog(QtWidgets.QDialog):
         # store/load a preset
         self.toolButton_preset_load.clicked.connect(self.on_preset_load)
         self.toolButton_preset_store.clicked.connect(self.on_preset_store)
+
+        # signal for showing dataset notes preview
+        self.tabWidget_notes.currentChanged.connect(
+            self.on_notes_preview)
 
         # Do not allow drag and drop to line edit of combobox
         self.comboBox_preset.lineEdit().setAcceptDrops(False)
@@ -238,6 +253,13 @@ class UploadDialog(QtWidgets.QDialog):
             ix = self.rvmodel.index(0, 0)
             sm = self.listView_resources.selectionModel()
             sm.select(ix, QtCore.QItemSelectionModel.SelectionFlag.Select)
+
+    @QtCore.pyqtSlot()
+    def on_notes_preview(self):
+        """Display preview when preview tab is selected"""
+        if self.tabWidget_notes.currentWidget() == self.tab_notes_preview:
+            self.textEdit_preview.setMarkdown(
+                self.plainTextEdit_notes.toPlainText())
 
     @QtCore.pyqtSlot()
     def on_preset_load(self):
