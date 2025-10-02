@@ -58,7 +58,6 @@ class FilterBase(QtWidgets.QWidget):
         self.tableWidget.horizontalHeader().setSectionResizeMode(
             1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
 
-
     def get_entry_actions(self, row, entry):
         """This is defined in the subclasses (Circle, Collection, etc)"""
         return []
