@@ -3,6 +3,7 @@
  - enh: allow sharing individual datasets instead of collections (#32)
  - enh: add preview option for dataset description in upload dialog (#52)
  - enh: introduce write lock for eternal job updates
+ - ref: move `FilterChainMyData` to module `panel_my_data`
 0.18.2
  - ref: make action buttons in filter view hideable
 0.18.2

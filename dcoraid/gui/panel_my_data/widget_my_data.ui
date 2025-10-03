@@ -92,7 +92,7 @@
     </layout>
    </item>
    <item>
-    <widget class="FilterChainUser" name="user_filter_chain" native="true">
+    <widget class="FilterChainMyData" name="user_filter_chain" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -105,9 +105,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>FilterChainUser</class>
+   <class>FilterChainMyData</class>
    <extends>QWidget</extends>
-   <header>dcoraid.gui.dbview.filter_chain</header>
+   <header>dcoraid.gui.panel_my_data.filter_chain_my_data</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
