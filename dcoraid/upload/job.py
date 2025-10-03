@@ -5,6 +5,7 @@ import pathlib
 import shutil
 import time
 import traceback
+from typing import Callable
 import warnings
 
 import dclab
@@ -54,6 +55,7 @@ class UploadJob:
                  resource_paths: list[str | pathlib.Path],
                  resource_names: list[str] = None,
                  resource_supplements: list[dict] = None,
+                 resource_etags: list[str] = None,
                  collections: list[str] = None,
                  task_id: str = None,
                  cache_dir: str | pathlib.Path = None):
@@ -79,6 +81,8 @@ class UploadJob:
             on DCOR
         resource_supplements: list of dict
             Supplementary resource information
+        resource_etags: list
+            Any previously computed ETags of the resources
         collections: list of strings
             List of unique identifiers of collections that this
             dataset should be appended to
@@ -152,7 +156,7 @@ class UploadJob:
                            for ff in self.paths]
         self.file_bytes_uploaded = [0] * len(self.paths)
         #: ETags for the files uploaded by this UploadJob instance
-        self.etags = [None] * len(self.paths)
+        self.etags = resource_etags or [None] * len(self.paths)
         #: Resource index indicating upload progress
         self.index = 0
         self.start_time = None
@@ -188,6 +192,7 @@ class UploadJob:
             "resource_paths": [str(pp) for pp in self.paths],
             "resource_names": self.resource_names,
             "resource_supplements": self.supplements,
+            "resource_etags": self.etags,
             "task_id": self.task_id,
         }
         return uj_state
@@ -550,12 +555,17 @@ class UploadJob:
                     self.file_sizes[ii] = path_out.stat().st_size
         self.set_state("parcel")
 
-    def task_upload_resources(self):
+    def task_upload_resources(self,
+                              run_after_upload: Callable = None
+                              ):
         """Start the upload
 
         The progress of the upload is monitored and written
         to attributes. The current status can be retrieved
         via :func:`UploadJob.get_status`.
+
+        ``run_after_upload(self)`` is called after each resource upload.
+        This is used to update the eternal/immortalized job on disk.
         """
         if self.state == "parcel":
             # reset everything
@@ -605,6 +615,8 @@ class UploadJob:
                     self.etags[ii] = etag
                     self.paths_uploaded.append(path)
                     self.wait_time += srv_time
+                    if run_after_upload is not None:
+                        run_after_upload(self)
             self.end_time = time.perf_counter()
             self.set_state("online")
         else:

@@ -1,6 +1,8 @@
 import logging
 import pathlib
 import time
+import threading
+import traceback
 import traceback as tb
 import warnings
 
@@ -27,6 +29,7 @@ class PersistentUploadJobList:
         self.path_queued = self.path / "queued"
         self.path_completed.mkdir(parents=True, exist_ok=True)
         self.path_queued.mkdir(parents=True, exist_ok=True)
+        self.write_locks = {}
 
     def __contains__(self, item):
         if isinstance(item, UploadJob):
@@ -49,6 +52,10 @@ class PersistentUploadJobList:
         """Return list of DCOR dataset IDs corresponding to queued jobs"""
         return sorted([pp.stem for pp in self.path_queued.glob("*.json")])
 
+    def get_write_lock(self, dataset_id):
+        """Return a `threading.Lock` object for write operations"""
+        return self.write_locks.setdefault(dataset_id, threading.Lock())
+
     def is_job_done(self, dataset_id):
         jp = self.path_completed / (dataset_id + ".json")
         return jp.exists()
@@ -68,21 +75,27 @@ class PersistentUploadJobList:
             # is done after checking for queued (above case).
             raise FileExistsError(f"The job '{upload_job.dataset_id}' is "
                                   f"already done!")
-        save_task(upload_job=upload_job, path=pout)
+        with self.get_write_lock(upload_job.dataset_id):
+            save_task(upload_job=upload_job, path=pout)
 
     def job_exists(self, dataset_id):
-        return self.is_job_queued(dataset_id) or self.is_job_done(dataset_id)
+        # Use a write lock here to avoid race conditions
+        with self.get_write_lock(dataset_id):
+            return (self.is_job_queued(dataset_id)
+                    or self.is_job_done(dataset_id))
 
     def obliterate_job(self, dataset_id):
         """Remove a job from the persistent queue list"""
         pdel = self.path_queued / (dataset_id + ".json")
-        pdel.unlink()
+        with self.get_write_lock(dataset_id):
+            pdel.unlink()
 
     def set_job_done(self, dataset_id):
         """Move the job from the queue to the complete list"""
         pin = self.path_queued / (dataset_id + ".json")
         pout = self.path_completed / (dataset_id + ".json")
-        pin.rename(pout)
+        with self.get_write_lock(dataset_id):
+            pin.rename(pout)
 
     def summon_job(self, dataset_id, api, cache_dir=None):
         """Instantiate job from the persistent queue list"""
@@ -90,6 +103,20 @@ class PersistentUploadJobList:
         upload_job = load_task(path=pin, api=api, cache_dir=cache_dir)
         assert upload_job.dataset_id == dataset_id
         return upload_job
+
+    def update_job(self, upload_job):
+        """Update an immortalized job dictionary
+
+        The job must exist. Updating a job makes sense when e.g.
+        the ETag of a resource becomes known.
+        """
+        if not self.job_exists(upload_job.dataset_id):
+            raise ValueError(f"Cannot update non-existent job {upload_job}")
+        with self.get_write_lock(upload_job.dataset_id):
+            pq = self.path_queued / (upload_job.dataset_id + ".json")
+            pc = self.path_completed / (upload_job.dataset_id + ".json")
+            pp = pq if pq.exists() else pc
+            save_task(upload_job=upload_job, path=pp)
 
 
 class UploadQueue:
@@ -142,13 +169,19 @@ class UploadQueue:
         else:
             self.jobs_eternal = None
         self.daemon_compress = CompressDaemon(self.jobs)
-        self.daemon_upload = UploadDaemon(self.jobs)
+        self.daemon_upload = UploadDaemon(self.jobs, self.jobs_eternal)
         self.daemon_verify = VerifyDaemon(self.jobs)
 
     def __contains__(self, upload_job):
         return upload_job in self.jobs
 
     def __del__(self):
+        # Attempt to update the eternal jobs (important for ETags)
+        for job in self.jobs:
+            try:
+                self.jobs_eternal.update_job(job)
+            except BaseException:
+                self.logger.error(traceback.format_exc())
         self.daemon_upload.shutdown_flag.set()
         self.daemon_verify.shutdown_flag.set()
         self.daemon_compress.shutdown_flag.set()
@@ -199,7 +232,7 @@ class UploadQueue:
             # the daemon to set all the other jobs to "abort".
             self.daemon_upload.shutdown_flag.set()
             self.daemon_upload.terminate()
-            self.daemon_upload = UploadDaemon(self.jobs)
+            self.daemon_upload = UploadDaemon(self.jobs, self.jobs_eternal)
         elif prev_state == "compress":
             self.daemon_compress.shutdown_flag.set()
             self.daemon_compress.terminate()
@@ -327,12 +360,20 @@ class CompressDaemon(Daemon):
 
 
 class UploadDaemon(Daemon):
-    def __init__(self, jobs):
+    def __init__(self, jobs, jobs_eternal):
         """Upload daemon"""
+        if jobs_eternal is None:
+            run_after_upload = None
+        else:
+            run_after_upload = jobs_eternal.update_job
         super(UploadDaemon, self).__init__(
             jobs,
             job_trigger_state="parcel",
-            job_function_name="task_upload_resources")
+            job_function_name="task_upload_resources",
+            job_function_kwargs={
+                "run_after_upload": run_after_upload
+            }
+        )
 
 
 class VerifyDaemon(Daemon):

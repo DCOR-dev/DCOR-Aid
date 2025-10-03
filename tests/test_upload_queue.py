@@ -1,3 +1,4 @@
+import json
 import pathlib
 import tempfile
 import time
@@ -85,6 +86,24 @@ def test_queue_create_dataset_with_resource():
     joblist.new_job(dataset_id=data["id"],
                     paths=[dpath])
     common.wait_for_job(joblist, data["id"])
+
+
+def test_queue_create_dataset_with_resource_write_etag(tmp_path):
+    api = common.get_api()
+    # create some metadata
+    dataset_dict = common.make_dataset_dict(hint="create-with-resource")
+    # post dataset creation request
+    data = dataset_create(dataset_dict=dataset_dict, api=api)
+    joblist = UploadQueue(api=api,
+                          path_persistent_job_list=tmp_path)
+    joblist.new_job(dataset_id=data["id"],
+                    paths=[dpath])
+    pujl = joblist.jobs_eternal
+    common.wait_for_job(joblist, data["id"])
+
+    # Make sure the resource etag is stored in the uploaded job.
+    uj_d = json.loads((pujl.path_completed / f"{data["id"]}.json").read_text())
+    assert len(uj_d["upload_job"]["resource_etags"][0]) == 32
 
 
 def test_queue_find_zombie_caches():
@@ -245,6 +264,20 @@ def test_persistent_upload_joblist_error_exists():
         pujl.immortalize_job(uj)
 
 
+def test_persistent_upload_joblist_error_exists_done():
+    """test things when a job is done"""
+    api = common.get_api()
+    td = pathlib.Path(tempfile.mkdtemp(prefix="persistent_uj_list_"))
+    pujl_path = td / "joblistdir"
+    task_path = common.make_upload_task()
+    pujl = PersistentUploadJobList(pujl_path)
+    uj = load_task(task_path, api=api)
+    pujl.immortalize_job(uj)
+    pujl.set_job_done(uj.dataset_id)
+    with pytest.raises(FileExistsError, match="is already done"):
+        pujl.immortalize_job(uj)
+
+
 def test_persistent_upload_joblist_skip_finished_resources():
     api = common.get_api()
     td = pathlib.Path(tempfile.mkdtemp(prefix="persistent_uj_list_"))
@@ -340,7 +373,7 @@ def test_persistent_upload_joblist_skip_queued_resources():
     assert uq.jobs_eternal.num_queued == 1
 
 
-def test_persistent_upload_joblist_error_exists_done():
+def test_persistent_upload_joblist_update():
     """test things when a job is done"""
     api = common.get_api()
     td = pathlib.Path(tempfile.mkdtemp(prefix="persistent_uj_list_"))
@@ -349,9 +382,20 @@ def test_persistent_upload_joblist_error_exists_done():
     pujl = PersistentUploadJobList(pujl_path)
     uj = load_task(task_path, api=api)
     pujl.immortalize_job(uj)
-    pujl.set_job_done(uj.dataset_id)
-    with pytest.raises(FileExistsError, match="is already done"):
-        pujl.immortalize_job(uj)
+
+    uj.etags[0] = etag = str(uuid.uuid4())
+    pujl.update_job(uj)
+
+    assert pujl.job_exists(uj.dataset_id)
+    assert pujl.is_job_queued(uj.dataset_id)
+    assert not pujl.is_job_done(uj.dataset_id)
+
+    ids = pujl.get_queued_dataset_ids()
+    assert uj.dataset_id in ids
+
+    # make sure the etag was stored
+    uj_d = json.loads((pujl.path_queued / f"{uj.dataset_id}.json").read_text())
+    assert uj_d["upload_job"]["resource_etags"][0] == etag
 
 
 def test_persistent_upload_joblist_warning_dataset_deleted_on_server():

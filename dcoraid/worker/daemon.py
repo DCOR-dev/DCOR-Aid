@@ -11,11 +11,17 @@ from .kthread import KThread, KThreadExit
 
 
 class Daemon(KThread):
-    def __init__(self, queue, job_trigger_state, job_function_name):
+    def __init__(self,
+                 jobs,
+                 job_trigger_state: str,
+                 job_function_name: str,
+                 job_function_kwargs: dict = None,
+                 ):
         """Daemon base class for running uploads/downloads in the background"""
-        self.queue = queue
+        self.jobs = jobs
         self.job_trigger_state = job_trigger_state
         self.job_function_name = job_function_name
+        self.job_function_kwargs = job_function_kwargs
         super(Daemon, self).__init__()
         self.daemon = True  # We don't have to worry about ending this thread
 
@@ -31,7 +37,7 @@ class Daemon(KThread):
         try:
             while not self.shutdown_flag.is_set():
                 # Get the first job that is in the trigger state
-                for job in self.queue:
+                for job in self.jobs:
                     if job.state == self.job_trigger_state:
                         break
                 else:
@@ -42,7 +48,10 @@ class Daemon(KThread):
                 task = getattr(job, self.job_function_name)
                 logger = logging.getLogger(__name__)
                 try:
-                    task()
+                    if self.job_function_kwargs is None:
+                        task()
+                    else:
+                        task(**self.job_function_kwargs)
                 except ConnectionTimeoutErrors:
                     # Set the job to the error state for 10s (so the user
                     # sees it in the UI) and then go back to the initial
