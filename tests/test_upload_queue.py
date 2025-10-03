@@ -102,7 +102,7 @@ def test_queue_create_dataset_with_resource_write_etag(tmp_path):
     common.wait_for_job(joblist, data["id"])
 
     # Make sure the resource etag is stored in the uploaded job.
-    uj_d = json.loads((pujl.path_completed / f"{data["id"]}.json").read_text())
+    uj_d = json.loads((pujl.path_completed / f"{data['id']}.json").read_text())
     assert len(uj_d["upload_job"]["resource_etags"][0]) == 32
 
 
