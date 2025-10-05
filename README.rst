@@ -33,7 +33,7 @@ By default, testing is done with https://dcor-dev.mpl.mpg.de and the user
     pytest tests
 
 
-.. |DCOR-Aid| image:: https://raw.github.com/DCOR-dev/DCOR-Aid/main/dcoraid/img/dcoraid_text.png
+.. |DCOR-Aid| image:: https://raw.github.com/DCOR-dev/DCOR-Aid/main/dcoraid/img/splash.png
 .. |PyPI Version| image:: https://img.shields.io/pypi/v/dcoraid.svg
    :target: https://pypi.python.org/pypi/DCOR-Aid
 .. |Build Status| image:: https://img.shields.io/github/actions/workflow/status/DCOR-dev/DCOR-Aid/check.yml

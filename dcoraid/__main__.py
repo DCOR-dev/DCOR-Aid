@@ -40,7 +40,7 @@ def main(splash=True):
     from .gui import DCORAid
 
     # Set Application Icon
-    ref_icon = resources.files("dcoraid.img") / "splash.png"
+    ref_icon = resources.files("dcoraid.img") / "icon.png"
     with resources.as_file(ref_icon) as icon_path:
         app.setWindowIcon(QtGui.QIcon(str(icon_path)))
 
