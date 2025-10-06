@@ -12,7 +12,7 @@ from dcoraid.gui.panel_uploads.dlg_upload import UploadDialog
 from dcoraid.gui.panel_uploads import widget_upload
 
 import pytest
-from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui, QtTest, QtWidgets
 from PyQt6.QtWidgets import QInputDialog, QMessageBox
 
 from . import common
@@ -233,6 +233,7 @@ def test_gui_upload_simple(mw, qtbot):
     mw.panel_upload.widget_jobs.on_update_job_status()
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
+    QtTest.QTest.qWait(500)
     assert mw.database.get_dataset_dict(dlg.dataset_id)
 
 
