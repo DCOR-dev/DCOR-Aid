@@ -14,7 +14,6 @@
  - enh: new icon and splash image artwork
  - enh: add descriptions as labels in maintenance panel
  - ref: move `FilterChainMyData` to module `panel_my_data`
-0.18.2
  - ref: make action buttons in filter view hideable
 0.18.2
  - ci: fix build pipeline (innosetup missing in win 2025 image)
