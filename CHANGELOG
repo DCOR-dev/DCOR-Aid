@@ -2,6 +2,7 @@
  - feat: share dialog for collections and datasets
  - fix: remember ETag of uploaded resources (#80)
  - fix: create a new group if when no group available to add datasets to
+ - fix: cache download resource file size
  - enh: allow sharing individual datasets instead of collections (#32)
  - enh: add preview option for dataset description in upload dialog (#52)
  - enh: introduce write lock for eternal job updates
