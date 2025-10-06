@@ -38,8 +38,7 @@
       <string>d</string>
      </property>
      <property name="icon">
-      <iconset theme="trash">
-       <normaloff>.</normaloff>.</iconset>
+      <iconset theme="trash"/>
      </property>
     </widget>
    </item>
@@ -52,8 +51,7 @@
       <string>a</string>
      </property>
      <property name="icon">
-      <iconset theme="ban">
-       <normaloff>.</normaloff>.</iconset>
+      <iconset theme="ban"/>
      </property>
     </widget>
    </item>
@@ -66,8 +64,7 @@
       <string>e</string>
      </property>
      <property name="icon">
-      <iconset theme="exclamation-triangle">
-       <normaloff>.</normaloff>.</iconset>
+      <iconset theme="exclamation-triangle"/>
      </property>
     </widget>
    </item>
@@ -80,8 +77,7 @@
       <string>r</string>
      </property>
      <property name="icon">
-      <iconset theme="redo">
-       <normaloff>.</normaloff>.</iconset>
+      <iconset theme="redo"/>
      </property>
     </widget>
    </item>
@@ -94,23 +90,9 @@
       <string>v</string>
      </property>
      <property name="icon">
-      <iconset theme="eye">
-       <normaloff>.</normaloff>.</iconset>
+      <iconset theme="eye"/>
      </property>
     </widget>
-   </item>
-   <item>
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-    </spacer>
    </item>
   </layout>
  </widget>

@@ -4,7 +4,7 @@ import webbrowser
 from PyQt6 import uic, QtCore, QtWidgets
 
 
-class TableCellActions(QtWidgets.QWidget):
+class TableCellActionsUpload(QtWidgets.QWidget):
     abort_job = QtCore.pyqtSignal(str)
     delete_job = QtCore.pyqtSignal(str)
 
@@ -13,9 +13,9 @@ class TableCellActions(QtWidgets.QWidget):
 
         Used for the "Running Uploads" table in the "Uploads" tab.
         """
-        super(TableCellActions, self).__init__(*args, **kwargs)
+        super(TableCellActionsUpload, self).__init__(*args, **kwargs)
         ref_ui = resources.files(
-            "dcoraid.gui.panel_uploads") / "widget_tablecell_actions.ui"
+            "dcoraid.gui.panel_uploads") / "widget_actions_upload.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)
 

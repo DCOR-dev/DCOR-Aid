@@ -21,7 +21,7 @@ from ..tools import ShowWaitCursor
 
 from . import circle_mgr
 from .dlg_upload import NoCircleSelectedError, UploadDialog
-from .widget_tablecell_actions import TableCellActions
+from .widget_actions_upload import TableCellActionsUpload
 
 
 class UploadWidget(QtWidgets.QWidget):
@@ -404,6 +404,8 @@ class UploadTableWidget(QtWidgets.QTableWidget):
             0, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(
             1, QtWidgets.QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(
+            5, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
 
     @property
     def jobs(self):
@@ -526,16 +528,18 @@ class UploadTableWidget(QtWidgets.QTableWidget):
                 item.setToolTip(label)
 
     def set_actions_item(self, row, col, job):
-        """Set/Create a TableCellActions widget in the table
+        """Set/Create a TableCellActionsUpload widget in the table
 
         Refreshes the widget and also connects signals.
         """
         wid = self.cellWidget(row, col)
         if wid is None:
-            wid = TableCellActions(job, parent=self)
+            wid = TableCellActionsUpload(job, parent=self)
             wid.delete_job.connect(self.on_job_delete)
             wid.abort_job.connect(self.on_job_abort)
             self.setCellWidget(row, col, wid)
+        else:
+            wid.job = job
         wid.refresh_visibility(job)
 
 
