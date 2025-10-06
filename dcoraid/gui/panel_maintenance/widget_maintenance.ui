@@ -6,44 +6,53 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>766</width>
+    <height>386</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QPushButton" name="pushButton_drafts">
-     <property name="toolTip">
-      <string>Remove all draft datasets created on DCOR (these might have been the result of failed uploads)</string>
+   <item row="0" column="1">
+    <widget class="QLabel" name="label_2">
+     <property name="maximumSize">
+      <size>
+       <width>500</width>
+       <height>16777215</height>
+      </size>
      </property>
      <property name="text">
-      <string>Remove DCOR draft datasets</string>
+      <string>Remove all draft datasets created on DCOR (these might have been the result of failed uploads)</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="1" column="0">
+   <item row="1" column="0" alignment="Qt::AlignmentFlag::AlignTop">
     <widget class="QPushButton" name="pushButton_cache">
-     <property name="toolTip">
-      <string>Remove the local DCOR-Aid cache directory (this directory might contain compressed resource files from unexpectedly interrupted uploads)</string>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
      <property name="text">
       <string>Clear local upload cache</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" alignment="Qt::AlignmentFlag::AlignTop">
+    <widget class="QPushButton" name="pushButton_meta">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Clear local metadata cache</string>
      </property>
     </widget>
    </item>
@@ -60,12 +69,63 @@
      </property>
     </spacer>
    </item>
-   <item row="2" column="0">
-    <widget class="QPushButton" name="pushButton_meta">
+   <item row="1" column="1">
+    <widget class="QLabel" name="label">
+     <property name="maximumSize">
+      <size>
+       <width>500</width>
+       <height>16777215</height>
+      </size>
+     </property>
      <property name="text">
-      <string>Clear local metadata cache</string>
+      <string>Remove the local DCOR-Aid cache directory (this directory might contain compressed resource files from unexpectedly interrupted uploads)</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
+   </item>
+   <item row="0" column="0" alignment="Qt::AlignmentFlag::AlignTop">
+    <widget class="QPushButton" name="pushButton_drafts">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Remove DCOR draft datasets</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLabel" name="label_3">
+     <property name="maximumSize">
+      <size>
+       <width>500</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>The metadata cache keeps track of all datasets that you have access to. If you modified datasets on another computer, then updating the local database might not fetch all changes. Clearing the local metadata cache will allow you to assemble a clean database.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>

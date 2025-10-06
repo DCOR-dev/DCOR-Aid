@@ -11,6 +11,7 @@
  - enh: add preview option for dataset description in upload dialog (#52)
  - enh: introduce write lock for eternal job updates
  - enh: new icon and splash image artwork
+ - enh: add descriptions as labels in maintenance panel
  - ref: move `FilterChainMyData` to module `panel_my_data`
 0.18.2
  - ref: make action buttons in filter view hideable
