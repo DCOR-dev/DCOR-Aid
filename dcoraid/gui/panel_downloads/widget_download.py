@@ -253,6 +253,10 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
                 QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
         self.setUpdatesEnabled(True)
 
+        header = self.horizontalHeader()
+        header.setSectionResizeMode(
+            5, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+
     def set_label_item(self, row, col, label):
         """Get/Create a Qlabel at the specified position
 

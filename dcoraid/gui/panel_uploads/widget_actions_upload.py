@@ -27,6 +27,15 @@ class TableCellActionsUpload(QtWidgets.QWidget):
         self.tb_retry.clicked.connect(self.on_retry)
         self.tb_view.clicked.connect(self.on_view)
 
+        for tbact in [self.tb_abort,
+                      self.tb_delete,
+                      self.tb_error,
+                      self.tb_retry,
+                      self.tb_view,
+                      ]:
+            row_height = tbact.geometry().height()
+            tbact.setFixedSize(row_height - 2, row_height - 2)
+
     @QtCore.pyqtSlot()
     def on_abort(self):
         self.abort_job.emit(self.job.dataset_id)

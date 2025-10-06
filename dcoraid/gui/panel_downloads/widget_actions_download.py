@@ -29,6 +29,15 @@ class TableCellActionsDownload(QtWidgets.QWidget):
         self.tb_view.clicked.connect(self.on_view)
         self.tb_folder.clicked.connect(self.on_folder)
 
+        for tbact in [self.tb_delete,
+                      self.tb_error,
+                      self.tb_retry,
+                      self.tb_view,
+                      self.tb_folder,
+                      ]:
+            row_height = tbact.geometry().height()
+            tbact.setFixedSize(row_height - 2, row_height - 2)
+
     @QtCore.pyqtSlot()
     def on_delete(self):
         self.delete_job.emit(self.job.job_id)

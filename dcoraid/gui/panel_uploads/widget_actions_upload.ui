@@ -29,7 +29,7 @@
    <property name="bottomMargin">
     <number>0</number>
    </property>
-   <item>
+   <item alignment="Qt::AlignmentFlag::AlignRight">
     <widget class="QToolButton" name="tb_delete">
      <property name="toolTip">
       <string>Remove from queue (DCOR data is not deleted)</string>
@@ -42,7 +42,7 @@
      </property>
     </widget>
    </item>
-   <item>
+   <item alignment="Qt::AlignmentFlag::AlignRight">
     <widget class="QToolButton" name="tb_abort">
      <property name="toolTip">
       <string>Abort job</string>
@@ -55,7 +55,7 @@
      </property>
     </widget>
    </item>
-   <item>
+   <item alignment="Qt::AlignmentFlag::AlignRight">
     <widget class="QToolButton" name="tb_error">
      <property name="toolTip">
       <string>Show error message</string>
@@ -68,7 +68,7 @@
      </property>
     </widget>
    </item>
-   <item>
+   <item alignment="Qt::AlignmentFlag::AlignRight">
     <widget class="QToolButton" name="tb_retry">
      <property name="toolTip">
       <string>Retry upload</string>
@@ -81,7 +81,7 @@
      </property>
     </widget>
    </item>
-   <item>
+   <item alignment="Qt::AlignmentFlag::AlignRight">
     <widget class="QToolButton" name="tb_view">
      <property name="toolTip">
       <string>View dataset online</string>
