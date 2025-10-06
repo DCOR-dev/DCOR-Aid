@@ -16,6 +16,10 @@ class FilterBase(QtWidgets.QWidget):
     #: - `which` is "dataset" or "collection"
     #: - `id_or_name` is the identifier or name of the thing
     share_item = QtCore.pyqtSignal(str, str)
+    #: Signal used for editing an item
+    edit_item = QtCore.pyqtSignal(str, str)
+    #: Signal for removing an item from a list
+    remove_item = QtCore.pyqtSignal(str, str)
 
     def __init__(self, *args, **kwargs):
         """Filter view widget with title, edit, checkbox, and table

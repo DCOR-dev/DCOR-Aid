@@ -31,6 +31,8 @@ class WidgetMyData(QtWidgets.QWidget):
         self.user_filter_chain.download_item.connect(self.download_item)
         self.user_filter_chain.added_datasets_to_collection.connect(
             self.on_added_datasets_to_collection)
+        self.user_filter_chain.removed_datasets_from_collection.connect(
+            self.on_remove_datasets_from_collection)
 
         # Signals for checkboxes
         self.checkBox_user_following.clicked.connect(self.on_update_view)
@@ -58,7 +60,7 @@ class WidgetMyData(QtWidgets.QWidget):
             else:
                 raise ValueError(
                     f"Could not, with the best will in the world, "
-                    f"find this collection: '{collection['name']}'")
+                    f"find this collection: '{collection['id']}'")
         # Append it to each dataset
         for ds_id in dataset_ids:
             ds_dict = self.database.get_dataset_dict(ds_id)
@@ -68,6 +70,35 @@ class WidgetMyData(QtWidgets.QWidget):
                 ds_dict["groups"][c_idx].update(collection)
             else:
                 ds_dict["groups"].append(collection)
+            self.database.update_dataset(ds_dict)
+        self.on_update_view()
+
+    @QtCore.pyqtSlot(dict, list)
+    def on_remove_datasets_from_collection(self, collection, dataset_ids):
+        """User manually removed a bunch of datasets from a collection"""
+        # Get the collection
+        for col in self.database.get_collections():
+            if col["id"] == collection["id"]:
+                cid = collection["id"]
+                break
+        else:
+            # we have to reset the database and try again
+            self.database.update(reset=True)
+            for col in self.database.get_collections():
+                if col["id"] == collection["id"]:
+                    cid = collection["id"]
+                    break
+            else:
+                raise ValueError(
+                    f"Could not, with the best will in the world, "
+                    f"find this collection: '{collection['id']}'")
+        # Remove it from each dataset
+        for ds_id in dataset_ids:
+            ds_dict = self.database.get_dataset_dict(ds_id)
+            collections = [g["id"] for g in ds_dict["groups"]]
+            if cid in collections:
+                c_idx = collections.index(cid)
+                ds_dict["groups"].pop(c_idx)
             self.database.update_dataset(ds_dict)
         self.on_update_view()
 

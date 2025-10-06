@@ -12,6 +12,7 @@ from .dlg_share import ShareDialog
 
 
 class FilterChainMyData(FilterChain):
+    removed_datasets_from_collection = QtCore.pyqtSignal(dict, list)
     added_datasets_to_collection = QtCore.pyqtSignal(dict, list)
     share_item = QtCore.pyqtSignal(str, str)
 
@@ -28,9 +29,11 @@ class FilterChainMyData(FilterChain):
 
         # Enable share buttons for collections and datasets
         self.fw_datasets.active_actions.append("share")
+        self.fw_datasets.active_actions.append("remove-from-collection")
         self.fw_collections.active_actions.append("share")
         self.fw_datasets.share_item.connect(self.on_share_item)
         self.fw_collections.share_item.connect(self.on_share_item)
+        self.fw_datasets.remove_item.connect(self.on_remove_item)
 
         self._dlg = None
 
@@ -133,6 +136,31 @@ class FilterChainMyData(FilterChain):
                                   "capacity": "member"})
                     self.added_datasets_to_collection.emit(collection,
                                                            dataset_ids)
+
+    @QtCore.pyqtSlot(str, str)
+    def on_remove_item(self, id_type, identifier):
+        """Remove a dataset from a collection"""
+        if id_type != "dataset":
+            raise NotImplementedError("`id_type` must be 'dataset'")
+        # Fetch the currently selected collection(s).
+        selected = self.fw_collections.get_entry_identifiers(selected=True)
+        if selected:
+            api = get_ckan_api()
+            for colid in selected:
+                api.post("member_delete",
+                         data={"id": colid,
+                               "object": identifier,
+                               "object_type": "package"})
+                self.removed_datasets_from_collection.emit({"id": colid},
+                                                           [identifier])
+        else:
+            QtWidgets.QMessageBox.information(
+                self,
+                "Must first select a collection",
+                "If you would like to remove a dataset from a collection, "
+                "then you must first select the collection in the top right "
+                "pane."
+            )
 
     @QtCore.pyqtSlot(str, str)
     def on_share_item(self, id_type, identifier):
