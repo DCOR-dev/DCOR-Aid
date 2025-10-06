@@ -1,15 +1,10 @@
+from importlib import resources
 import logging
+import os.path as os_path
 import threading
 import traceback
-from functools import partial
-import os
-import os.path as os_path
-from importlib import resources
-import platform
-import subprocess
-import webbrowser
 
-from PyQt6 import uic, QtCore, QtGui, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 from PyQt6.QtCore import QStandardPaths
 
 from ...common import is_dc_resource_dict
@@ -17,6 +12,8 @@ from ...download import DownloadQueue
 
 from ..api import get_ckan_api
 from ..tools import show_wait_cursor
+
+from .widget_actions_download import TableCellActionsDownload
 
 
 logger = logging.getLogger(__name__)
@@ -181,6 +178,8 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
             0, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(
             1, QtWidgets.QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(
+            5, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
 
     def set_job_list(self, jobs):
         """Set the current job list
@@ -193,8 +192,8 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
 
     @QtCore.pyqtSlot(str)
     def on_job_delete(self, job_id):
-        self.jobs.remove_job(job_id)
-        self.clearContents()
+        with self._busy_updating_widgets_lock:
+            self.jobs.remove_job(job_id)
         self.on_update_job_status()
 
     @QtCore.pyqtSlot(str)
@@ -205,16 +204,19 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
     def on_download_finished(self, job_id):
         """Triggers download_finished whenever a download is finished"""
         if job_id not in self._finished_downloads:
-            self._finished_downloads.append(job_id)
             dj = self.jobs.get_job(job_id)
             self.jobs.jobs_eternal.set_job_done(dj)
             self.download_finished.emit()
+            logger.info(f"Download {job_id} finished")
+            self._finished_downloads.append(job_id)
 
     @QtCore.pyqtSlot()
     def on_update_job_status(self):
         """Update UI with information from self.jobs (DownloadJobList)"""
-        if not self.parent().parent().isVisible():
+        if not self.isVisible():
+            # Don't update the UI if nobody is looking anyway.
             return
+
         if self._busy_updating_widgets_lock.locked():
             return
 
@@ -224,11 +226,9 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
     @QtCore.pyqtSlot()
     def update_job_status(self):
         # make sure the length of the table is long enough
+        self.setUpdatesEnabled(False)
         self.setRowCount(len(self.jobs))
         for row, job in enumerate(self.jobs):
-            if job.job_id in self._finished_downloads:
-                # Widgets of finished downloads have already been drawn.
-                continue
             try:
                 status = job.get_status()
                 self.set_label_item(row, 0, job.job_id[:5])
@@ -242,16 +242,16 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
                 self.set_label_item(row, 2, status["state"])
                 self.set_label_item(row, 3, job.get_progress_string())
                 self.set_label_item(row, 4, job.get_rate_string())
-                if status["state"] == "done":
-                    logger.info(f"Download {job.job_id} finished")
-                    self.on_download_finished(job.job_id)
                 self.set_actions_item(row, 5, job)
+                if status["state"] == "done":
+                    self.on_download_finished(job.job_id)
             except BaseException:
                 job.set_state("error")
                 job.traceback = traceback.format_exc()
 
             QtWidgets.QApplication.processEvents(
                 QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+        self.setUpdatesEnabled(True)
 
     def set_label_item(self, row, col, label):
         """Get/Create a Qlabel at the specified position
@@ -275,59 +275,14 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
 
         Refreshes the widget and also connects signals.
         """
-        widact = self.cellWidget(row, col)
-        if widact is None:
-            widact = QtWidgets.QWidget(self)
-            horz_layout = QtWidgets.QHBoxLayout(widact)
-            horz_layout.setContentsMargins(2, 0, 2, 0)
-
-            spacer = QtWidgets.QSpacerItem(
-                0, 0,
-                QtWidgets.QSizePolicy.Policy.Expanding,
-                QtWidgets.QSizePolicy.Policy.Minimum
-                )
-            horz_layout.addItem(spacer)
-            if job.state == "error":
-                actions = [
-                    {"icon": "trash",
-                     "tooltip": "delete this job",
-                     "function": partial(self.on_job_delete, job.job_id)
-                     },
-                    {"icon": "redo",
-                     "tooltip": "retry download",
-                     "function": partial(self.on_job_retry, job.job_id)
-                     },
-                ]
-            else:
-                res_dict = job.get_resource_dict()
-                ds_dict = job.get_dataset_dict()
-                dl_path = job.path
-                if not dl_path.is_dir():
-                    dl_path = dl_path.parent
-                actions = [
-                    {"icon": "eye",
-                     "tooltip": f"view dataset {ds_dict['name']} online",
-                     "function": partial(
-                         webbrowser.open,
-                         f"{job.api.server}/dataset/{ds_dict['id']}")
-                     },
-                    {"icon": "folder",
-                     "tooltip": "open local download directory",
-                     "function": partial(open_file, str(dl_path))
-                     },
-                    {"icon": "trash",
-                     "tooltip": f"abort download {res_dict['name']}",
-                     "function": partial(self.on_job_delete, job.job_id)
-                     },
-                ]
-            for action in actions:
-                tbact = QtWidgets.QToolButton(widact)
-                icon = QtGui.QIcon.fromTheme(action["icon"])
-                tbact.setIcon(icon)
-                tbact.setToolTip(action["tooltip"])
-                tbact.clicked.connect(action["function"])
-                horz_layout.addWidget(tbact)
-            self.setCellWidget(row, col, widact)
+        wid = self.cellWidget(row, col)
+        if wid is None:
+            wid = TableCellActionsDownload(job, parent=self)
+            wid.delete_job.connect(self.on_job_delete)
+            self.setCellWidget(row, col, wid)
+        else:
+            wid.job = job
+        wid.refresh_visibility(job)
 
 
 def get_download_title(job):
@@ -339,12 +294,3 @@ def get_download_title(job):
     if job.condensed:
         title += " (condensed)"
     return f"{res_dict['name']} [{title}]"
-
-
-def open_file(path):
-    if platform.system() == "Windows":
-        os.startfile(path)
-    elif platform.system() == "Darwin":
-        subprocess.Popen(["open", path])
-    else:
-        subprocess.Popen(["xdg-open", path])

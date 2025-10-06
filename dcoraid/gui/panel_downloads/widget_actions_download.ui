@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>164</width>
+    <height>30</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <property name="spacing">
+    <number>2</number>
+   </property>
+   <property name="leftMargin">
+    <number>2</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>2</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QToolButton" name="tb_delete">
+     <property name="toolTip">
+      <string>Remove from queue (DCOR data is not deleted)</string>
+     </property>
+     <property name="text">
+      <string>d</string>
+     </property>
+     <property name="icon">
+      <iconset theme="trash"/>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QToolButton" name="tb_error">
+     <property name="toolTip">
+      <string>Show error message</string>
+     </property>
+     <property name="text">
+      <string>e</string>
+     </property>
+     <property name="icon">
+      <iconset theme="exclamation-triangle"/>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QToolButton" name="tb_retry">
+     <property name="toolTip">
+      <string>Retry upload</string>
+     </property>
+     <property name="text">
+      <string>r</string>
+     </property>
+     <property name="icon">
+      <iconset theme="redo"/>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QToolButton" name="tb_folder">
+     <property name="toolTip">
+      <string>Open download location</string>
+     </property>
+     <property name="text">
+      <string>f</string>
+     </property>
+     <property name="icon">
+      <iconset theme="folder"/>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QToolButton" name="tb_view">
+     <property name="toolTip">
+      <string>View dataset online</string>
+     </property>
+     <property name="text">
+      <string>v</string>
+     </property>
+     <property name="icon">
+      <iconset theme="eye"/>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
