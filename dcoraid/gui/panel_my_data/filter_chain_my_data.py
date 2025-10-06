@@ -1,8 +1,4 @@
-import random
-
 from PyQt6 import QtCore, QtWidgets
-
-from ...api import errors
 
 from ..dbview import FilterChain
 from ..tools import ShowWaitCursor
@@ -20,7 +16,14 @@ class FilterChainMyData(FilterChain):
         """Filter chain with user-related features"""
         super(FilterChainMyData, self).__init__(*args, **kwargs)
 
-        # Enable the "add to collection tool box"
+        # Enable "create collection" toolbutton
+        self.fw_collections.pushButton_custom.setText(
+            "Create new collection...")
+        self.fw_collections.pushButton_custom.setVisible(True)
+        self.fw_collections.pushButton_custom.clicked.connect(
+            self.on_create_collection)
+
+        # Enable the "add to collection" toolbutton
         self.fw_datasets.pushButton_custom.setText(
             "Add selected datasets to a collection...")
         self.fw_datasets.pushButton_custom.setVisible(True)
@@ -42,8 +45,6 @@ class FilterChainMyData(FilterChain):
         # Fetch a list of users
         with ShowWaitCursor():
             api = get_ckan_api()
-            # TODO: let the user search for collaborators and add them to a
-            #       memoized list.
             users = api.get("user_autocomplete", q="", limit=100)
 
         for_what_for = f" for {what_for}"
@@ -93,7 +94,8 @@ class FilterChainMyData(FilterChain):
                     "Select a collection",
                     f"Please choose a collection for "
                     f"{len(dataset_ids)} datasets.",
-                    [f"{i}: {g['display_name']}" for i, g in enumerate(grps)],
+                    [f"{i}: {g['display_name']} ({g['name']})"
+                     for i, g in enumerate(grps)],
                     0,  # current index
                     False,  # editable
                     )
@@ -106,22 +108,15 @@ class FilterChainMyData(FilterChain):
                     "Create a collection",
                     "Type the name of a collection to create",
                 )
-                # create a valid name
-                name = "".join(
-                    [c.lower() if c.isalnum() else "-" for c in text])
-                name = name.strip("-")
-                for ii in range(10):
-                    try:
-                        collection = api.post("group_create",
-                                              {"title": text.strip(),
-                                               "name": name,
-                                               })
-                    except errors.APIConflictError:
-                        name = name + random.choice("abcdefghijkm0123456789")
-                    else:
-                        break
-                else:
-                    raise ValueError("Could not create collection")
+                if ok:
+                    # create a valid name
+                    name = "".join(
+                        [c.lower() if c.isalnum() else "-" for c in text])
+                    name = name.strip("-")
+                    # create the collection
+                    collection = api.require_collection(name=name,
+                                                        title=text,
+                                                        exist_ok=False)
             if ok:
                 with ShowWaitCursor():
                     # add all datasets to that collection
@@ -136,6 +131,29 @@ class FilterChainMyData(FilterChain):
                                   "capacity": "member"})
                     self.added_datasets_to_collection.emit(collection,
                                                            dataset_ids)
+
+    @QtCore.pyqtSlot()
+    def on_create_collection(self):
+        text, ok = QtWidgets.QInputDialog.getText(
+            self,
+            "Create a collection",
+            "Type the name of a collection to create",
+        )
+        if ok:
+            api = get_ckan_api()
+            # create a valid name
+            name = "".join(
+                [c.lower() if c.isalnum() else "-" for c in text])
+            name = name.strip("-")
+            collection = api.require_collection(name=name,
+                                                title=text,
+                                                exist_ok=False)
+            QtWidgets.QMessageBox.information(
+                self,
+                "Collection created",
+                f"You may now add datasets to "
+                f"collection '{collection['name']}'.",
+            )
 
     @QtCore.pyqtSlot(str, str)
     def on_remove_item(self, id_type, identifier):

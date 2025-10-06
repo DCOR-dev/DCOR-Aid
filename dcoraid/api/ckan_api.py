@@ -6,6 +6,7 @@ import json
 import logging
 import numbers
 import pathlib
+import random
 import traceback
 import urllib.parse
 
@@ -441,20 +442,39 @@ class CKANAPI:
 
     def require_collection(self,
                            name: str,
-                           title: str = None):
+                           title: str = None,
+                           exist_ok: bool = True,
+                           ):
         """Return a collection dict with the given name and optional title
 
-        The collection is created if it does not exist already. If the
-        collection already exists, `title` is ignored.
+        If a collection by that name already exists, it is returned only
+        if `exist_ok` is True (in which case `title` is ignored). Otherwise,
+        a new collection with a modified `name` is created and returned.
         """
-        # check whether the group exists
         try:
             col_dict = self.get("group_show", id=name)
         except APINotFoundError:
-            # Create non-existent group
-            self.post("group_create",
-                      data={"name": name,
-                            "title": title or name,
-                            })
-            col_dict = self.get("group_show", id=name)
+            col_dict = None
+
+        if exist_ok and col_dict is not None:
+            return col_dict
+        else:
+            rand = ""
+            title = (title or name).strip()
+            # create the collection
+            for ii in range(10):
+                try:
+                    col_dict = self.post("group_create",
+                                         {"title": title,
+                                          "name": name + rand,
+                                          })
+                except APIConflictError:
+                    if not rand:
+                        rand += "-"
+                    rand += random.choice("abcdefghijkmpqrstuvwxyz0123456789")
+                else:
+                    break
+            else:
+                raise ValueError("Could not create collection")
+
         return col_dict
