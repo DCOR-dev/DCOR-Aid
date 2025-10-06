@@ -2,7 +2,7 @@
  - feat: share dialog for collections and datasets
  - feat: implement button to remove datasets from a collection (#46)
  - fix: remember ETag of uploaded resources (#80)
- - fix: create a new group if when no group available to add datasets to
+ - fix: create a new group when no group available to add datasets to
  - fix: cache download resource file size
  - fix: action button behavior in downloads panel (#94)
  - fix: action button behavior in uploads panel
