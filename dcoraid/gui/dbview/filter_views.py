@@ -27,7 +27,7 @@ class FilterCircles(filter_base.FilterBase):
         actions = [
             {"name": "view-online",
              "icon": "eye",
-             "tooltip": f"view circle {entry['name']} online",
+             "tooltip": f"View circle {entry['name']} online",
              "function": partial(webbrowser.open, url)}
         ]
         return actions
@@ -49,12 +49,12 @@ class FilterCollections(filter_base.FilterBase):
         actions = [
             {"name": "download",
              "icon": "angle-down",
-             "tooltip": f"download collection {entry['name']}",
+             "tooltip": f"Download collection {entry['name']}",
              "function": partial(self.download_item.emit,
                                  "collection", entry["name"], False)},
             {"name": "download-condensed",
              "icon": "angles-down",
-             "tooltip": f"download condensed collection {entry['name']}",
+             "tooltip": f"Download condensed collection {entry['name']}",
              "function": partial(self.download_item.emit,
                                  "collection", entry["name"], True)},
             {"name": "share",
@@ -69,7 +69,7 @@ class FilterCollections(filter_base.FilterBase):
                                  "collection", entry["name"])},
             {"name": "view-online",
              "icon": "eye",
-             "tooltip": f"view collection {entry['name']} online",
+             "tooltip": f"View collection {entry['name']} online",
              "function": partial(webbrowser.open, url)}
         ]
         return actions
@@ -91,12 +91,12 @@ class FilterDatasets(filter_base.FilterBase):
         actions = [
             {"name": "download",
              "icon": "angle-down",
-             "tooltip": f"download dataset {entry['name']}",
+             "tooltip": f"Download dataset {entry['name']}",
              "function": partial(self.download_item.emit,
                                  "dataset", entry["id"], False)},
             {"name": "download-condensed",
              "icon": "angles-down",
-             "tooltip": f"download condensed dataset {entry['name']}",
+             "tooltip": f"Download condensed dataset {entry['name']}",
              "function": partial(self.download_item.emit,
                                  "dataset", entry["id"], True)},
             {"name": "share",
@@ -111,7 +111,7 @@ class FilterDatasets(filter_base.FilterBase):
                                  "dataset", entry["id"])},
             {"name": "view-online",
              "icon": "eye",
-             "tooltip": f"view dataset {entry['name']} online",
+             "tooltip": f"View dataset {entry['name']} online",
              "function": partial(webbrowser.open, url)},
         ]
         return actions
@@ -141,12 +141,12 @@ class FilterResources(filter_base.FilterBase):
         actions = [
             {"name": "download",
              "icon": "angle-down",
-             "tooltip": f"download resource {entry['name']}",
+             "tooltip": f"Download resource {entry['name']}",
              "function": partial(self.download_item.emit,
                                  "resource", entry["id"], False)},
             {"name": "view-online",
              "icon": "eye",
-             "tooltip": f"view resource {entry['name']} online",
+             "tooltip": f"View resource {entry['name']} online",
              "function": partial(webbrowser.open, url)},
         ]
         if is_dc_resource_dict(entry):
@@ -155,7 +155,7 @@ class FilterResources(filter_base.FilterBase):
                 1,
                 {"name": "download-condensed",
                  "icon": "angles-down",
-                 "tooltip": f"download condensed resource {entry['name']}",
+                 "tooltip": f"Download condensed resource {entry['name']}",
                  "function": partial(self.download_item.emit,
                                      "resource", entry["id"], True)},
             )
