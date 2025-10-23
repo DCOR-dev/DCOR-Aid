@@ -76,6 +76,8 @@ def dataset_create(dataset_dict, api, resources=None,
     # Make sure we can access the desired circle.
     usr_circles = [c["name"] for c in api.get("organization_list_for_user",
                                               permission="create_dataset")]
+    usr_circles += [c["id"] for c in api.get("organization_list_for_user",
+                                             permission="create_dataset")]
     tgt_circle = dataset_dict.get("owner_org")
     if tgt_circle is None:
         raise APIConflictError(
