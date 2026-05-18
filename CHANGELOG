@@ -1,3 +1,5 @@
+1.1.3
+ - enh: print UTC time in error messages to make debugging easier
 1.1.2
  - fix: archiving to BagIt format circle selection did not include all circles
 1.1.1
@@ -574,7 +576,7 @@
  - fix: start even if DCOR is down
  - fix: do not display mean upload rate during upload
  - fix: require restart when server is changed
- - enh: ask user to create a Circle when the user is not member of any 
+ - enh: ask user to create a Circle when the user is not member of any
  - enh: add basic wizard functionalities
  - enh: resource upload supports supplementary resource schemas
  - enh: stick to package_revise when finalizing dataset

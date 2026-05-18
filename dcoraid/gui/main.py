@@ -1,4 +1,5 @@
 import atexit
+import datetime
 import threading
 import traceback
 from contextlib import ExitStack
@@ -407,7 +408,10 @@ def excepthook(etype, value, trace):
         prints the standard Python header: ``Traceback (most recent
         call last)``.
     """
-    vinfo = f"Unhandled exception in DCOR-Aid version {__version__}:\n"
+    iso_utc_time = datetime.datetime.isoformat(
+        datetime.datetime.fromtimestamp(time.time(), datetime.UTC))
+    vinfo = (f"Unhandled exception in DCOR-Aid version {__version__} "
+             f"at {iso_utc_time}:\n")
     exc_long = "".join([vinfo] + tb.format_exception(etype, value, trace))
     exc_short = "".join([vinfo] + tb.format_exception(
         etype, value, trace, limit=3))
