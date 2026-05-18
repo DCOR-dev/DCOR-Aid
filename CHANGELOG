@@ -1,4 +1,6 @@
 1.1.3
+ - enh: use `HTTPAdapter` with `urlib3`'s `Retry` to handle connection issues
+ - enh: use `requests.Session` when caching is disabled
  - enh: print UTC time in error messages to make debugging easier
 1.1.2
  - fix: archiving to BagIt format circle selection did not include all circles

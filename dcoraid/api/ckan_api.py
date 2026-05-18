@@ -9,10 +9,11 @@ import pathlib
 import random
 import traceback
 import urllib.parse
-
+from urllib3.util.retry import Retry
 
 from dclab.external.packaging import parse as parse_version
 import requests
+from requests.adapters import HTTPAdapter
 import requests_cache
 
 from .._version import version
@@ -33,6 +34,18 @@ SERVER_RSS = {}
 
 #: List of supported resource suffixes
 SERVER_RSUFFIX = {}
+
+# Configure retry strategy
+retry_strategy = Retry(
+    total=3,  # Total retries
+    backoff_factor=1.5,  # {backoff factor} * (2 ** ({number prev. retries}))
+    connect=3,  # Handle connection errors (e.g. because the server is busy)
+    read=0,  # Fail on read errors
+    redirect=False,  # implies raise_on_redirect=False
+    status=0,  # Fail on bad status codes
+    allowed_methods=["HEAD", "GET", "OPTIONS"]  # Retry only for safe methods
+)
+adapter = HTTPAdapter(max_retries=retry_strategy)
 
 
 class CKANAPI:
@@ -107,7 +120,10 @@ class CKANAPI:
                 },
                 **kwargs)
         else:
-            self.req_ses = requests
+            self.req_ses = requests.Session()
+
+        self.req_ses.mount("https://", adapter)
+        self.req_ses.mount("http://", adapter)
 
     def __repr__(self):
         return f"<CKANAPI {self.api_url} at {hex(id(self))}>"
