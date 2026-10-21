@@ -26,7 +26,7 @@ from .job import UploadJob
 class LocalTaskResourcesNotFoundError(FileNotFoundError):
     def __init__(self, missing_resources, *args):
         self.missing_resources = missing_resources
-        super(LocalTaskResourcesNotFoundError, self).__init__(*args)
+        super().__init__(*args)
 
 
 class PersistentTaskDatasetIDDict:

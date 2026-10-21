@@ -5,7 +5,7 @@ import pathlib
 import shutil
 import time
 import traceback
-from typing import Callable
+from collections.abc import Callable
 import warnings
 
 import dclab
@@ -53,12 +53,12 @@ class UploadJob:
                  api: CKANAPI,
                  dataset_id: str,
                  resource_paths: list[str | pathlib.Path],
-                 resource_names: list[str] = None,
-                 resource_supplements: list[dict] = None,
-                 resource_etags: list[str] = None,
-                 collections: list[str] = None,
-                 task_id: str = None,
-                 cache_dir: str | pathlib.Path = None):
+                 resource_names: list[str] | None = None,
+                 resource_supplements: list[dict] | None = None,
+                 resource_etags: list[str] | None = None,
+                 collections: list[str] | None = None,
+                 task_id: str | None = None,
+                 cache_dir: str | pathlib.Path | None = None):
         """Wrapper for resource uploads
 
         This job is meant to be run from a separate thread.
@@ -556,7 +556,7 @@ class UploadJob:
         self.set_state("parcel")
 
     def task_upload_resources(self,
-                              run_after_upload: Callable = None
+                              run_after_upload: Callable | None = None
                               ):
         """Start the upload
 

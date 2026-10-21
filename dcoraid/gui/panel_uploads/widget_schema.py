@@ -37,7 +37,7 @@ class SchemaWidget(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         """Widget containing groups of """
-        super(SchemaWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.verticalLayout = QtWidgets.QVBoxLayout(self)
         self.schema_widgets = {}
 

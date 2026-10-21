@@ -18,7 +18,7 @@ class MaintenanceWidget(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         """Maintenance tasks
         """
-        super(MaintenanceWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         ref_ui = resources.files(
             "dcoraid.gui.panel_maintenance") / "widget_maintenance.ui"

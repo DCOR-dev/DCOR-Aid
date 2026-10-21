@@ -66,7 +66,7 @@ class DCORAid(QtWidgets.QMainWindow):
         QtCore.QCoreApplication.setApplicationName("dcoraid")
         QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
 
-        super(DCORAid, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # if "--version" was specified, print the version and exit
         if "--version" in sys.argv:
@@ -382,7 +382,7 @@ class UpdateDatabaseWorker(QtCore.QObject):
         self.update = update
         self.reset = reset
         self.abort_event = threading.Event()
-        super(UpdateDatabaseWorker, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @QtCore.pyqtSlot()
     def cancelled(self):

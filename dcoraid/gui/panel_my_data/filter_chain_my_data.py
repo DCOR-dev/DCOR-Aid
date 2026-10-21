@@ -14,7 +14,7 @@ class FilterChainMyData(FilterChain):
 
     def __init__(self, *args, **kwargs):
         """Filter chain with user-related features"""
-        super(FilterChainMyData, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Enable "create collection" toolbutton
         self.fw_collections.pushButton_custom.setText(

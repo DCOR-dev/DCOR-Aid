@@ -4,7 +4,7 @@ import functools
 import logging
 import pathlib
 import time
-from typing import Callable, Dict
+from collections.abc import Callable
 
 import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
@@ -282,8 +282,8 @@ def resource_add_upload_direct_s3(
         dataset_id: str,
         resource_path: str | pathlib.Path,
         resource_name: str,
-        monitor_callback: Callable = None,
-        logger: logging.Logger = None,
+        monitor_callback: Callable | None = None,
+        logger: logging.Logger | None = None,
         timeout: float = 27.9) -> str:
     """Direct resource upload to S3
 
@@ -366,8 +366,8 @@ def resource_add_upload_legacy_indirect_ckan(
         resource_path: str | pathlib.Path,
         dataset_id: str,
         resource_name: str,
-        monitor_callback: Callable = None,
-        logger: logging.Logger = None,
+        monitor_callback: Callable | None = None,
+        logger: logging.Logger | None = None,
         timeout: float = 27.9):
     """Legacy upload procedure for resources
 
@@ -435,8 +435,8 @@ def resource_add_upload_legacy_indirect_ckan(
 def resource_exists(dataset_id: str,
                     resource_name: str,
                     api: CKANAPI,
-                    check_resource_dict: Dict = None,
-                    dataset_dict: Dict = None):
+                    check_resource_dict: dict | None = None,
+                    dataset_dict: dict | None = None):
     """Check whether a resource exists in a dataset on DCOR
 
     Parameters

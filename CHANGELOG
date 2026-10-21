@@ -13,6 +13,8 @@
    archiving when transient errors occur
  - ref: convert `dcoraid.cli` module into a package; the upload task CLI
    now lives in `dcoraid.cli.task_upload_task`
+ - ref: use `super()`, PEP 604 optional type hints, and builtin/
+   `collections.abc` types instead of deprecated `typing` imports
  - setup: add tool.ruff.lint section to pyproject.toml
 1.1.3
  - enh: use `HTTPAdapter` with `urlib3`'s `Retry` to handle connection issues

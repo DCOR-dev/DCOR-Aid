@@ -220,7 +220,7 @@ class DownloadQueue:
 class DownloadDaemon(Daemon):
     def __init__(self, jobs):
         """Download daemon"""
-        super(DownloadDaemon, self).__init__(
+        super().__init__(
             jobs,
             job_trigger_state="init",
             job_function_name="task_download_resource")
@@ -229,7 +229,7 @@ class DownloadDaemon(Daemon):
 class VerifyDaemon(Daemon):
     def __init__(self, jobs):
         """Verify daemon"""
-        super(VerifyDaemon, self).__init__(
+        super().__init__(
             jobs,
             job_trigger_state="downloaded",
             job_function_name="task_verify_resource")

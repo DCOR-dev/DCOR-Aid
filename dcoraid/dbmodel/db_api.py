@@ -25,7 +25,7 @@ class APIInterrogator(DBInterrogator):
             user_data = api.get_user_dict()
         else:
             user_data = None
-        super(APIInterrogator, self).__init__(user_data=user_data)
+        super().__init__(user_data=user_data)
 
     def get_circles(self):
         """Return the list of DCOR Circle names
@@ -126,11 +126,11 @@ class APIInterrogator(DBInterrogator):
 
     def search_dataset_via_api(self,
                                query: str = "*:*",
-                               filter_queries: list[str] = None,
-                               circles: list[str] = None,
-                               collections: list[str] = None,
+                               filter_queries: list[str] | None = None,
+                               circles: list[str] | None = None,
+                               collections: list[str] | None = None,
                                circle_collection_union: bool = False,
-                               since_time: float = None,
+                               since_time: float | None = None,
                                sort_solr: str = "metadata_created desc",
                                start: int = 0,
                                limit: int = 100,

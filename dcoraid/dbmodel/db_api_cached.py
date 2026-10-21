@@ -40,7 +40,7 @@ class CachedAPIInterrogator(DBInterrogator):
         self._mc_version_path = self.cache_location / "cache_version"
         self._mc_version_path.touch()
 
-        super(CachedAPIInterrogator, self).__init__(user_data=user_data)
+        super().__init__(user_data=user_data)
 
     @property
     def local_timestamp(self):

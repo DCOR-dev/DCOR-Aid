@@ -16,7 +16,7 @@ class BagItWizard(QtWidgets.QWizard):
     """DCOR-Aid setup wizard"""
 
     def __init__(self, *args, **kwargs):
-        super(BagItWizard, self).__init__(None)
+        super().__init__(None)
         ref_ui = resources.files(
             "dcoraid.gui.wizard_bagit") / "wizard_bagit.ui"
         with resources.as_file(ref_ui) as path_ui:
@@ -89,7 +89,7 @@ class BagItWizard(QtWidgets.QWizard):
         elif self.currentPage() in [self.page_04_finish, self.page_05_fail]:
             return -1
         else:
-            return super(BagItWizard, self).nextId()
+            return super().nextId()
 
     @QtCore.pyqtSlot(bool)
     def on_bagit_finished(self, success):
@@ -167,7 +167,7 @@ class BagItWizard(QtWidgets.QWizard):
             return (bool(self.download_path.is_dir())
                     and bool(self.comboBox_circles.currentData()))
         else:
-            return super(BagItWizard, self).validateCurrentPage()
+            return super().validateCurrentPage()
 
 
 class BagItWorker(QtCore.QThread):
@@ -177,7 +177,7 @@ class BagItWorker(QtCore.QThread):
 
     def __init__(self, bagit_kwargs, *args, **kwargs):
         self.bagit_kwargs = bagit_kwargs
-        super(BagItWorker, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def run(self):
         try:

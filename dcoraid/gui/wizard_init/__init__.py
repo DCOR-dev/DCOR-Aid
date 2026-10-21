@@ -44,7 +44,7 @@ class InitWizard(QtWidgets.QWizard):
     """DCOR-Aid setup wizard"""
 
     def __init__(self, *args, **kwargs):
-        super(InitWizard, self).__init__(None)
+        super().__init__(None)
         ref_ui = resources.files("dcoraid.gui.wizard_init") / "wizard_init.ui"
         with resources.as_file(ref_ui) as path_ui:
             uic.loadUi(path_ui, self)

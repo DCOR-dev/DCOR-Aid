@@ -26,7 +26,7 @@ class KThread(threading.Thread):
     """Killable thread. See terminate() for details."""
 
     def __init__(self, *args, **kwargs):
-        super(KThread, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         atexit.register(self.terminate)
 
     def _get_my_tid(self):

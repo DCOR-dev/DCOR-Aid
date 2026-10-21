@@ -358,7 +358,8 @@ class DownloadJob:
                 logger.error(f"{self.traceback}")
         self.state = state
 
-    def task_download_resource(self, abort_event: threading.Event = None):
+    def task_download_resource(self,
+                               abort_event: threading.Event | None = None):
         """Start the download
 
         The progress of the download is monitored and written

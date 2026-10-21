@@ -13,7 +13,7 @@ from . import filter_base
 
 class FilterCircles(filter_base.FilterBase):
     def __init__(self, *args, **kwargs):
-        super(FilterCircles, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.active_actions += ["view-online"]
 
         self.label.setText("Circles")
@@ -35,7 +35,7 @@ class FilterCircles(filter_base.FilterBase):
 
 class FilterCollections(filter_base.FilterBase):
     def __init__(self, *args, **kwargs):
-        super(FilterCollections, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.active_actions += [
             "download", "download-condensed", "view-online"]
         self.label.setText("Collections")
@@ -77,7 +77,7 @@ class FilterCollections(filter_base.FilterBase):
 
 class FilterDatasets(filter_base.FilterBase):
     def __init__(self, *args, **kwargs):
-        super(FilterDatasets, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.active_actions += [
             "download", "download-condensed", "view-online"]
         self.label.setText("Datasets")
@@ -119,7 +119,7 @@ class FilterDatasets(filter_base.FilterBase):
 
 class FilterResources(filter_base.FilterBase):
     def __init__(self, *args, **kwargs):
-        super(FilterResources, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.active_actions += [
             "download", "download-condensed", "view-online"]
         self.label.setText("Resources")
@@ -162,7 +162,7 @@ class FilterResources(filter_base.FilterBase):
         return actions
 
     def set_entry_label(self, row, entry):
-        super(FilterResources, self).set_entry_label(row, entry)
+        super().set_entry_label(row, entry)
         # set additional data link
         item = self.tableWidget.item(row, 0)
         api = get_ckan_api()
