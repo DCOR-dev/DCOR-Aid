@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 from argparse import RawTextHelpFormatter
 import logging
+import os
 import pathlib
 import sys
 import threading
@@ -50,7 +51,7 @@ def ascertain_state_or_bust(upload_job, state):
 
 
 def upload_task(path_task: str | pathlib.Path = None,
-                server: str = "dcor.mpl.mpg.de",
+                server: str = None,
                 api_key: str = None,
                 cache_dir: str | pathlib.Path = None,
                 ret_job: bool = False,
@@ -65,7 +66,8 @@ def upload_task(path_task: str | pathlib.Path = None,
     server: str
         DCOR server to use (e.g. dcor.mpl.mpg.de)
     api_key: str
-        user API token to use for the upload
+        user API token to use for the upload; if not specified,
+        the environment variable `DCOR_API_KEY` is used
     cache_dir: str or pathlib.Path
         directory used for caching
     ret_job: bool
@@ -81,14 +83,23 @@ def upload_task(path_task: str | pathlib.Path = None,
     uj = None
     exit_status = 1  # fails by default if there is no success
     try:
-        if path_task is None or api_key is None:
+        if path_task is None:
             parser = upload_task_parser()
             args = parser.parse_args()
             path_task = args.path_task
             server = args.server
             api_key = args.api_key
+            cache_dir = args.cache_dir
         path_task = pathlib.Path(path_task)
         path_error = path_task.parent / (path_task.name + "_error.txt")
+        if server is None:
+            raise ValueError("No DCOR server specified!")
+        if api_key is None:
+            api_key = os.environ.get("DCOR_API_KEY")
+            if not api_key:
+                raise ValueError(
+                    "No API key specified! Either pass the API key as an "
+                    "argument or set the `DCOR_API_KEY` environment variable.")
         for retry in range(retries_num):
             try:
                 print("Initializing.")
@@ -164,17 +175,22 @@ def upload_task_parser():
     descr = (
         "Upload a .dcoraid-task file to a DCOR instance. Example usage::\n"
         + "\n    dcoraid-upload-task upload_job.dcoraid-task "
-        + "dcor-dev.mpl.mpg.de eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiO"
+        + "dcor.mpl.mpg.de eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiO\n"
+        + "\nInstead of passing the API key as an argument, you may also "
+        + "set the\nenvironment variable `DCOR_API_KEY`::\n"
+        + "\n    export DCOR_API_KEY=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ"
+        + "\n    dcoraid-upload-task upload_job.dcoraid-task dcor.mpl.mpg.de"
         )
     parser = argparse.ArgumentParser(description=descr,
                                      formatter_class=RawTextHelpFormatter)
     parser.add_argument('path_task', metavar="PATH", type=str,
                         help='The .dcoraid-task file')
     parser.add_argument('server', metavar="SERVER", type=str,
-                        help='DCOR instance to upload to',
-                        default="dcor.mpl.mpg.de")
-    parser.add_argument('api_key', metavar="API_KEY", type=str,
-                        help='Your DCOR API token')
+                        help='DCOR instance to upload to '
+                             '(e.g. dcor.mpl.mpg.de)')
+    parser.add_argument('api_key', metavar="API_KEY", type=str, nargs="?",
+                        help='Your DCOR API token (defaults to the '
+                             'environment variable DCOR_API_KEY)')
     parser.add_argument('--cache_dir', metavar="CACHE_DIR", type=str,
                         help='Cache directory for data compression')
     parser.add_argument('--version', action='version',
