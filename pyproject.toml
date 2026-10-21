@@ -42,7 +42,7 @@ GUI = ["PyQt6"]
 
 [project.scripts]
 dcoraid = "dcoraid.__main__:main"
-dcoraid-upload-task = "dcoraid.cli:upload_task"
+dcoraid-upload-task = "dcoraid.cli.task_upload_task:upload_task"
 
 [project.urls]
 source = "https://github.com/DCOR-dev/DCOR-Aid"
