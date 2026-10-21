@@ -25,6 +25,7 @@
    type annotations and `Callable` instead of `callable` in type hints
  - ref: fix various ruff findings
  - ref: `search_dataset` now accepts `query` instead of `text` globally
+ - ref: correct return type hint of `meta_cache._values_only`
  - setup: add tool.ruff.lint section to pyproject.toml
 1.1.3
  - enh: use `HTTPAdapter` with `urlib3`'s `Retry` to handle connection issues
