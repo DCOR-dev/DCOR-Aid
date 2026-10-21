@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from itertools import islice
 import sys
 import time
@@ -263,7 +265,6 @@ class APIInterrogator(DBInterrogator):
 
     def update(self, reset=False):
         """Ignored, since no local database exists"""
-        pass
 
     @property
     def local_timestamp(self):

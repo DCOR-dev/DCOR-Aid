@@ -71,9 +71,8 @@ class PersistentTaskDatasetIDDict:
         else:
             assert_task_id_is_valid(task_id)
             # append to end of file
-            with self.lock:
-                with self._path.open("a") as fd:
-                    fd.write(f"{task_id} {dataset_id}\n")
+            with self.lock, self._path.open("a") as fd:
+                fd.write(f"{task_id} {dataset_id}\n")
             # append to dict
             self._dict[task_id] = dataset_id
 

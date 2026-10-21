@@ -332,8 +332,8 @@ class CKANAPI:
         if kwargs:
             # Add keyword arguments
             kwv = []
-            for kw in kwargs:
-                kwv.append(f"{kw}={kwargs[kw]}")
+            for kw, val in kwargs.items():
+                kwv.append(f"{kw}={val}")
             api_call += "?" + "&".join(kwv)
 
         req = self.req_ses.get(self.api_url + api_call,

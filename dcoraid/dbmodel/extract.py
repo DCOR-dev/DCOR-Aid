@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numbers
 
 from ..common import weak_lru_cache
@@ -25,7 +27,7 @@ class DBExtract:
     def __add__(self, other):
         return DBExtract(self.datasets + other.datasets)
 
-    def __iadd__(self, other: "DBExtract | list"):
+    def __iadd__(self, other: DBExtract | list):
         """Add datasets from DBExtract instance or from list to self"""
         if isinstance(other, DBExtract):
             to_add = other.datasets

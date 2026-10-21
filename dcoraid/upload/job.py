@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import atexit
 import logging
 import tempfile
@@ -18,7 +20,6 @@ from ..common import is_dc_file, sha256sum
 
 class AtLeastOneDCResourceRequiredPerDatasetError(BaseException):
     """Raised when an upload does not contain at least one DC resource"""
-    pass
 
 
 logger = logging.getLogger(__name__)
@@ -502,7 +503,7 @@ class UploadJob:
                         # but the dclab-compressed file would not contain such
                         # features. So we just fail and let the user remove
                         # the features knowingly (e.g. via DCKit).
-                        raise IOError(f"Sanity check failed for {path}!\n"
+                        raise OSError(f"Sanity check failed for {path}!\n"
                                       + "\n".join(insane))
                 if cdata["uncompressed"]:  # (partially) not compressed?
                     res_dir = self.cache_dir / f"{ii}"

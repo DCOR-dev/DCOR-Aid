@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import hashlib
 import logging
@@ -120,13 +122,12 @@ class DownloadJob:
 
     @property
     def file_size(self):
-        if self._size_total is None:
-            if not self.condensed:
-                # Try to get the file size from the resource dictionary.
-                # Note that the file size is set only after upload. So, if you
-                # are downloading immediately after upload, the "size"
-                # attribute might not be set yet.
-                self._size_total = self.get_resource_dict()["size"]
+        if self._size_total is None and not self.condensed:
+            # Try to get the file size from the resource dictionary.
+            # Note that the file size is set only after upload. So, if you
+            # are downloading immediately after upload, the "size"
+            # attribute might not be set yet.
+            self._size_total = self.get_resource_dict()["size"]
         if self._size_total is None:
             # Fetch the file size from S3.
             # This is the only option for condensed downloads (because they

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import partial
 from importlib import resources
 import json
@@ -112,7 +114,7 @@ class ShareDialog(QtWidgets.QDialog):
             cur_users = []
             for ii in range(self.comboBox_users.count()):
                 cur_users.append(self.comboBox_users.itemData(ii)["id"])
-            if set(cur_users) != set([u["id"] for u in users]):
+            if set(cur_users) != {u["id"] for u in users}:
                 # Update users listed in combobox
                 self.comboBox_users.clear()
                 for ii, user in enumerate(users):

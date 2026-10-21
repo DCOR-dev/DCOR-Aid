@@ -64,17 +64,16 @@ def test_gui_anonymous(qtbot):
     stmp = pathlib.Path(tempfile.mkdtemp(prefix="settings_stash_")) / "set.ini"
     shutil.copy2(spath, stmp)
     spath.unlink()
-    spath.write_text("\n".join([
-        "[General]",
-        "user%20scenario = anonymous",
-        "check for updates = 0",
-        "skip database update on startup = 1",
-        "[auth]",
-        "api%20key =",
-        "server = dcor.mpl.mpg.de",
-        "[debug]",
-        "without timers = 1",
-        ]))
+    spath.write_text(
+        "[General]\n"
+        "user%20scenario = anonymous\n"
+        "check for updates = 0\n"
+        "skip database update on startup = 1\n"
+        "[auth]\n"
+        "api%20key =\n"
+        "server = dcor.mpl.mpg.de\n"
+        "[debug]\n"
+        "without timers = 1")
     try:
         mw = DCORAid()
         qtbot.addWidget(mw)
@@ -175,8 +174,6 @@ def test_gui_start_with_bad_server(qtbot):
         mw.close()
         QtWidgets.QApplication.processEvents(
             QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
-    except BaseException:
-        raise
     finally:
         # reset to testing defaults
         settings.setValue("auth/server", common.SERVER)
@@ -204,8 +201,6 @@ def test_gui_start_with_bad_api_key(qtbot):
         mw.close()
         QtWidgets.QApplication.processEvents(
             QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
-    except BaseException:
-        raise
     finally:
         # reset to testing defaults
         settings.setValue("auth/api key", good_key)
@@ -240,13 +235,13 @@ def test_gui_upload_simple(mw, qtbot):
 def test_gui_upload_task(mw, qtbot):
     task_id = str(uuid.uuid4())
     tpath = common.make_upload_task(task_id=task_id)
-    with mock.patch.object(QtWidgets.QFileDialog, "getOpenFileNames",
-                           return_value=([tpath], None)):
-        with mock.patch.object(QMessageBox, "information",
-                               return_value=None):
-            act = QtGui.QAction("some unimportant text")
-            act.setData("single")
-            mw.panel_upload.on_upload_task(action=act)
+    with (mock.patch.object(QtWidgets.QFileDialog, "getOpenFileNames",
+                            return_value=([tpath], None)),
+          mock.patch.object(QMessageBox, "information",
+                            return_value=None)):
+        act = QtGui.QAction("some unimportant text")
+        act.setData("single")
+        mw.panel_upload.on_upload_task(action=act)
     uj = mw.panel_upload.jobs[-1]
     assert uj.task_id == task_id
 

@@ -171,9 +171,7 @@ class InitWizard(QtWidgets.QWizard):
                 return page_dict[self.page_dcor]
             elif user_scenario == "medical":
                 return page_dict[self.page_med]
-            elif user_scenario == "dcor-dev":
-                return -1
-            elif user_scenario == "anonymous":
+            elif user_scenario in ["dcor-dev", "anonymous"]:
                 return -1
             elif user_scenario == "custom":
                 return page_dict[self.page_custom]

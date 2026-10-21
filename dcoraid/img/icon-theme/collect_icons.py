@@ -167,8 +167,8 @@ def find_icons(name, theme):
 if __name__ == "__main__":
     directories = []
     here = pathlib.Path(__file__).parent
-    for theme in icons:
-        for name in icons[theme]:
+    for theme, names in icons.items():
+        for name in names:
             ipaths = find_icons(name, theme)
             if not ipaths:
                 print("Could not find {} {}".format(theme, name))

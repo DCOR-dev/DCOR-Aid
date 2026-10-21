@@ -38,7 +38,7 @@ def get_api_key():
     return key
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def get_test_defaults():
     api = get_api()
     user_dict = api.get("user_show")
@@ -128,7 +128,7 @@ def make_dataset_dict_full_fake(org_id=None, ds_id=None, user_id=None,
             "relationships_as_object": []}
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def make_dataset_for_download(seed=0, add_text_file=False, circle=None):
     """Set `seed` to get a new dataset (in case you need fresh resource ids)"""
     defaults = get_test_defaults()
