@@ -151,13 +151,14 @@ class FilePart(io.IOBase):
             self._hasher = hashlib.md5()
         # perform actual seek
         if whence == os.SEEK_SET:
-            return self.file_object.seek(self.part_offset + offset)
+            self.file_object.seek(self.part_offset + offset)
         elif whence == os.SEEK_CUR:
-            return self.file_object.seek(offset, whence)
+            self.file_object.seek(offset, whence)
         elif whence == os.SEEK_END:
-            return self.file_object.seek(self.part_offset + self.part_size)
+            self.file_object.seek(self.part_offset + self.part_size)
         else:
             raise NotImplementedError(f"Undefined kwarg {whence=}")
+        return self.tell()
 
     def tell(self) -> int:
         """Return the current position in the part
@@ -323,6 +324,7 @@ def requests_put_data_and_get_etag(
             logger.warning(f"Encountered Exception for {put_url}:\n{trcbck} ")
             continue
         else:
+            trcbck = None
             # Obtain the ETag from the headers
             etag = get_etag_from_response(resp)
             if etag is not None and etag == fd_part.md5():
@@ -438,7 +440,9 @@ def upload_s3_presigned(
             )
     else:
         # Multipart Upload
-        assert complete_url is not None
+        if complete_url is None:
+            raise ValueError(
+                "`complete_url` must be speciefied for multipart uploads")
         etag = upload_s3_presigned_multipart(
             path=path,
             part_size=part_size,

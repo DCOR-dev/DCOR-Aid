@@ -257,7 +257,7 @@ class UploadJob:
 
         # edit path_strings in-place and populate paths_sort_order
         paths_sort_order = list(range(len(path_strings)))
-        for _, pp in enumerate(list(path_strings)):  # create a copy
+        for pp in list(path_strings):  # create a copy
             if not paths_basins[pp]:
                 # no basins, do nothing
                 pass

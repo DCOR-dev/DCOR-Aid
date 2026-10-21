@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 
 from .extract import DBExtract
@@ -28,11 +30,11 @@ class DBInterrogator(abc.ABC):
         """Make sure any open file handles or connections are closed"""
 
     @abc.abstractmethod
-    def get_circles(self) -> list[str]:
+    def get_circles(self) -> list[dict]:
         """Return the list of DCOR Circle dictionaries"""
 
     @abc.abstractmethod
-    def get_collections(self) -> list[str]:
+    def get_collections(self) -> list[dict]:
         """Return the list of DCOR Collection dictionaries"""
 
     def get_datasets_user(self):
@@ -60,7 +62,7 @@ class DBInterrogator(abc.ABC):
         """Return the list of DCOR users"""
 
     @abc.abstractmethod
-    def search_dataset(self, query) -> DBExtract:
+    def search_dataset(self, query, limit=100) -> DBExtract:
         """Free text search for a dataset in the database"""
 
     @property

@@ -68,7 +68,7 @@ class DownloadJob:
         self.job_id = resource_id + ("_cond" if condensed else "")
         self._user_path = pathlib.Path(download_path)
         self.condensed = condensed
-        self.path_temp: pathlib.Path = None  # type: ignore
+        self.path_temp: pathlib.Path | None = None
         # SHA256 sum of the *downloaded* resource (computed either while
         # downloading or after the download) for verification.
         self.sha256sum_dl = None
@@ -305,10 +305,12 @@ class DownloadJob:
 
             # Stat the temporary file first. It might be pulled out from
             # under us.
-            try:
-                size_temp = self.path_temp.stat().st_size
-            except (AttributeError, FileNotFoundError):
-                size_temp = None
+            size_temp = None
+            if self.path_temp is not None:
+                try:
+                    size_temp = self.path_temp.stat().st_size
+                except (AttributeError, FileNotFoundError):
+                    pass
 
             try:
                 size_done = self.path.stat().st_size
@@ -463,6 +465,7 @@ class DownloadJob:
             else:  # only verify if we have self.temp_path
                 self.set_state("verify")
                 if self.condensed:
+                    assert self.path_temp is not None
                     # do not perform ETag/SHA256 check
                     # TODO:
                     #  - Check whether the condensed file can be opened
@@ -502,6 +505,7 @@ class DownloadJob:
                                 self.set_state("error")
                             else:
                                 logger.info(f"ETag verified ({rid})")
+                                assert self.path_temp is not None
                                 self.path_temp.rename(self.path)
                                 self.set_state("done")
                     else:
@@ -516,6 +520,7 @@ class DownloadJob:
                             self.set_state("error")
                         else:
                             logger.info(f"SHA256 verified ({rid})")
+                            assert self.path_temp is not None
                             self.path_temp.rename(self.path)
                             self.set_state("done")
         elif self.state != "done":  # ignore state "done" [sic!]
