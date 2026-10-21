@@ -110,3 +110,20 @@ def test_get_lists_user_anonymous():
     assert ai.get_circles_user() == []
     assert ai.get_collections_user() == []
     assert calls == []
+
+
+@pytest.mark.parametrize("kwargs,expected", [
+    [{}, {"q": "", "limit": 20}],
+    [{"query": "peter"}, {"q": "peter", "limit": 20}],
+    [{"query": "peter", "limit": 5}, {"q": "peter", "limit": 5}],
+])
+def test_get_users_query(kwargs, expected):
+    ai, _ = make_interrogator()
+    users = [{"id": "1", "name": "peter", "fullname": "Peter Pan"},
+             {"id": "2", "name": "peterson", "fullname": ""}]
+    ai.api.get.side_effect = None
+    ai.api.get.return_value = users
+    assert ai.get_users(**kwargs) == ["peter", "peterson"]
+    ai.api.get.assert_called_with("user_autocomplete", **expected)
+    assert ai.get_users(ret_fullnames=True, **kwargs) == (
+        ["peter", "peterson"], ["Peter Pan", "peterson"])

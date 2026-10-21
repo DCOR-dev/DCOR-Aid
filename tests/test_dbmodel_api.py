@@ -43,8 +43,12 @@ def test_get_circles_all():
     # the circle of the test user should be listed nevertheless.
     api = common.get_api()
     db = db_api.APIInterrogator(api=api)
+    # Circles might be created in-between (e.g. by other test runs), so
+    # we check that all circles that existed before are listed.
+    names_before = api.get("organization_list", limit=10000)
     circles = [c["name"] for c in db.get_circles()]
-    assert len(circles) == len(api.get("organization_list"))
+    assert set(names_before) <= set(circles)
+    assert len(circles) == len(set(circles)), "no duplicates"
     assert common.get_test_defaults()["circle"] in circles
 
 
@@ -59,8 +63,12 @@ def test_get_circles_user():
 def test_get_collections_all():
     api = common.get_api()
     db = db_api.APIInterrogator(api=api)
+    # Collections might be created in-between (e.g. by other test runs),
+    # so we check that all collections that existed before are listed.
+    names_before = api.get("group_list", limit=10000)
     collections = [c["name"] for c in db.get_collections()]
-    assert len(collections) == len(api.get("group_list", limit=1000))
+    assert set(names_before) <= set(collections)
+    assert len(collections) == len(set(collections)), "no duplicates"
     assert common.get_test_defaults()["collection"] in collections
 
 
@@ -87,6 +95,18 @@ def test_get_users_anonymous():
         db.get_users()
 
 
+def test_get_users_query():
+    api = common.get_api()
+    db = db_api.APIInterrogator(api=api)
+    defaults = common.get_test_defaults()
+    assert db.get_users(query=defaults["user"]) == [defaults["user"]]
+    users, fullnames = db.get_users(query=defaults["user"],
+                                    ret_fullnames=True)
+    assert users == [defaults["user"]]
+    assert fullnames == [defaults["user_name"]]
+    assert len(db.get_users(limit=2)) == 2
+
+
 def test_public_api_interrogator():
     api = common.get_api()
     db = db_api.APIInterrogator(api=api)
@@ -95,7 +115,8 @@ def test_public_api_interrogator():
     collections = [c["name"] for c in db.get_collections()]
     assert defaults["circle"] in circles
     assert defaults["collection"] in collections
-    assert defaults["user"] in db.get_users()
+    # There may be more users than `limit`, so search for the test user.
+    assert defaults["user"] in db.get_users(query=defaults["user"])
 
 
 def test_user_data():
