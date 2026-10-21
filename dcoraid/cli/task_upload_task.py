@@ -12,10 +12,10 @@ import traceback
 import urllib3.exceptions
 import requests.exceptions
 
-from .api import CKANAPI
-from .loggers import setup_logging
-from .upload import task
-from ._version import version
+from ..api import CKANAPI
+from ..loggers import setup_logging
+from ..upload import task
+from .._version import version
 
 
 def monitor_upload_progress(upload_job):
