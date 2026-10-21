@@ -42,6 +42,7 @@ GUI = ["PyQt6"]
 
 [project.scripts]
 dcoraid = "dcoraid.__main__:main"
+dcoraid-archive-circle = "dcoraid.cli.task_archive_circle:archive_circle"
 dcoraid-upload-task = "dcoraid.cli.task_upload_task:upload_task"
 
 [project.urls]
