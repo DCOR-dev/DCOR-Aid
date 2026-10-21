@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from itertools import chain
 import json
 import logging
@@ -424,24 +425,19 @@ def _create_blob_for_search(ds_dict: dict) -> str:
 
 def _values_only(obj: Any,
                  only_keys: list[str],
-                 ) -> list[str]:
+                 ) -> Iterable[str]:
     """
-    Recursively walk a JSON‑compatible object and return a flat list of the
-    string representation of all values whose keys are in `only_keys`.
+    Recursively walk a JSON‑compatible object and return a flat iterable of
+    the string representation of all values whose keys are in `only_keys`.
     Lists, tuples and dicts are traversed; other scalar types are converted
-    with ``str``.
+    with ``str``. The returned iterable may only be consumable once.
     """
     if isinstance(obj, dict):
         return chain.from_iterable(
             [_values_only(v, only_keys) for (k, v) in obj.items()
              if k in only_keys])
-        # for k, v in obj.items():
-        #     if k in only_keys:
-        #         vals += _values_only(v, only_keys)
     elif isinstance(obj, (list, tuple)):
         return chain.from_iterable([_values_only(v, only_keys) for v in obj])
-        # for v in obj:
-        #    vals += _values_only(v, only_keys)
     else:
         # scalar (str, int, float, bool, None)
         if obj not in [None, ""]:
