@@ -68,7 +68,7 @@ class DownloadJob:
         self.job_id = resource_id + ("_cond" if condensed else "")
         self._user_path = pathlib.Path(download_path)
         self.condensed = condensed
-        self.path_temp = None
+        self.path_temp: pathlib.Path = None  # type: ignore
         # SHA256 sum of the *downloaded* resource (computed either while
         # downloading or after the download) for verification.
         self.sha256sum_dl = None
@@ -216,6 +216,7 @@ class DownloadJob:
         status = self.get_status()
         state = status["state"]
 
+        progress = "undefined"
         if state in ["init", "transfer", "wait-disk"]:
             progress = "{:.0f}%".format(
                 status["bytes local"] / status["bytes total"] * 100)
@@ -226,7 +227,6 @@ class DownloadJob:
         elif state in JOB_STATES:
             # seems like you missed to update a case here?
             warnings.warn(f"Please add state '{state}' to these cases!")
-            progress = "undefined"
         return progress
 
     def get_rate_string(self):

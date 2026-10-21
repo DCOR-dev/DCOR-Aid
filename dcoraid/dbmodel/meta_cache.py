@@ -359,8 +359,8 @@ class MetaCache:
                 for ds_dict in ds_list_insert:
                     org_dict.setdefault(ds_dict["owner_org"],
                                         []).append(ds_dict)
-                for org_id, ds_list in org_dict.items():
-                    self._upsert_many_insert(org_id=org_id,
+                for oid, ds_list in org_dict.items():
+                    self._upsert_many_insert(org_id=oid,
                                              dataset_dicts=ds_list)
 
     def _upsert_many_insert(self, org_id, dataset_dicts):

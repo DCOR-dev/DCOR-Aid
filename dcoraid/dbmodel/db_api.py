@@ -114,7 +114,7 @@ class APIInterrogator(DBInterrogator):
             return user_list
 
     def search_dataset(self,
-                       text: str,
+                       query: str,
                        limit: int = 100):
         """Free text search for a dataset in the database
 
@@ -125,7 +125,7 @@ class APIInterrogator(DBInterrogator):
         limit: int
             number of results to return
         """
-        data = self.search_dataset_via_api(query=text, limit=limit)
+        data = self.search_dataset_via_api(query=query, limit=limit)
         assert isinstance(data, DBExtract)
         return data
 
