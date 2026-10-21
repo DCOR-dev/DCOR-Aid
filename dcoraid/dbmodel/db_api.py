@@ -233,35 +233,36 @@ class APIInterrogator(DBInterrogator):
         if limit < 0:
             raise ValueError(f"`limit` must be 0 or >0!, got {limit}!")
         elif limit == 0:
-            rows = 1000  # default batch size
             limit = np.inf  # type: ignore
-        else:
-            rows = min(1000, limit)
 
-        num_total = np.inf  # just the initial value
+        # Number of datasets to retrieve. This is updated with the total
+        # number of matching datasets after the first request.
+        num_wanted = limit
+        num_total = None
         num_retrieved = 0
         if ret_db_extract:
             dbe = DBExtract()
         else:
             dbe = []
-        while start + num_retrieved < min(start + limit, num_total) and rows:
+        while num_retrieved < num_wanted:
             data = self.api.get(
                 "package_search",
                 q=urllib.parse.quote(query, safe=""),
                 fq=final_fq,
                 include_private=bool(self.api.user_id is not None),
-                rows=rows,
+                # CKAN returns at most 1000 datasets per request
+                rows=min(1000, num_wanted - num_retrieved),
                 sort=sort_solr,
                 start=start + num_retrieved,
                 )
-            if np.isinf(num_total):
+            if num_total is None:
                 # first iteration
                 num_total = data["count"]
+                num_wanted = min(limit, max(0, num_total - start))
+            if not data["results"]:
+                # Datasets might have been deleted in-between requests.
+                break
             num_retrieved += len(data["results"])
-            if num_retrieved + rows > min(limit, num_total):
-                # in the next iteration, only get the final
-                # few results.
-                rows = num_total - num_retrieved
             dbe += data["results"]
 
         return dbe

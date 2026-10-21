@@ -9,6 +9,10 @@
    or verification failed
  - fix: comparing the cached dataset list with a list of a different
    length returned True or raised an IndexError
+ - fix: dataset search via the API returned more results than `limit`
+   for limits above 1000 and requested more than 1000 rows at once
+ - fix: dataset search via the API looped forever when datasets were
+   deleted in-between paginated requests
  - enh: `dcoraid-upload-task` reads the API key from the `DCOR_API_KEY`
    environment variable if it is not passed as an argument
  - enh: retry downloading resources and archiving datasets in BagIt
