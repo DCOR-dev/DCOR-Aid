@@ -68,8 +68,12 @@ class DBInterrogator(abc.ABC):
         """Return all datasets shared with the user"""
 
     @abc.abstractmethod
-    def get_users(self) -> list[str] | tuple[list[str], list[str]]:
-        """Return the list of DCOR users"""
+    def get_users(self,
+                  query: str = "",
+                  limit: int = 20,
+                  ret_fullnames: bool = False,
+                  ) -> list[str] | tuple[list[str], list[str]]:
+        """Return DCOR users whose name or full name matches `query`"""
 
     @abc.abstractmethod
     def search_dataset(self, query, limit=100) -> DBExtract:

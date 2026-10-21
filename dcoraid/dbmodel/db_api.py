@@ -151,9 +151,31 @@ class APIInterrogator(DBInterrogator):
 
         return dbe
 
-    def get_users(self, ret_fullnames=False):
-        """Return the list of DCOR users"""
-        data = self.api.get("user_autocomplete", q="")
+    def get_users(self,
+                  query: str = "",
+                  limit: int = 20,
+                  ret_fullnames: bool = False):
+        """Return DCOR users whose name or full name matches `query`
+
+        Parameters
+        ----------
+        query: str
+            Search string for user name or full name; an empty string
+            matches all users
+        limit: int
+            Maximum number of users to return
+        ret_fullnames: bool
+            Whether to also return the list of full names (the user
+            name is used for users without full name)
+
+        Notes
+        -----
+        Normal users are not allowed to list all users on a DCOR
+        server. This method uses CKAN's `user_autocomplete` instead,
+        which returns at most `limit` matching users. To check whether
+        a specific user exists, use the user name as `query`.
+        """
+        data = self.api.get("user_autocomplete", q=query, limit=limit)
         user_list = []
         full_list = []
         for dd in data:

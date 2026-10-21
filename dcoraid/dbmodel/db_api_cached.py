@@ -120,9 +120,17 @@ class CachedAPIInterrogator(DBInterrogator):
             self._cache_fleeting[ckey] = self.ai.get_datasets_user_shared()
         return self._cache_fleeting[ckey]
 
-    def get_users(self):
-        """Return the list of DCOR users"""
-        return self.ai.get_users()
+    def get_users(self,
+                  query: str = "",
+                  limit: int = 20,
+                  ret_fullnames: bool = False):
+        """Return DCOR users whose name or full name matches `query`
+
+        See :func:`APIInterrogator.get_users` for details.
+        """
+        return self.ai.get_users(query=query,
+                                 limit=limit,
+                                 ret_fullnames=ret_fullnames)
 
     def reset_cache(self):
         self._mc_timestamp_path.unlink()

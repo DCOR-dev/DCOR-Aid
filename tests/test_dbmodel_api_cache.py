@@ -61,7 +61,8 @@ def test_public_api_interrogator(tmp_path):
     collections = [c["name"] for c in db.get_collections()]
     assert defaults["circle"] in circles
     assert defaults["collection"] in collections
-    assert defaults["user"] in db.get_users()
+    # There may be more users than `limit`, so search for the test user.
+    assert defaults["user"] in db.get_users(query=defaults["user"])
 
 
 def test_user_data(tmp_path):
