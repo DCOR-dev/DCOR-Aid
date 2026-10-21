@@ -46,6 +46,34 @@ def test_cli_cache_dir(tmpdir):
     assert str(ist) == str(soll)
 
 
+def test_cli_api_key_from_environment(monkeypatch):
+    def sys_exit(status):
+        return status
+    monkeypatch.setattr(sys, "exit", sys_exit)
+
+    path_task = pathlib.Path(
+        make_upload_task(resource_names=["cli_upload.rtdc"]))
+    api = get_api()
+    monkeypatch.setenv("DCOR_API_KEY", api.api_key)
+    uj = cli.upload_task(path_task, api.server, ret_job=True)
+    pkg_dict = api.get("package_show", id=uj.dataset_id)
+    assert pkg_dict["state"] == "active"
+
+
+def test_cli_api_key_missing(tmp_path, monkeypatch):
+    def sys_exit(status):
+        return status
+    monkeypatch.setattr(sys, "exit", sys_exit)
+    monkeypatch.delenv("DCOR_API_KEY", raising=False)
+
+    path_task = tmp_path / "dummy.dcoraid-task"
+    path_task.write_text("{}")
+    ret_val = cli.upload_task(path_task, "dcor.example.com")
+    assert ret_val != 0
+    path_error = path_task.parent / (path_task.name + "_error.txt")
+    assert "No API key specified" in path_error.read_text()
+
+
 @pytest.mark.parametrize("entry,emsg",
                          [["license_id", "Please choose a license_id"],
                           ["owner_org", "must always be uploaded to a Circle"],
@@ -163,3 +191,18 @@ def test_version_exit_status(mock_stdout, monkeypatch):
         monkeypatch.setattr(argparse._sys, "argv", ["dcoraid-upload-task",
                                                     "--version"])
         cli.upload_task()
+
+
+def test_parser_api_key_optional():
+    parser = cli.upload_task_parser()
+    args = parser.parse_args(["task.dcoraid-task", "dcor.example.com"])
+    assert args.server == "dcor.example.com"
+    assert args.api_key is None
+
+
+@mock.patch('sys.stderr', new_callable=io.StringIO)
+def test_parser_server_required(mock_stderr):
+    parser = cli.upload_task_parser()
+    with pytest.raises(SystemExit):
+        parser.parse_args(["task.dcoraid-task"])
+    assert "SERVER" in mock_stderr.getvalue()
