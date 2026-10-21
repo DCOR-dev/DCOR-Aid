@@ -7,6 +7,8 @@ class SQLiteBackedROListOfDicts:
 
     def __eq__(self, other):
         if isinstance(other, list):
+            if len(self) != len(other):
+                return False
             for ii in range(len(other)):
                 if not self[ii] == other[ii]:
                     return False
