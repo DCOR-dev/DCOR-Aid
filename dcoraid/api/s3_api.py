@@ -442,7 +442,7 @@ def upload_s3_presigned(
         # Multipart Upload
         if complete_url is None:
             raise ValueError(
-                "`complete_url` must be speciefied for multipart uploads")
+                "`complete_url` must be specified for multipart uploads")
         etag = upload_s3_presigned_multipart(
             path=path,
             part_size=part_size,

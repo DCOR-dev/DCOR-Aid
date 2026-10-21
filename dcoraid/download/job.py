@@ -309,7 +309,7 @@ class DownloadJob:
             if self.path_temp is not None:
                 try:
                     size_temp = self.path_temp.stat().st_size
-                except (AttributeError, FileNotFoundError):
+                except FileNotFoundError:
                     pass
 
             try:
