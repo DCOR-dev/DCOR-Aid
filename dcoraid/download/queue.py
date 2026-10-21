@@ -138,8 +138,7 @@ class DownloadQueue:
         for job in self.jobs:
             if job.job_id == job_id:
                 return job
-        else:
-            raise KeyError(f"Job '{job_id}' not found!")
+        raise KeyError(f"Job '{job_id}' not found!")
 
     def get_status(self):
         """Return the status of a DownloadQueue"""

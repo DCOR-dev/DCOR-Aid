@@ -471,5 +471,4 @@ def resource_exists(dataset_id: str,
                     # or it is wrong.
                     return False
             return True
-    else:
-        return False
+    return False

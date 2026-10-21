@@ -17,9 +17,7 @@
    `collections.abc` types instead of deprecated `typing` imports
  - ref: use `from __future__ import annotations` in all modules with
    type annotations and `Callable` instead of `callable` in type hints
- - ref: fix various ruff findings (PIE790, FLY002, UP011, UP024, RUF100,
-   RET501, PLR1711, SIM102, SIM103, SIM114, SIM117, SIM201, PLR1730, C403,
-   C408, TRY203, PLC0206)
+ - ref: fix various ruff findings
  - setup: add tool.ruff.lint section to pyproject.toml
 1.1.3
  - enh: use `HTTPAdapter` with `urlib3`'s `Retry` to handle connection issues

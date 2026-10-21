@@ -1,5 +1,7 @@
 import abc
 
+from .extract import DBExtract
+
 
 class DBInterrogator(abc.ABC):
     def __init__(self, user_data):
@@ -26,11 +28,11 @@ class DBInterrogator(abc.ABC):
         """Make sure any open file handles or connections are closed"""
 
     @abc.abstractmethod
-    def get_circles(self):
+    def get_circles(self) -> list[str]:
         """Return the list of DCOR Circle dictionaries"""
 
     @abc.abstractmethod
-    def get_collections(self):
+    def get_collections(self) -> list[str]:
         """Return the list of DCOR Collection dictionaries"""
 
     def get_datasets_user(self):
@@ -42,42 +44,42 @@ class DBInterrogator(abc.ABC):
         return owned + shared + following
 
     @abc.abstractmethod
-    def get_datasets_user_following(self):
+    def get_datasets_user_following(self) -> DBExtract:
         """Return all datasets the user is following"""
 
     @abc.abstractmethod
-    def get_datasets_user_owned(self):
+    def get_datasets_user_owned(self) -> DBExtract:
         """Return all datasets owned by the user"""
 
     @abc.abstractmethod
-    def get_datasets_user_shared(self):
+    def get_datasets_user_shared(self) -> DBExtract:
         """Return all datasets shared with the user"""
 
     @abc.abstractmethod
-    def get_users(self):
+    def get_users(self) -> list[str] | tuple[list[str], list[str]]:
         """Return the list of DCOR users"""
 
     @abc.abstractmethod
-    def search_dataset(self, text):
+    def search_dataset(self, query) -> DBExtract:
         """Free text search for a dataset in the database"""
 
     @property
     @abc.abstractmethod
-    def local_version_score(self):
+    def local_version_score(self) -> int:
         """Local database version"""
 
     @property
     @abc.abstractmethod
-    def local_timestamp(self):
+    def local_timestamp(self) -> int | float:
         """Local database date in seconds since epoch"""
 
     @property
-    def remote_version_score(self):
+    def remote_version_score(self) -> int:
         """Remote database version"""
         return 0
 
     @property
-    def remote_timestamp(self):
+    def remote_timestamp(self) -> int | float:
         """Remote database date in seconds since epoch"""
         return 0
 

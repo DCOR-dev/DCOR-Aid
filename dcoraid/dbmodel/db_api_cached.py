@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import pathlib
 import time
+from typing import Any
 
 from .db_core import DBInterrogator
 from .db_api import APIInterrogator
@@ -24,7 +25,7 @@ class CachedAPIInterrogator(DBInterrogator):
         )
         self.cache_location.mkdir(parents=True, exist_ok=True)
 
-        self._cache_fleeting = {
+        self._cache_fleeting: dict[str, Any] = {
             "circles": [],
             "collections": [],
         }

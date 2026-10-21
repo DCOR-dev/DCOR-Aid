@@ -10,8 +10,7 @@ class SQLiteBackedROListOfDicts:
             for ii in range(len(other)):
                 if not self[ii] == other[ii]:
                     return False
-            else:
-                return True
+            return True
         else:
             raise NotImplementedError(f"Cannot compare '{type(self)}' with "
                                       f"'{type(other)}'.")

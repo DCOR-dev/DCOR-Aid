@@ -58,6 +58,7 @@ class APIInterrogator(DBInterrogator):
                 filter_queries=[f"+creator_user_id:{self.api.user_id}"],
                 limit=0,
             )
+            assert isinstance(dbe, DBExtract)
         else:
             dbe = DBExtract()
         return dbe
@@ -124,7 +125,9 @@ class APIInterrogator(DBInterrogator):
         limit: int
             number of results to return
         """
-        return self.search_dataset_via_api(query=text, limit=limit)
+        data = self.search_dataset_via_api(query=text, limit=limit)
+        assert isinstance(data, DBExtract)
+        return data
 
     def search_dataset_via_api(self,
                                query: str = "*:*",
@@ -231,7 +234,7 @@ class APIInterrogator(DBInterrogator):
             raise ValueError(f"`limit` must be 0 or >0!, got {limit}!")
         elif limit == 0:
             rows = 1000  # default batch size
-            limit = np.inf
+            limit = np.inf  # type: ignore
         else:
             rows = min(1000, limit)
 

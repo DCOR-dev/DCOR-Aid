@@ -70,6 +70,7 @@ def archive_circle(circle: str | None = None,
         print("Initializing.")
         api = CKANAPI(server, api_key=api_key)
         # `organization_show` accepts both the circle ID and name
+        assert circle is not None
         circle_dict = api.get("organization_show", id=circle)
         circle_name = circle_dict["name"]
         circle_path = pathlib.Path(target_path) / circle_name

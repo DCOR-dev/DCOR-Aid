@@ -285,8 +285,7 @@ class UploadQueue:
         for job in self.jobs:
             if job.dataset_id == dataset_id:
                 return job
-        else:
-            raise KeyError(f"Job '{dataset_id}' not found!")
+        raise KeyError(f"Job '{dataset_id}' not found!")
 
     def get_status(self, dataset_id):
         """Return the status of an UploadJob"""
@@ -300,8 +299,7 @@ class UploadQueue:
         for ii, job in enumerate(self.jobs):
             if job.dataset_id == dataset_id:
                 return ii
-        else:
-            raise KeyError(f"Job '{dataset_id}' not found!")
+        raise KeyError(f"Job '{dataset_id}' not found!")
 
     def new_job(self, dataset_id, paths, resource_names=None,
                 supplements=None):
