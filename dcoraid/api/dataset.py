@@ -1,4 +1,6 @@
 """Convenience wrappers for commonly used API calls"""
+from __future__ import annotations
+
 import copy
 import functools
 import logging

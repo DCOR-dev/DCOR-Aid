@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import partial
 from importlib import resources
 import json

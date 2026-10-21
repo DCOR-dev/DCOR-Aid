@@ -7,6 +7,7 @@ import os
 import pathlib
 import re
 import traceback
+from collections.abc import Callable
 from typing import BinaryIO
 
 import requests
@@ -27,7 +28,7 @@ class FilePart(io.IOBase):
                  part_size: int,
                  file_size: int | None = None,
                  min_read_size: int = 4 * MiB,
-                 callback: callable | None = None,
+                 callback: Callable | None = None,
                  ):
         """MD5-creating progress wrapper of file objects for partial access
 
@@ -57,7 +58,7 @@ class FilePart(io.IOBase):
             Python requests, similar to what is proposed here:
             https://github.com/requests/toolbelt/issues/75
             #issuecomment-237189952
-        callback: callable
+        callback: Callable
             method to call for monitoring the progress; this is
             called when `read` is called and calls the method
             with the argument `amount_seen / file_size` (overall
@@ -282,7 +283,7 @@ def requests_put_data_and_get_etag(
         part_number: int,
         part_size: int,
         file_size: int,
-        callback: callable,
+        callback: Callable,
         timeout=27.3,
         retries=3,
         ):
@@ -339,7 +340,7 @@ def upload_s3_presigned(
         complete_url: str | None = None,
         retries: int = 3,
         timeout: float = 27.3,
-        callback: callable | None = None,
+        callback: Callable | None = None,
         ) -> str:
     """Upload data to an S3 bucket using presigned URLS
 
@@ -361,7 +362,7 @@ def upload_s3_presigned(
         How many times each request should be retried if failed
     timeout: float
         Timeout for requests
-    callback: callable
+    callback: Callable
         method to call for monitoring the progress; This is
         called periodically during the upload with a number
         between 0 (start) and 1 (finished).
@@ -456,7 +457,7 @@ def upload_s3_presigned_multipart(
         complete_multipart_url: str,
         retries: int = 3,
         timeout: float = 27.3,
-        callback: callable | None = None,
+        callback: Callable | None = None,
         ) -> str:
     """Upload a dataset to S3 with multipart and a given upload ID
 
@@ -479,7 +480,7 @@ def upload_s3_presigned_multipart(
         How many times each request should be retried if failed
     timeout: float
         Timeout for requests
-    callback: callable
+    callback: Callable
         method to call for monitoring the progress; This is
         called periodically during the upload with a number
         between 0 (start) and 1 (finished).
@@ -600,7 +601,7 @@ def upload_s3_presigned_single(
         presigned_url: str,
         retries: int = 3,
         timeout: float = 27.3,
-        callback: callable | None = None
+        callback: Callable | None = None
         ) -> str:
     """Upload a single file using a PUT request to a presigned URL
 
@@ -618,7 +619,7 @@ def upload_s3_presigned_single(
         How many times each request should be retried if failed
     timeout: float
         Timeout for requests
-    callback: callable
+    callback: Callable
         method to call for monitoring the progress; This is
         called periodically during the upload with a number
         between 0 (start) and 1 (finished).
