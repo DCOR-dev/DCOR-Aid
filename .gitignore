@@ -111,6 +111,7 @@ pytest-failures.txt
 _version.py
 
 _dev_*.py
+_dev_*
 
 # QtCreator temporary files
 *.ui.autosave

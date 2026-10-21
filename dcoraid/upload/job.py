@@ -157,7 +157,7 @@ class UploadJob:
                            for ff in self.paths]
         self.file_bytes_uploaded = [0] * len(self.paths)
         #: ETags for the files uploaded by this UploadJob instance
-        self.etags = resource_etags or [None] * len(self.paths)
+        self.etags: list = resource_etags or [None] * len(self.paths)
         #: Resource index indicating upload progress
         self.index = 0
         self.start_time = None
@@ -257,7 +257,7 @@ class UploadJob:
 
         # edit path_strings in-place and populate paths_sort_order
         paths_sort_order = list(range(len(path_strings)))
-        for ii, pp in enumerate(list(path_strings)):  # create a copy
+        for _, pp in enumerate(list(path_strings)):  # create a copy
             if not paths_basins[pp]:
                 # no basins, do nothing
                 pass
@@ -319,13 +319,13 @@ class UploadJob:
             sp_dict = self.supplements[resource_index]
             for sec in sp_dict:
                 for key in sp_dict[sec]:
-                    sp["sp:{}:{}".format(sec, key)] = sp_dict[sec][key]
+                    sp[f"sp:{sec}:{key}"] = sp_dict[sec][key]
         return sp
 
     def get_dataset_url(self):
         """Return a link to the dataset on DCOR"""
         # The API prepends missing "https://"
-        return "{}/dataset/{}".format(self.api.server, self.dataset_id)
+        return f"{self.api.server}/dataset/{self.dataset_id}"
 
     def get_progress_string(self):
         """Return a nice string representation of the progress"""
@@ -333,6 +333,7 @@ class UploadJob:
         state = status["state"]
         plural = "s" if status["files total"] > 1 else ""
 
+        progress = "undefined"
         if state in ["init", "compress", "parcel", "wait-disk"]:
             progress = "0% ({} file{})".format(status["files total"], plural)
         elif state == "transfer":
@@ -350,7 +351,6 @@ class UploadJob:
         elif state in JOB_STATES:
             # seems like you missed updating a case here?
             warnings.warn(f"Please add state '{state}' to these cases!")
-            progress = "undefined"
         return progress
 
     def get_rate_string(self):
