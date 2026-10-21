@@ -331,9 +331,10 @@ def resource_add_upload_direct_s3(
         raise NoS3UploadAvailableError(f"Server {api.server} does not yet "
                                        f"support direct upload to S3")
 
-    logger.info(
-        f"We have {len(upload_info['upload_urls'])} upload parts for "
-        f"a resource of size {file_size/1024**2:.2f} MiB of {upload_id}")
+    if logger is not None:
+        logger.info(
+            f"We have {len(upload_info['upload_urls'])} upload parts for "
+            f"a resource of size {file_size/1024**2:.2f} MiB of {upload_id}")
 
     etag = upload_s3_presigned(
         path=resource_path,
@@ -459,6 +460,7 @@ def resource_exists(dataset_id: str,
     if dataset_dict is None:
         dataset_dict = api.get("package_show", id=dataset_id,
                                timeout=500)
+    assert dataset_dict is not None
     for resource in dataset_dict.get("resources", []):
         if resource["name"] == resource_name:
             # check that the resource dict matches

@@ -480,7 +480,7 @@ class CKANAPI:
             rand = ""
             title = (title or name).strip()
             # create the collection
-            for ii in range(10):
+            for _ in range(10):
                 try:
                     col_dict = self.post("group_create",
                                          {"title": title,

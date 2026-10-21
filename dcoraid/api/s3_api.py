@@ -76,8 +76,7 @@ class FilePart(io.IOBase):
         self._md5 = None
         self.file_object = file_object
         self.part_number = part_number
-        self.file_size = file_size
-        self.part_offset = part_number * part_size
+        self.part_offset: int = part_number * part_size
         self.min_read_size = min_read_size
         self.callback = callback
 
@@ -85,6 +84,7 @@ class FilePart(io.IOBase):
             # Seek to the end to obtain the file size
             file_object.seek(0, os.SEEK_END)
             file_size = file_object.tell()
+        self.file_size = file_size
 
         # seek to the correct position
         self.file_object.seek(self.part_offset)
@@ -141,7 +141,7 @@ class FilePart(io.IOBase):
                     (self.part_offset + cur_pos) / self.file_size)
             return data
 
-    def seek(self, offset, whence=os.SEEK_SET):
+    def seek(self, offset, whence=os.SEEK_SET) -> int:
         """Seek to a position within the part
 
         Internally, this seeks through `self.file_object`.
@@ -151,13 +151,15 @@ class FilePart(io.IOBase):
             self._hasher = hashlib.md5()
         # perform actual seek
         if whence == os.SEEK_SET:
-            self.file_object.seek(self.part_offset + offset)
+            return self.file_object.seek(self.part_offset + offset)
         elif whence == os.SEEK_CUR:
-            self.file_object.seek(offset, whence)
+            return self.file_object.seek(offset, whence)
         elif whence == os.SEEK_END:
-            self.file_object.seek(self.part_offset + self.part_size)
+            return self.file_object.seek(self.part_offset + self.part_size)
+        else:
+            raise NotImplementedError(f"Undefined kwarg {whence=}")
 
-    def tell(self):
+    def tell(self) -> int:
         """Return the current position in the part
 
         This is the position in the original `file_object` minus
@@ -305,11 +307,11 @@ def requests_put_data_and_get_etag(
                        file_size=file_size,
                        callback=callback,
                        )
-    for jj in range(retries):
+    trcbck = None
+    resp = None
+    for _ in range(retries):
         # Always seek to the zero position.
         fd_part.seek(0)
-        trcbck = None
-        resp = None
         try:
             logger.info(f"Uploading part {part_number + 1} with {put_url}")
             resp = requests.put(put_url,
@@ -372,6 +374,7 @@ def upload_s3_presigned(
     etag: str
         ETag of the uploaded file in the object store
     """
+    path = pathlib.Path(path)
     file_size = path.stat().st_size
     num_parts = len(upload_urls)
 
@@ -435,6 +438,7 @@ def upload_s3_presigned(
             )
     else:
         # Multipart Upload
+        assert complete_url is not None
         etag = upload_s3_presigned_multipart(
             path=path,
             part_size=part_size,
@@ -538,6 +542,8 @@ def upload_s3_presigned_multipart(
         hasher.update(etag_binary)
     etag_expected = f"{hasher.hexdigest()}-{len(parts_etags)}"
 
+    resp_compl = None
+    trcbck_compl = None
     for jj in range(retries):
         resp_compl = None
         trcbck_compl = None
@@ -560,7 +566,7 @@ def upload_s3_presigned_multipart(
                     break
                 else:
                     logger.warning(f"ETag mismatch, expected {etag_expected}, "
-                                   f"got {etag_full}; (retry {ii})")
+                                   f"got {etag_full}; (retry {jj})")
                     # The server returned the wrong ETag. We will try again.
                     continue
             else:
@@ -648,6 +654,7 @@ def upload_s3_presigned_single(
              HttpMethod='PUT',
          )
     """
+    path = pathlib.Path(path)
     retries = max(1, retries)
     with path.open("rb") as fd:
         monitor = UploadMonitorLink(fd=fd,
