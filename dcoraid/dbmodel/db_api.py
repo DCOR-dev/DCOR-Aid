@@ -30,18 +30,71 @@ class APIInterrogator(DBInterrogator):
         super().__init__(user_data=user_data)
 
     def get_circles(self):
-        """Return the list of DCOR Circle names
+        """Return the list of all DCOR Circle dictionaries"""
+        return self._get_list_all_fields("organization_list")
+
+    def get_circles_user(self):
+        """Return the list of DCOR Circle dictionaries the user is member of
         """
-        return self.api.get("organization_list", all_fields=True)
+        if self.api.user_id is None:
+            return []
+        return self.api.get("organization_list_for_user", permission="read")
 
     def get_collections(self):
-        """Return the list of DCOR Collection names"""
-        data = self.api.get("group_list", all_fields=True, limit=1000)
-        if len(data) == 1000:
-            raise NotImplementedError(
-                "Reached hard limit of 1000 results! "
-                + "Please ask someone to implement this with `offset`.")
-        return data
+        """Return the list of all DCOR Collection dictionaries"""
+        return self._get_list_all_fields("group_list")
+
+    def get_collections_user(self):
+        """Return the list of DCOR Collection dicts the user is member of
+
+        This includes all collections in which the user has any role
+        (also "member").
+        """
+        # CKAN's `group_list_authz` only returns the collections that the
+        # user may edit, and there is no API call that returns the
+        # collections in which the user is a "member". Therefore, we have
+        # to check the members of every collection.
+        user_id = self.api.user_id
+        if user_id is None:
+            return []
+        collections = []
+        for col in self.get_collections():
+            members = self.api.get("member_list",
+                                   id=col["id"],
+                                   object_type="user")
+            if any(member[0] == user_id for member in members):
+                collections.append(col)
+        return collections
+
+    def _get_list_all_fields(self, api_call):
+        """Return the full result of a CKAN list call with `all_fields=True`
+
+        CKAN returns at most 25 items for e.g. `organization_list` and
+        `group_list` when `all_fields=True` is set (configuration option
+        `ckan.group_and_organization_list_all_fields_max`), so we have to
+        page through the results. The results are sorted by the unique
+        name, because the default sorting by title is not stable across
+        pages (e.g. for empty titles).
+        """
+        items = []
+        ids = set()
+        offset = 0
+        while True:
+            data = self.api.get(api_call,
+                                all_fields=True,
+                                sort="name asc",
+                                limit=25,
+                                offset=offset)
+            if not data:
+                break
+            offset += len(data)
+            for item in data:
+                # Items could be listed twice if an item was created
+                # in-between requests.
+                if item["id"] not in ids:
+                    ids.add(item["id"])
+                    items.append(item)
+        return items
 
     def get_datasets_user_following(self):
         """Return datasets the user is following"""
@@ -72,14 +125,15 @@ class APIInterrogator(DBInterrogator):
 
         if self.api.user_id is not None:
 
-            for circles_batch in batched(self.get_circles(), 20):
+            for circles_batch in batched(self.get_circles_user(), 20):
                 dbe += self.search_dataset_via_api(
                     circles=[c["name"] for c in circles_batch],
                     filter_queries=[f"-creator_user_id:{self.api.user_id}"],
                     limit=0,
                     )
 
-            for collections_batch in batched(self.get_collections(), 20):
+            for collections_batch in batched(self.get_collections_user(),
+                                             20):
                 dbe += self.search_dataset_via_api(
                     collections=[c["name"] for c in collections_batch],
                     filter_queries=[f"-creator_user_id:{self.api.user_id}"],

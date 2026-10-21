@@ -34,8 +34,18 @@ class DBInterrogator(abc.ABC):
         """Return the list of DCOR Circle dictionaries"""
 
     @abc.abstractmethod
+    def get_circles_user(self) -> list[dict]:
+        """Return the list of DCOR Circle dictionaries the user is member of
+        """
+
+    @abc.abstractmethod
     def get_collections(self) -> list[dict]:
         """Return the list of DCOR Collection dictionaries"""
+
+    @abc.abstractmethod
+    def get_collections_user(self) -> list[dict]:
+        """Return the list of DCOR Collection dicts the user is member of
+        """
 
     def get_datasets_user(self):
         """Return DBExtract with data owned by or shared with the user"""

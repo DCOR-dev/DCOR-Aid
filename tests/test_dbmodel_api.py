@@ -38,6 +38,40 @@ def test_get_collections():
     assert "dcoraid-collection" in collections
 
 
+def test_get_circles_all():
+    # The server has more than 25 circles (CKAN `all_fields` limit) and
+    # the circle of the test user should be listed nevertheless.
+    api = common.get_api()
+    db = db_api.APIInterrogator(api=api)
+    circles = [c["name"] for c in db.get_circles()]
+    assert len(circles) == len(api.get("organization_list"))
+    assert common.get_test_defaults()["circle"] in circles
+
+
+def test_get_circles_user():
+    api = common.get_api()
+    db = db_api.APIInterrogator(api=api)
+    circles_user = [c["name"] for c in db.get_circles_user()]
+    assert common.get_test_defaults()["circle"] in circles_user
+    assert len(circles_user) < len(db.get_circles())
+
+
+def test_get_collections_all():
+    api = common.get_api()
+    db = db_api.APIInterrogator(api=api)
+    collections = [c["name"] for c in db.get_collections()]
+    assert len(collections) == len(api.get("group_list", limit=1000))
+    assert common.get_test_defaults()["collection"] in collections
+
+
+def test_get_collections_user():
+    api = common.get_api()
+    db = db_api.APIInterrogator(api=api)
+    collections_user = [c["name"] for c in db.get_collections_user()]
+    assert common.get_test_defaults()["collection"] in collections_user
+    assert len(collections_user) < len(db.get_collections())
+
+
 def test_get_datasets_user_owned(tmp_path):
     ds_dict = common.make_dataset_for_download()
     api = common.get_api()

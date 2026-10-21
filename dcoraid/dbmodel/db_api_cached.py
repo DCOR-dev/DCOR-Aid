@@ -61,8 +61,7 @@ class CachedAPIInterrogator(DBInterrogator):
         self._mc.close()
 
     def get_circles(self):
-        """Return the list of DCOR Circle names
-        """
+        """Return the list of all DCOR Circle dictionaries"""
         # TODO: Use self._mc to extract circles
         clist = self._cache_fleeting.setdefault("circles", [])
         if not clist:
@@ -70,14 +69,30 @@ class CachedAPIInterrogator(DBInterrogator):
             clist += self.ai.get_circles()
         return clist
 
+    def get_circles_user(self):
+        """Return the list of DCOR Circle dictionaries the user is member of
+        """
+        ckey = "circles_user"
+        if self._cache_fleeting.get(ckey) is None:
+            self._cache_fleeting[ckey] = self.ai.get_circles_user()
+        return self._cache_fleeting[ckey]
+
     def get_collections(self):
-        """Return the list of DCOR Collection names"""
+        """Return the list of all DCOR Collection dictionaries"""
         # TODO: Use self._mc to extract collections
         clist = self._cache_fleeting.setdefault("collections", [])
         if not clist:
             clist.clear()
             clist += self.ai.get_collections()
         return clist
+
+    def get_collections_user(self):
+        """Return the list of DCOR Collection dicts the user is member of
+        """
+        ckey = "collections_user"
+        if self._cache_fleeting.get(ckey) is None:
+            self._cache_fleeting[ckey] = self.ai.get_collections_user()
+        return self._cache_fleeting[ckey]
 
     def get_dataset_dict(self, ds_id):
         return self._mc[ds_id]
