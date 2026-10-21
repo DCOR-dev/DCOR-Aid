@@ -1,21 +1,50 @@
 import hashlib
 import json
+import logging
 import pathlib
 import shutil
 import threading
-from typing import Callable
+import time
+from collections.abc import Callable
+
+import requests.exceptions
+import urllib3.exceptions
 
 from ..api import CKANAPI
+from ..api import errors as api_errors
 from ..dbmodel import APIInterrogator
 from ..download import DownloadJob
 from . import info, manifest
 
 
+logger = logging.getLogger(__name__)
+
+#: Errors that are considered transient and trigger a retry
+TRANSIENT_ERRORS = (
+    ConnectionError,
+    TimeoutError,
+    requests.exceptions.RequestException,
+    urllib3.exceptions.HTTPError,
+    api_errors.APIBadGatewayError,
+    api_errors.APIGatewayTimeoutError,
+)
+
+
+class ArchiveError(Exception):
+    """Raised when a resource or dataset could not be archived"""
+
+
+class ResourceVerificationError(Exception):
+    """Raised when a downloaded resource could not be verified"""
+
+
 def bag_circle(api: CKANAPI,
                circle_name: str,
                target_path: pathlib.Path,
-               abort_event: threading.Event = None,
-               callback: Callable = None):
+               abort_event: threading.Event | None = None,
+               callback: Callable | None = None,
+               retries_num: int = 3,
+               retries_wait: float = 10.0):
     """Download an entire circle to a target directory in BagIt format
 
     The format follows RFC 8493 "The BagIt File Packaging Format (V1.0)".
@@ -38,6 +67,18 @@ def bag_circle(api: CKANAPI,
         when you wish to abort `.set()` the event.
     callback
         Method for progress tracking (returns a float between 0 and 1)
+    retries_num
+        Number of times to retry archiving a dataset or downloading a
+        resource when transient errors (e.g. connection problems) are
+        encountered
+    retries_wait
+        Seconds to wait in-between retries
+
+    Raises
+    ------
+    ArchiveError
+        If a resource could not be downloaded or a dataset could not
+        be archived after `retries_num` retries
     """
     # fetch total list of active datasets
     ai = APIInterrogator(api)
@@ -93,13 +134,42 @@ def bag_circle(api: CKANAPI,
         prefix = str(dataset_index).zfill(max_digits+1)
         bag_path = target_path / f"{prefix}_{ds_dict['name']}"
 
-        if not manifest.is_bagged(bag_path):
-            bag_dataset(api=api,
-                        ds_dict=ds_dict,
-                        dataset_index=dataset_index,
-                        num_datasets=num_datasets,
-                        bag_path=bag_path,
-                        abort_event=abort_event)
+        if manifest.is_bagged(bag_path):
+            logger.info(f"Dataset {dataset_index}/{num_datasets} already "
+                        f"archived: {ds_dict['name']}")
+        else:
+            logger.info(f"Archiving dataset {dataset_index}/{num_datasets}: "
+                        f"{ds_dict['name']}")
+            for retry in range(retries_num + 1):
+                try:
+                    bag_dataset(api=api,
+                                ds_dict=ds_dict,
+                                dataset_index=dataset_index,
+                                num_datasets=num_datasets,
+                                bag_path=bag_path,
+                                abort_event=abort_event,
+                                # Only start from scratch in the first try.
+                                # In subsequent tries, keep the resources
+                                # that were already downloaded and verified.
+                                clear=retry == 0,
+                                retries_num=retries_num,
+                                retries_wait=retries_wait,
+                                )
+                except TRANSIENT_ERRORS as e:
+                    # Resource downloads are retried in `download_resource`
+                    # which raises an `ArchiveError` (not retried here) if
+                    # all retries failed.
+                    if retry == retries_num:
+                        raise ArchiveError(
+                            f"Failed to archive dataset {ds_dict['name']} "
+                            f"({ds_dict['id']}) after {retries_num} retries: "
+                            f"{e}") from e
+                    logger.warning(
+                        f"Failed to archive dataset {ds_dict['name']}: {e}. "
+                        f"Retrying {retry + 1}...")
+                    time.sleep(retries_wait)
+                else:
+                    break
         if abort_event is not None and abort_event.is_set():
             return
     if callback:
@@ -109,9 +179,12 @@ def bag_circle(api: CKANAPI,
 def bag_dataset(api: CKANAPI,
                 ds_dict: dict,
                 bag_path: pathlib.Path,
-                abort_event: threading.Event = None,
+                abort_event: threading.Event | None = None,
                 dataset_index: int = 1,
                 num_datasets: int = 1,
+                clear: bool = True,
+                retries_num: int = 3,
+                retries_wait: float = 10.0,
                 ):
     """Download a dataset to a target directory in BagIt format
 
@@ -129,9 +202,18 @@ def bag_dataset(api: CKANAPI,
         Index of this dataset in the circle
     num_datasets
         Total number of datasets in the circle
+    clear
+        Whether to remove `bag_path` before downloading; set this to
+        False to keep resources that were already downloaded and
+        verified (e.g. when retrying)
+    retries_num
+        Number of times to retry downloading a resource
+        (see :func:`download_resource`)
+    retries_wait
+        Seconds to wait in-between retries
     """
     # clear/create download directory
-    if bag_path.exists():
+    if clear and bag_path.exists():
         shutil.rmtree(bag_path)
     bag_path.mkdir(parents=True, exist_ok=True)
     data_path = bag_path / "data"
@@ -152,6 +234,8 @@ def bag_dataset(api: CKANAPI,
                           res_dict=res_dict,
                           condensed=False,
                           abort_event=abort_event,
+                          retries_num=retries_num,
+                          retries_wait=retries_wait,
                           )
 
         if abort_event is not None and abort_event.is_set():
@@ -164,6 +248,8 @@ def bag_dataset(api: CKANAPI,
                               res_dict=res_dict,
                               condensed=True,
                               abort_event=abort_event,
+                              retries_num=retries_num,
+                              retries_wait=retries_wait,
                               )
 
     if abort_event is not None and abort_event.is_set():
@@ -184,11 +270,14 @@ def download_resource(api: CKANAPI,
                       bag_path: pathlib.Path,
                       res_dict: dict,
                       condensed: bool,
-                      abort_event: threading.Event = None,
+                      abort_event: threading.Event | None = None,
+                      retries_num: int = 3,
+                      retries_wait: float = 10.0,
                       ):
     """Download and verify a resource from DCOR
 
     Parameters
+    ----------
     api
         CKANAPI for connecting to the DCOR instance
     bag_path
@@ -199,23 +288,63 @@ def download_resource(api: CKANAPI,
         Whether to download the condensed resource (or the original resource)
     abort_event
         For stopping the download process prematurely
+    retries_num
+        Number of times to retry the download when transient errors
+        (e.g. connection problems) occur or when verification fails
+    retries_wait
+        Seconds to wait in-between retries
+
+    Raises
+    ------
+    ArchiveError
+        If the resource could not be downloaded and verified after
+        `retries_num` retries or if there is not enough disk space
     """
     data_path = bag_path / "data"
     data_path.mkdir(parents=True, exist_ok=True)
     dl_path = data_path / res_dict["name"]
     if condensed:
         dl_path = dl_path.with_name(dl_path.stem + "_condensed.rtdc")
-    dj = DownloadJob(api=api,
-                     resource_id=res_dict["id"],
-                     download_path=dl_path,
-                     condensed=condensed,
-                     )
-    if abort_event is not None and abort_event.is_set():
-        return
+    res_label = f"{res_dict['name']} ({res_dict['id']}" \
+        + (", condensed)" if condensed else ")")
 
-    dj.task_download_resource(abort_event=abort_event)
+    for retry in range(retries_num + 1):
+        try:
+            # A new job resumes from a partially downloaded temporary file.
+            dj = DownloadJob(api=api,
+                             resource_id=res_dict["id"],
+                             download_path=dl_path,
+                             condensed=condensed,
+                             )
+            if abort_event is not None and abort_event.is_set():
+                return
 
-    if abort_event is not None and abort_event.is_set():
-        return
+            dj.task_download_resource(abort_event=abort_event)
 
-    dj.task_verify_resource()
+            if abort_event is not None and abort_event.is_set():
+                return
+
+            if dj.state == "wait-disk":
+                raise ArchiveError(
+                    f"Not enough disk space to download resource "
+                    f"{res_label} to {dl_path}")
+
+            dj.task_verify_resource()
+
+            if dj.state != "done":
+                # Remove the corrupt temporary file, so that the next try
+                # starts from scratch instead of resuming.
+                if dj.path_temp is not None:
+                    dj.path_temp.unlink(missing_ok=True)
+                raise ResourceVerificationError(
+                    dj.traceback or f"Download job is in state '{dj.state}'")
+        except (ResourceVerificationError,) + TRANSIENT_ERRORS as e:
+            if retry == retries_num:
+                raise ArchiveError(
+                    f"Failed to download resource {res_label} after "
+                    f"{retries_num} retries: {e}") from e
+            logger.warning(f"Failed to download resource {res_label}: {e}. "
+                           f"Retrying {retry + 1}...")
+            time.sleep(retries_wait)
+        else:
+            break

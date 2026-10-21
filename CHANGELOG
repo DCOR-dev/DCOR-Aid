@@ -1,9 +1,15 @@
 1.2.0
+ - feat: new CLI `dcoraid-archive-circle` for archiving an entire circle
+   in the BagIt format
  - fix: `dcoraid-upload-task` ignored the `--cache_dir` argument
  - fix: `dcoraid-upload-task` SERVER argument had a non-functional default
  - fix: cleanup `dcoraid-upload-task` with ruff
+ - fix: BagIt archiving silently created bags for resources whose download
+   or verification failed
  - enh: `dcoraid-upload-task` reads the API key from the `DCOR_API_KEY`
    environment variable if it is not passed as an argument
+ - enh: retry downloading resources and archiving datasets in BagIt
+   archiving when transient errors occur
  - ref: convert `dcoraid.cli` module into a package; the upload task CLI
    now lives in `dcoraid.cli.task_upload_task`
  - setup: add tool.ruff.lint section to pyproject.toml
