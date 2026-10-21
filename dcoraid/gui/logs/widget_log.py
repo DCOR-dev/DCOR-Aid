@@ -26,7 +26,7 @@ class StringSignalLogHandler(logging.Handler):
     new_message = QtCore.pyqtSignal(str)
 
     def __init__(self, signal, *args, **kwargs):
-        super(StringSignalLogHandler, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.signal = signal
         self.setFormatter(logging.Formatter(
             "%(asctime)s %(levelname)s %(processName)s/%(threadName)s "
@@ -42,7 +42,7 @@ class WidgetLog(QtWidgets.QWidget):
     new_message = QtCore.pyqtSignal(str)
 
     def __init__(self, *args, **kwargs):
-        super(WidgetLog, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.logs_queued_max = 1000
         self.logs_printed = 0
         self.full_log = deque(maxlen=self.logs_queued_max)

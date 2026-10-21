@@ -21,7 +21,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         """Create a new window for preferences
         """
-        super(PreferencesDialog, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         ref_ui = resources.files(
             "dcoraid.gui.preferences") / "dlg_preferences.ui"
         with resources.as_file(ref_ui) as path_ui:

@@ -25,7 +25,7 @@ class DownloadWidget(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         """Manage running downloads
         """
-        super(DownloadWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         ref_ui = resources.files(
             "dcoraid.gui.panel_downloads") / "widget_download.ui"
         with resources.as_file(ref_ui) as path_ui:
@@ -159,7 +159,7 @@ class DownloadTableWidget(QtWidgets.QTableWidget):
 
     def __init__(self, *args, **kwargs):
         self._busy_updating_widgets_lock = threading.Lock()
-        super(DownloadTableWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.jobs = []  # Will become DownloadQueue with self.set_job_list
         self._finished_downloads = []
 

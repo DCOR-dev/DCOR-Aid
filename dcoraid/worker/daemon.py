@@ -15,14 +15,14 @@ class Daemon(KThread):
                  jobs,
                  job_trigger_state: str,
                  job_function_name: str,
-                 job_function_kwargs: dict = None,
+                 job_function_kwargs: dict | None = None,
                  ):
         """Daemon base class for running uploads/downloads in the background"""
         self.jobs = jobs
         self.job_trigger_state = job_trigger_state
         self.job_function_name = job_function_name
         self.job_function_kwargs = job_function_kwargs
-        super(Daemon, self).__init__()
+        super().__init__()
         self.daemon = True  # We don't have to worry about ending this thread
 
         # The shutdown_flag is a threading.Event object that

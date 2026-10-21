@@ -20,7 +20,7 @@ class WidgetMyData(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         """Browse public DCOR data"""
-        super(WidgetMyData, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         ref_ui = resources.files(
             "dcoraid.gui.panel_my_data") / "widget_my_data.ui"
         with resources.as_file(ref_ui) as path_ui:

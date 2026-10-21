@@ -15,7 +15,7 @@ class StatusWidget(QtWidgets.QWidget):
     clicked = QtCore.pyqtSignal()
 
     def __init__(self, *args, **kwargs):
-        super(StatusWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.logger = logging.getLogger(__name__)
         self.layout = QtWidgets.QHBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -136,7 +136,7 @@ class StatusWidetUpdateWorker(QtCore.QRunnable):
     """Worker for updating the current API situation
     """
     def __init__(self):
-        super(StatusWidetUpdateWorker, self).__init__()
+        super().__init__()
         self.signal = StatusWidetUpdateWorkerSignals()
         self.logger = logging.getLogger(__name__)
 

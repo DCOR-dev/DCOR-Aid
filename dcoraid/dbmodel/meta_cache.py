@@ -54,8 +54,8 @@ class MetaCache:
     """
     def __init__(self,
                  directory: str | pathlib.Path,
-                 user_id: str = None,
-                 org_ids: list[str] = None,
+                 user_id: str | None = None,
+                 org_ids: list[str] | None = None,
                  ) -> None:
         """
         Scan *directory* for ``org_*.db`` files, load all of them
@@ -191,7 +191,7 @@ class MetaCache:
 
     def search(self,
                query: str,
-               limit: int = None
+               limit: int | None = None
                ) -> list[dict[str, Any]]:
         """
         Free‑text search across **all** cached datasets.

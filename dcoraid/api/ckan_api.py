@@ -460,7 +460,7 @@ class CKANAPI:
 
     def require_collection(self,
                            name: str,
-                           title: str = None,
+                           title: str | None = None,
                            exist_ok: bool = True,
                            ):
         """Return a collection dict with the given name and optional title

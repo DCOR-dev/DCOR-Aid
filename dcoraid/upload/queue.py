@@ -354,7 +354,7 @@ class UploadQueue:
 class CompressDaemon(Daemon):
     def __init__(self, jobs):
         """Compression daemon"""
-        super(CompressDaemon, self).__init__(
+        super().__init__(
             jobs,
             job_trigger_state="init",
             job_function_name="task_compress_resources")
@@ -367,7 +367,7 @@ class UploadDaemon(Daemon):
             run_after_upload = None
         else:
             run_after_upload = jobs_eternal.update_job
-        super(UploadDaemon, self).__init__(
+        super().__init__(
             jobs,
             job_trigger_state="parcel",
             job_function_name="task_upload_resources",
@@ -380,7 +380,7 @@ class UploadDaemon(Daemon):
 class VerifyDaemon(Daemon):
     def __init__(self, jobs):
         """Verify daemon"""
-        super(VerifyDaemon, self).__init__(
+        super().__init__(
             jobs,
             job_trigger_state="online",
             job_function_name="task_verify_resources")

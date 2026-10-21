@@ -24,7 +24,7 @@ class FilterBase(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         """Filter view widget with title, edit, checkbox, and table
         """
-        super(FilterBase, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # to be populated by subclasses
         self.active_actions = []
         ref_ui = resources.files("dcoraid.gui.dbview") / "filter_base.ui"

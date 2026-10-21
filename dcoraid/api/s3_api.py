@@ -7,7 +7,7 @@ import os
 import pathlib
 import re
 import traceback
-from typing import BinaryIO, List
+from typing import BinaryIO
 
 import requests
 
@@ -25,9 +25,9 @@ class FilePart(io.IOBase):
                  file_object: io.FileIO | BinaryIO,
                  part_number: int,
                  part_size: int,
-                 file_size: int = None,
+                 file_size: int | None = None,
                  min_read_size: int = 4 * MiB,
-                 callback: callable = None,
+                 callback: callable | None = None,
                  ):
         """MD5-creating progress wrapper of file objects for partial access
 
@@ -335,11 +335,11 @@ def requests_put_data_and_get_etag(
 
 def upload_s3_presigned(
         path: pathlib.Path | str,
-        upload_urls: List[str],
-        complete_url: str = None,
+        upload_urls: list[str],
+        complete_url: str | None = None,
         retries: int = 3,
         timeout: float = 27.3,
-        callback: callable = None,
+        callback: callable | None = None,
         ) -> str:
     """Upload data to an S3 bucket using presigned URLS
 
@@ -452,11 +452,11 @@ def upload_s3_presigned_multipart(
         path: pathlib.Path | str,
         part_size: int,
         file_size: int,
-        presigned_urls: List[str],
+        presigned_urls: list[str],
         complete_multipart_url: str,
         retries: int = 3,
         timeout: float = 27.3,
-        callback: callable = None,
+        callback: callable | None = None,
         ) -> str:
     """Upload a dataset to S3 with multipart and a given upload ID
 
@@ -600,7 +600,7 @@ def upload_s3_presigned_single(
         presigned_url: str,
         retries: int = 3,
         timeout: float = 27.3,
-        callback: callable = None
+        callback: callable | None = None
         ) -> str:
     """Upload a single file using a PUT request to a presigned URL
 

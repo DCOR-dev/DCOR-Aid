@@ -19,7 +19,7 @@ class ShareDialog(QtWidgets.QDialog):
                  *args, **kwargs):
         """Create a new window for setting up a file upload
         """
-        super(ShareDialog, self).__init__(parent, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
         self.logger = logging.getLogger(__name__)
         ref_ui = resources.files(
             "dcoraid.gui.panel_my_data") / "dlg_share.ui"
@@ -126,7 +126,7 @@ class UserTableWidget(QtWidgets.QTableWidget):
     user_remove = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
-        super(UserTableWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.api = get_ckan_api()
         self.user_cache_location = pathlib.Path(

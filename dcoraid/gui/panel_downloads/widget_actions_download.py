@@ -15,7 +15,7 @@ class TableCellActionsDownload(QtWidgets.QWidget):
 
         Used for the "Running Downloads" table in the "Downloads" tab.
         """
-        super(TableCellActionsDownload, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         ref_ui = resources.files(
             "dcoraid.gui.panel_downloads") / "widget_actions_download.ui"
         with resources.as_file(ref_ui) as path_ui:

@@ -18,7 +18,7 @@ class ResourcesModel(QtCore.QAbstractListModel):
     """
 
     def __init__(self, *args, **kwargs):
-        super(ResourcesModel, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.resources = OrderedDict()
 
     def add_resources(self, rslist):

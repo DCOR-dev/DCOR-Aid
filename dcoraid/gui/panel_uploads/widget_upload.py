@@ -30,7 +30,7 @@ class UploadWidget(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         """Manage running uploads
         """
-        super(UploadWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         ref_ui = resources.files(
             "dcoraid.gui.panel_uploads") / "widget_upload.ui"
         with resources.as_file(ref_ui) as path_ui:
@@ -374,7 +374,7 @@ class UploadTableWidget(QtWidgets.QTableWidget):
     job_selected = QtCore.pyqtSignal(object)
 
     def __init__(self, *args, **kwargs):
-        super(UploadTableWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.logger = logging.getLogger(__name__).getChild("UploadTableWidget")
         self.setSelectionMode(
             QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)

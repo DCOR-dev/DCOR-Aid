@@ -14,7 +14,7 @@ class TitleItem(QtWidgets.QWidget):
         title: str
             Section title
         """
-        super(TitleItem, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.verticalLayout = QtWidgets.QVBoxLayout(self)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
@@ -40,7 +40,7 @@ class RSSItemBase(QtWidgets.QWidget):
     value_changed = QtCore.pyqtSignal(str, str, object, bool)
 
     def __init__(self, rss_dict, section, *args, **kwargs):
-        super(RSSItemBase, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.rss_dict = rss_dict
         self.section = section
         self.key = rss_dict["key"]
@@ -82,7 +82,7 @@ class RSSItemBase(QtWidgets.QWidget):
 class RSSTagsItem(RSSItemBase):
     def __init__(self, *args, **kwargs):
         """Represents an item in the supplementary resource schema"""
-        super(RSSTagsItem, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         ref_ui = resources.files(
             "dcoraid.gui.panel_uploads") / "widget_supplement_tags.ui"
         with resources.as_file(ref_ui) as path_ui:
@@ -158,7 +158,7 @@ class RSSTagsItem(RSSItemBase):
 class RSSItem(RSSItemBase):
     def __init__(self, *args, **kwargs):
         """Represents an item in the supplementary resource schema"""
-        super(RSSItem, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         ref_ui = resources.files(
             "dcoraid.gui.panel_uploads") / "widget_supplement_item.ui"
         with resources.as_file(ref_ui) as path_ui:
