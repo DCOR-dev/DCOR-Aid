@@ -119,3 +119,7 @@ _dev_*
 
 # line_profiler
 *.lprof
+
+# API keys of (auto-generated) test users
+tests/api_key
+tests/api_key_2
