@@ -165,11 +165,10 @@ def upload_task(path_task: str | pathlib.Path | None = None,
         if path_error.exists():
             path_error.unlink(missing_ok=True)
         exit_status = 0
-    finally:
-        if ret_job and not exit_status:
-            return uj
-        # return sys.exit for testing (monkeypatched)
-        return sys.exit(exit_status)
+    if ret_job and not exit_status:
+        return uj
+    # return sys.exit for testing (monkeypatched)
+    return sys.exit(exit_status)
 
 
 def upload_task_parser():

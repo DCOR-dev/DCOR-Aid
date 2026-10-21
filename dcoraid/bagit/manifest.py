@@ -64,8 +64,8 @@ def write_manifest(bag_path, ds_dict):
 
     # write bag declaration
     (bag_path / "bagit.txt").write_text(
-        "\n".join(["BagIt-Version: 0.97",
-                   "Tag-File-Character-Encoding: UTF-8"]),
+        "BagIt-Version: 0.97\n"
+        "Tag-File-Character-Encoding: UTF-8",
         encoding="utf-8")
 
     write_tag_manifest(bag_path)
