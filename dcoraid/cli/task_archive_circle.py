@@ -47,7 +47,8 @@ def archive_circle(circle: str | None = None,
     # Initialize with None, otherwise we might get issues if parsing
     # of the arguments fails.
     path_error = None
-    exit_status = 1  # fails by default if there is no success
+    # fails by default if there is no success
+    exit_status: int | str | None = 1
     try:
         if circle is None:
             parser = archive_circle_parser()

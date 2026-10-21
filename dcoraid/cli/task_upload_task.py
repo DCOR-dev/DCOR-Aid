@@ -81,7 +81,8 @@ def upload_task(path_task: str | pathlib.Path | None = None,
     # of the arguments fails or in `finally`.
     path_error = None
     uj = None
-    exit_status = 1  # fails by default if there is no success
+    # fails by default if there is no success
+    exit_status: int | str | None = 1
     try:
         if path_task is None:
             parser = upload_task_parser()

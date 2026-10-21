@@ -26,6 +26,8 @@
  - ref: fix various ruff findings
  - ref: `search_dataset` now accepts `query` instead of `text` globally
  - ref: correct return type hint of `meta_cache._values_only`
+ - ref: `DBExtract.__add__` accepts lists like `DBExtract.__iadd__`
+ - ref: correct type hints for `CKANAPI.get` kwargs and CLI exit status
  - setup: add tool.ruff.lint section to pyproject.toml
 1.1.3
  - enh: use `HTTPAdapter` with `urlib3`'s `Retry` to handle connection issues
