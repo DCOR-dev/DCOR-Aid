@@ -1,10 +1,12 @@
 1.2.0
- - ref: convert `dcoraid.cli` module into a package; the upload task CLI
-   now lives in `dcoraid.cli.task_upload_task`
- - enh: `dcoraid-upload-task` reads the API key from the `DCOR_API_KEY`
-   environment variable if it is not passed as an argument
  - fix: `dcoraid-upload-task` ignored the `--cache_dir` argument
  - fix: `dcoraid-upload-task` SERVER argument had a non-functional default
+ - fix: cleanup `dcoraid-upload-task` with ruff
+ - enh: `dcoraid-upload-task` reads the API key from the `DCOR_API_KEY`
+   environment variable if it is not passed as an argument
+ - ref: convert `dcoraid.cli` module into a package; the upload task CLI
+   now lives in `dcoraid.cli.task_upload_task`
+ - setup: add tool.ruff.lint section to pyproject.toml
 1.1.3
  - enh: use `HTTPAdapter` with `urlib3`'s `Retry` to handle connection issues
  - enh: use `requests.Session` when caching is disabled

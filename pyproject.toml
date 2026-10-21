@@ -53,3 +53,14 @@ changelog = "https://github.com/DCOR-dev/DCOR-Aid/blob/master/CHANGELOG"
 [tool.setuptools_scm]
 write_to = "dcoraid/_version.py"
 version_scheme = "post-release"
+
+[tool.ruff.lint]
+ignore = [
+    # Do not organize imports (we have our own scheme)
+    "I001",
+    # Allow catching blind exceptions
+    "BLE001",
+    # Allow catching blind exceptions
+    "S110",
+    "S112",
+]

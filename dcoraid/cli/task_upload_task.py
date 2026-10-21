@@ -34,7 +34,7 @@ def monitor_upload_progress(upload_job):
         time.sleep(1)
     if newline:
         # Only print new line if we printed something before.
-        print("")
+        print()
 
 
 def ascertain_state_or_bust(upload_job, state):
@@ -50,10 +50,10 @@ def ascertain_state_or_bust(upload_job, state):
             )
 
 
-def upload_task(path_task: str | pathlib.Path = None,
-                server: str = None,
-                api_key: str = None,
-                cache_dir: str | pathlib.Path = None,
+def upload_task(path_task: str | pathlib.Path | None = None,
+                server: str | None = None,
+                api_key: str | None = None,
+                cache_dir: str | pathlib.Path | None = None,
                 ret_job: bool = False,
                 retries_num: int = 10,
                 retries_wait: float = 30.0):
@@ -90,6 +90,7 @@ def upload_task(path_task: str | pathlib.Path = None,
             server = args.server
             api_key = args.api_key
             cache_dir = args.cache_dir
+        assert path_task is not None
         path_task = pathlib.Path(path_task)
         path_error = path_task.parent / (path_task.name + "_error.txt")
         if server is None:
@@ -100,6 +101,7 @@ def upload_task(path_task: str | pathlib.Path = None,
                 raise ValueError(
                     "No API key specified! Either pass the API key as an "
                     "argument or set the `DCOR_API_KEY` environment variable.")
+        httperror = None
         for retry in range(retries_num):
             try:
                 print("Initializing.")
@@ -138,16 +140,19 @@ def upload_task(path_task: str | pathlib.Path = None,
                 time.sleep(retries_wait)
                 httperror = e
                 continue
-            except BaseException as e:
+            except BaseException:
                 # let the outer try-except clause handle all other errors
-                raise e
+                raise
             else:
                 # Upload successfully completed
                 break
         else:
             # We only get here if we "continued" through the entire loop,
             # which means no successful upload and only HTTPErrors.
-            raise httperror
+            if httperror is not None:
+                raise httperror
+            else:
+                raise ValueError("Unknown Error")
     except SystemExit as e:
         # e.code is 0 if the user just passed --help or --version
         exit_status = e.code
