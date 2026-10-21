@@ -4,7 +4,6 @@ import copy
 import functools
 import json
 import logging
-import numbers
 import pathlib
 import random
 import traceback
@@ -308,7 +307,7 @@ class CKANAPI:
     def get(self,
             api_call: str,
             timeout: float = 27.9,
-            **kwargs: str | numbers.Number):
+            **kwargs: str | float):
         """GET request
 
         Parameters

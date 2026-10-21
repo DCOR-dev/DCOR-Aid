@@ -36,3 +36,30 @@ def test_dbmodel_get_item():
     assert de["peter"] == {"name": "peter", "id": "hans"}
     assert de[0] == {"name": "peter", "id": "hans"}
     assert de[1] == {"name": "flink", "id": "flank"}
+
+
+def test_dbmodel_add():
+    de1 = DBExtract([{"name": "peter", "id": "hans"}])
+    de2 = DBExtract([{"name": "flink", "id": "flank"},
+                     {"name": "peter", "id": "hans"}])
+    de = de1 + de2
+    assert len(de) == 2
+    assert [d["id"] for d in de] == ["hans", "flank"]
+    # the summands are not modified
+    assert len(de1) == 1
+    assert len(de2) == 2
+
+
+def test_dbmodel_add_list():
+    de1 = DBExtract([{"name": "peter", "id": "hans"}])
+    de = de1 + [{"name": "flink", "id": "flank"},
+                {"name": "peter", "id": "hans"}]
+    assert isinstance(de, DBExtract)
+    assert [d["id"] for d in de] == ["hans", "flank"]
+    assert len(de1) == 1
+
+
+def test_dbmodel_iadd_list():
+    de = DBExtract([{"name": "peter", "id": "hans"}])
+    de += [{"name": "flink", "id": "flank"}]
+    assert [d["id"] for d in de] == ["hans", "flank"]
