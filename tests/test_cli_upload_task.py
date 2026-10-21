@@ -112,7 +112,6 @@ def test_cli_fail_upload_sha256(mock_stdout, mock_sha256sum, monkeypatch):
     def patched_resource_add_upload_direct_s3(*args, **kwargs):
         """Patched version that does not return an ETag"""
         resource_add_upload_direct_s3(*args, **kwargs)
-        return None
     monkeypatch.setattr(dataset,
                         "resource_add_upload_direct_s3",
                         patched_resource_add_upload_direct_s3)

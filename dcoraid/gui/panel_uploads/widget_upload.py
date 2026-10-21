@@ -282,13 +282,13 @@ class UploadWidget(QtWidgets.QWidget):
                     break
                 else:
                     dataset_kwargs["owner_org"] = cdict["name"]
-            load_kw = dict(
-                path=pp,
-                map_task_to_dataset_id=map_task_to_dataset_id,
-                api=api,
-                dataset_kwargs=dataset_kwargs,
-                update_dataset_id=update_dataset_id,
-                cache_dir=self.cache_dir)
+            load_kw = {
+                "path": pp,
+                "map_task_to_dataset_id": map_task_to_dataset_id,
+                "api": api,
+                "dataset_kwargs": dataset_kwargs,
+                "update_dataset_id": update_dataset_id,
+                "cache_dir": self.cache_dir}
             try:
                 with ShowWaitCursor():
                     upload_job = task.load_task(**load_kw)

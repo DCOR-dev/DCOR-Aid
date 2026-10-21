@@ -20,7 +20,6 @@ from .resource_schema_preset import PersistentResourceSchemaPresets
 
 class NoCircleSelectedError(ValueError):
     """Used to tell UploadWidget that the user did not select a circle"""
-    pass
 
 
 class UploadDialog(QtWidgets.QDialog):
@@ -161,9 +160,8 @@ class UploadDialog(QtWidgets.QDialog):
             kwargs.get("notes", "A description"))
         self.lineEdit_tags.setText(kwargs.get("tags", "HL60, GFP"))
         lcn_index = self.comboBox_license.findData("CC-BY-SA-4.0")
-        if lcn_index < 0:
-            # this happens on DCOR-med when there is no CC license
-            lcn_index = 0
+        # lcn_index is -1 on DCOR-med when there is no CC license
+        lcn_index = max(lcn_index, 0)
         self.comboBox_license.setCurrentIndex(lcn_index)
         self.comboBox_circles.setCurrentIndex(0)
         self.comboBox_vis.setCurrentIndex(0)

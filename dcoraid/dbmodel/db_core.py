@@ -15,9 +15,8 @@ class DBInterrogator(abc.ABC):
     @property
     def is_up_to_date(self):
         """Checks whether the local database copy is up-to-date"""
-        if self.local_version_score != self.remote_version_score:
-            uptodate = False
-        elif self.local_timestamp != self.remote_timestamp:
+        if (self.local_version_score != self.remote_version_score
+                or self.local_timestamp != self.remote_timestamp):
             uptodate = False
         else:
             uptodate = True
@@ -29,12 +28,10 @@ class DBInterrogator(abc.ABC):
     @abc.abstractmethod
     def get_circles(self):
         """Return the list of DCOR Circle dictionaries"""
-        pass
 
     @abc.abstractmethod
     def get_collections(self):
         """Return the list of DCOR Collection dictionaries"""
-        pass
 
     def get_datasets_user(self):
         """Return DBExtract with data owned by or shared with the user"""
@@ -47,27 +44,22 @@ class DBInterrogator(abc.ABC):
     @abc.abstractmethod
     def get_datasets_user_following(self):
         """Return all datasets the user is following"""
-        pass
 
     @abc.abstractmethod
     def get_datasets_user_owned(self):
         """Return all datasets owned by the user"""
-        pass
 
     @abc.abstractmethod
     def get_datasets_user_shared(self):
         """Return all datasets shared with the user"""
-        pass
 
     @abc.abstractmethod
     def get_users(self):
         """Return the list of DCOR users"""
-        pass
 
     @abc.abstractmethod
     def search_dataset(self, text):
         """Free text search for a dataset in the database"""
-        pass
 
     @property
     @abc.abstractmethod
@@ -92,4 +84,3 @@ class DBInterrogator(abc.ABC):
     @abc.abstractmethod
     def update(self, reset=False):
         """Update the local database copy"""
-        pass

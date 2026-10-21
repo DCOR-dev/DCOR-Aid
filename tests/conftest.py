@@ -84,8 +84,8 @@ def pytest_unconfigure(config):
     QtCore.QCoreApplication.setApplicationName("dcoraid")
     QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
-    for key in USER_SETTINGS:
-        settings.setValue(key, USER_SETTINGS[key])
+    for key, value in USER_SETTINGS.items():
+        settings.setValue(key, value)
     # always remove this setting, because it breaks the user workflow
     settings.remove("debug/without timers")
     settings.remove("skip database update on startup")

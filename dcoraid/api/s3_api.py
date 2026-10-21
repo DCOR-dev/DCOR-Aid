@@ -647,7 +647,7 @@ def upload_s3_presigned_single(
              ExpiresIn=expiration,
              HttpMethod='PUT',
          )
-    """ # noqa
+    """
     retries = max(1, retries)
     with path.open("rb") as fd:
         monitor = UploadMonitorLink(fd=fd,

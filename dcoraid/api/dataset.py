@@ -11,8 +11,6 @@ from collections.abc import Callable
 import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
-from ..common import ConnectionTimeoutErrors
-
 from .errors import (
     APIBadRequest, APIConflictError, APINotFoundError, NoS3UploadAvailableError
 )
@@ -35,22 +33,18 @@ def dataset_activate(dataset_id: str, api: CKANAPI):
     api: dcoraid.api.CKANAPI
         API instance with server, api_key (and optional certificate)
     """
-    try:
-        # First check whether the dataset is already active. Use a long
-        # timeout for this critical step.
-        ds_dict = api.get("package_show", id=dataset_id, timeout=500)
-    except ConnectionTimeoutErrors:
-        raise
-    else:
-        if not ds_dict["state"] == "active":
-            revise_dict = {
-                "match": {"id": dataset_id},
-                "update": {"state": "active"}}
-            api.post("package_revise",
-                     revise_dict,
-                     # Dataset activation may take long when there
-                     # are a lot of resources.
-                     timeout=500)
+    # First check whether the dataset is already active. Use a long
+    # timeout for this critical step.
+    ds_dict = api.get("package_show", id=dataset_id, timeout=500)
+    if ds_dict["state"] != "active":
+        revise_dict = {
+            "match": {"id": dataset_id},
+            "update": {"state": "active"}}
+        api.post("package_revise",
+                 revise_dict,
+                 # Dataset activation may take long when there
+                 # are a lot of resources.
+                 timeout=500)
 
 
 def dataset_create(dataset_dict, api, resources=None,

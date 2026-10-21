@@ -79,10 +79,7 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             + "DCOR-Aid?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No)
-        if button_reply == QMessageBox.StandardButton.Yes:
-            return True
-        else:
-            return False
+        return button_reply == QMessageBox.StandardButton.Yes
 
     def init_downloads(self):
         fallback = QStandardPaths.writableLocation(
@@ -333,9 +330,9 @@ class PreferencesDialog(QtWidgets.QMainWindow):
             msg.setDetailedText(tb.format_exc())
             msg.exec()
         else:
-            if old_server != server or old_api_key != api_key:
-                if self.ask_change_server_or_api_key():
-                    self.settings.setValue("auth/api key", api_key)
-                    self.settings.setValue("auth/server", server)
-                    self.logger.info("Exiting, because of new credentials.")
-                    QtWidgets.QApplication.quit()
+            if ((old_server != server or old_api_key != api_key)
+                    and self.ask_change_server_or_api_key()):
+                self.settings.setValue("auth/api key", api_key)
+                self.settings.setValue("auth/server", server)
+                self.logger.info("Exiting, because of new credentials.")
+                QtWidgets.QApplication.quit()
