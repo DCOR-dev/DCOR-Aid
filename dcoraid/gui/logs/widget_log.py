@@ -1,7 +1,6 @@
 import subprocess
 from collections import deque
 import html
-from importlib import resources
 import logging
 import os
 import pathlib
@@ -9,9 +8,10 @@ import sys
 import time
 import traceback
 
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 from ..._version import version
+from .widget_log_ui import Ui_Form
 
 
 levels = {
@@ -47,11 +47,10 @@ class WidgetLog(QtWidgets.QWidget):
         self.logs_printed = 0
         self.full_log = deque(maxlen=self.logs_queued_max)
 
-        ref_ui = resources.files("dcoraid.gui.logs") / "widget_log.ui"
-        with resources.as_file(ref_ui) as path_ui:
-            uic.loadUi(path_ui, self)
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
         for level in ["DEBUG", "INFO", "WARNING", "ERROR"]:
-            self.comboBox_level.addItem(level, levels[level])
+            self.ui.comboBox_level.addItem(level, levels[level])
 
         # Logging output path
         log_dir = pathlib.Path(
@@ -74,13 +73,13 @@ class WidgetLog(QtWidgets.QWidget):
 
         # Set logging level to INFO for normal operations
         is_dev_version = version.count("post")
-        self.comboBox_level.setCurrentIndex(0 if is_dev_version else 1)
+        self.ui.comboBox_level.setCurrentIndex(0 if is_dev_version else 1)
 
         self.new_message.connect(self.add_colored_item)
-        self.lineEdit_filter.textEdited.connect(self.on_filter_changed)
-        self.comboBox_level.currentIndexChanged.connect(
+        self.ui.lineEdit_filter.textEdited.connect(self.on_filter_changed)
+        self.ui.comboBox_level.currentIndexChanged.connect(
             self.on_filter_changed)
-        self.toolButton_dir.clicked.connect(self.on_log_dir_open)
+        self.ui.toolButton_dir.clicked.connect(self.on_log_dir_open)
         self.log_handler = StringSignalLogHandler(self.new_message)
 
     @QtCore.pyqtSlot(str)
@@ -105,7 +104,7 @@ class WidgetLog(QtWidgets.QWidget):
             html_text = f"<div {style}>{html.escape(msg)}</div>"
             html_text = html_text.replace("\n", "<br>")
 
-            self.textEdit.append(html_text)
+            self.ui.textEdit.append(html_text)
             self.logs_printed += 1
 
             # Clean up every once in a while
@@ -121,8 +120,8 @@ class WidgetLog(QtWidgets.QWidget):
 
     def check_filter(self, msg):
         """Return True when `msg` should be displayed"""
-        filt_str = self.lineEdit_filter.text().strip()
-        curlev = self.comboBox_level.currentData()
+        filt_str = self.ui.lineEdit_filter.text().strip()
+        curlev = self.ui.comboBox_level.currentData()
         mlev = self.get_level(msg)
 
         if mlev < curlev:
@@ -134,7 +133,7 @@ class WidgetLog(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_filter_changed(self):
-        self.textEdit.clear()
+        self.ui.textEdit.clear()
         self.logs_printed = 0
         for msg in self.full_log:
             self.add_colored_item(msg, append_global=False)

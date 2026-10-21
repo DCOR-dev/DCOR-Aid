@@ -1,10 +1,9 @@
 import copy
 
-from importlib import resources
-
-from PyQt6 import QtCore, QtWidgets, uic
+from PyQt6 import QtCore, QtWidgets
 
 from ...common import is_dc_resource_dict
+from .filter_chain_ui import Ui_Form
 
 
 class FilterChain(QtWidgets.QWidget):
@@ -14,9 +13,8 @@ class FilterChain(QtWidgets.QWidget):
         """Filter chain widget with multiple filter views
         """
         super().__init__(*args, **kwargs)
-        ref_ui = resources.files("dcoraid.gui.dbview") / "filter_chain.ui"
-        with resources.as_file(ref_ui) as path_ui:
-            uic.loadUi(path_ui, self)
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         #: Current database extract
         #: (instance of :class:`dcoraid.dbmodel.core.DBExtract`)
@@ -24,40 +22,41 @@ class FilterChain(QtWidgets.QWidget):
 
         # Signals and slots
         # circle selection changed
-        self.fw_circles.selection_changed.connect(self.on_select_circles)
+        self.ui.fw_circles.selection_changed.connect(self.on_select_circles)
         # collection selection changed
-        self.fw_collections.selection_changed.connect(self.update_datasets)
+        self.ui.fw_collections.selection_changed.connect(self.update_datasets)
         # dataset selection changed
-        self.fw_datasets.selection_changed.connect(self.update_resources)
+        self.ui.fw_datasets.selection_changed.connect(self.update_resources)
         # resource filtered by .rtdc
-        self.fw_resources.checkBox.stateChanged.connect(self.update_resources)
+        self.ui.fw_resources.ui.checkBox.stateChanged.connect(
+            self.update_resources)
         # request resource downloads
-        self.fw_circles.download_item.connect(self.download_item)
-        self.fw_collections.download_item.connect(self.download_item)
-        self.fw_datasets.download_item.connect(self.download_item)
-        self.fw_resources.download_item.connect(self.download_item)
+        self.ui.fw_circles.download_item.connect(self.download_item)
+        self.ui.fw_collections.download_item.connect(self.download_item)
+        self.ui.fw_datasets.download_item.connect(self.download_item)
+        self.ui.fw_resources.download_item.connect(self.download_item)
 
     @property
     def selected_circles(self):
         """Circles currently selected"""
-        circs = self.fw_circles.get_entry_identifiers(selected=True,
-                                                      which="name")
+        circs = self.ui.fw_circles.get_entry_identifiers(selected=True,
+                                                         which="name")
         if not circs:
-            circs = self.fw_circles.get_entry_identifiers(selected=False,
-                                                          which="name")
+            circs = self.ui.fw_circles.get_entry_identifiers(
+                selected=False, which="name")
         return circs
 
     @property
     def selected_collections(self):
         """Collections currently selected"""
-        return self.fw_collections.get_entry_identifiers(selected=True,
-                                                         which="name")
+        return self.ui.fw_collections.get_entry_identifiers(selected=True,
+                                                            which="name")
 
     @property
     def selected_datasets(self):
         """Datasets currently selected"""
-        return self.fw_datasets.get_entry_identifiers(selected=True,
-                                                      which="name")
+        return self.ui.fw_datasets.get_entry_identifiers(selected=True,
+                                                         which="name")
 
     @QtCore.pyqtSlot()
     def on_select_circles(self):
@@ -74,7 +73,7 @@ class FilterChain(QtWidgets.QWidget):
         """
         self.db_extract = db_extract
         # reset all lists
-        self.fw_circles.set_entries(
+        self.ui.fw_circles.set_entries(
             copy.deepcopy(self.db_extract.circles))
         # collections
         self.update_collections()
@@ -83,10 +82,10 @@ class FilterChain(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def update_collections(self):
-        self.fw_collections.blockSignals(True)
-        self.fw_collections.set_entries(
+        self.ui.fw_collections.blockSignals(True)
+        self.ui.fw_collections.set_entries(
             copy.deepcopy(self.db_extract.collections))
-        self.fw_collections.blockSignals(False)
+        self.ui.fw_collections.blockSignals(False)
 
     @QtCore.pyqtSlot()
     def update_datasets(self):
@@ -104,9 +103,9 @@ class FilterChain(QtWidgets.QWidget):
                     # part of any
                     continue
             dataset_items.append(ds)
-        self.fw_datasets.blockSignals(True)
-        self.fw_datasets.set_entries(dataset_items)
-        self.fw_datasets.blockSignals(False)
+        self.ui.fw_datasets.blockSignals(True)
+        self.ui.fw_datasets.set_entries(dataset_items)
+        self.ui.fw_datasets.blockSignals(False)
         self.update_resources()
 
     @QtCore.pyqtSlot()
@@ -115,10 +114,10 @@ class FilterChain(QtWidgets.QWidget):
         for dn in self.selected_datasets:
             ddict = self.db_extract.get_dataset_dict(dn)
             for rs in ddict.get("resources", []):
-                if (self.fw_resources.checkBox.isChecked()
+                if (self.ui.fw_resources.ui.checkBox.isChecked()
                         and not is_dc_resource_dict(rs)):
                     # Ignore non-RT-DC mimetypes
                     continue
                 else:
                     rs_entries.append(rs)
-        self.fw_resources.set_entries(rs_entries)
+        self.ui.fw_resources.set_entries(rs_entries)

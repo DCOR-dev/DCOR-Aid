@@ -90,7 +90,7 @@
   <customwidget>
    <class>UserTableWidget</class>
    <extends>QTableWidget</extends>
-   <header>dcoraid.gui.panel_my_data.dlg_share</header>
+   <header>dcoraid.gui.panel_my_data.user_table</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -1,6 +1,7 @@
-from importlib import resources
+from PyQt6 import QtCore, QtWidgets
 
-from PyQt6 import uic, QtCore, QtWidgets
+from .widget_supplement_item_ui import Ui_Form as Ui_WidgetSupplementItem
+from .widget_supplement_tags_ui import Ui_Form as Ui_WidgetSupplementTags
 
 
 class TitleItem(QtWidgets.QWidget):
@@ -49,12 +50,13 @@ class RSSItemBase(QtWidgets.QWidget):
     def emit_value(self):
         """Emit `value_changed` with current data"""
         self.value_changed.emit(self.section, self.key, self.get_value(),
-                                self.checkBox.isChecked())
+                                self.ui.checkBox.isChecked())
 
     @QtCore.pyqtSlot()
     def on_value_changed(self):
         """Activate checkbox and call `emit_value`"""
-        if self.sender() == self.checkBox and not self.checkBox.isChecked():
+        if (self.sender() == self.ui.checkBox
+                and not self.ui.checkBox.isChecked()):
             # Do not check the checkBox again if the user unchecks it
             pass
         else:
@@ -76,28 +78,26 @@ class RSSItemBase(QtWidgets.QWidget):
         self.setVisible(visible)
         if not visible:
             # uncheck the widget if it is hidden
-            self.checkBox.setChecked(False)
+            self.ui.checkBox.setChecked(False)
 
 
 class RSSTagsItem(RSSItemBase):
     def __init__(self, *args, **kwargs):
         """Represents an item in the supplementary resource schema"""
         super().__init__(*args, **kwargs)
-        ref_ui = resources.files(
-            "dcoraid.gui.panel_uploads") / "widget_supplement_tags.ui"
-        with resources.as_file(ref_ui) as path_ui:
-            uic.loadUi(path_ui, self)
+        self.ui = Ui_WidgetSupplementTags()
+        self.ui.setupUi(self)
 
-        self.tableWidget.setRowCount(3)
+        self.ui.tableWidget.setRowCount(3)
         self.on_assert_row_count()
 
         # signals
-        self.tableWidget.itemChanged.connect(self.on_value_changed)
-        self.tableWidget.itemChanged.connect(self.on_assert_row_count)
+        self.ui.tableWidget.itemChanged.connect(self.on_value_changed)
+        self.ui.tableWidget.itemChanged.connect(self.on_assert_row_count)
 
     def check(self, b):
         """Check the check box"""
-        self.checkBox.setChecked(b)
+        self.ui.checkBox.setChecked(b)
 
     def get_compounds(self):
         """Get the compounds labels (1st column)"""
@@ -122,9 +122,9 @@ class RSSTagsItem(RSSItemBase):
         """
         self.on_assert_row_count()
         value = []
-        for ii in range(self.tableWidget.rowCount()):
-            it0 = self.tableWidget.item(ii, 0).text().strip()
-            it1 = self.tableWidget.item(ii, 1).text().strip()
+        for ii in range(self.ui.tableWidget.rowCount()):
+            it0 = self.ui.tableWidget.item(ii, 0).text().strip()
+            it1 = self.ui.tableWidget.item(ii, 1).text().strip()
             if it0 or it1:
                 value.append((it0, it1))
         return value
@@ -132,75 +132,74 @@ class RSSTagsItem(RSSItemBase):
     def set_value(self, value):
         """Set the value"""
         self.on_assert_row_count()
-        self.tableWidget.setRowCount(len(value))
+        self.ui.tableWidget.setRowCount(len(value))
         for ii, it in enumerate(value):
-            self.tableWidget.item(ii, 0).setText(it[0])
-            self.tableWidget.item(ii, 1).setText(it[1])
+            self.ui.tableWidget.item(ii, 0).setText(it[0])
+            self.ui.tableWidget.item(ii, 1).setText(it[1])
 
     @QtCore.pyqtSlot()
     def on_assert_row_count(self):
         """Increase row count by one if last item has data"""
-        nrow = self.tableWidget.rowCount()
-        it0 = self.tableWidget.item(nrow-1, 0)
-        it1 = self.tableWidget.item(nrow-1, 1)
+        nrow = self.ui.tableWidget.rowCount()
+        it0 = self.ui.tableWidget.item(nrow-1, 0)
+        it1 = self.ui.tableWidget.item(nrow-1, 1)
         if (it0 and it0.text().strip() or it1 and it1.text().strip()):
             nrow += 1
-            self.tableWidget.setRowCount(nrow)
+            self.ui.tableWidget.setRowCount(nrow)
         # populate empty items
         for ii in range(nrow):
             for jj in [0, 1]:
-                it = self.tableWidget.item(ii, jj)
+                it = self.ui.tableWidget.item(ii, jj)
                 if it is None:
-                    self.tableWidget.setItem(ii, jj,
-                                             QtWidgets.QTableWidgetItem())
+                    self.ui.tableWidget.setItem(ii, jj,
+                                                QtWidgets.QTableWidgetItem())
 
 
 class RSSItem(RSSItemBase):
     def __init__(self, *args, **kwargs):
         """Represents an item in the supplementary resource schema"""
         super().__init__(*args, **kwargs)
-        ref_ui = resources.files(
-            "dcoraid.gui.panel_uploads") / "widget_supplement_item.ui"
-        with resources.as_file(ref_ui) as path_ui:
-            uic.loadUi(path_ui, self)
+        self.ui = Ui_WidgetSupplementItem()
+        self.ui.setupUi(self)
 
         self.apply_schema()
 
         # signals
-        self.checkBox.clicked.connect(self.on_value_changed)
-        self.spinBox.valueChanged.connect(self.on_value_changed)
-        self.doubleSpinBox.valueChanged.connect(self.on_value_changed)
-        self.lineEdit.textEdited.connect(self.on_value_changed)
-        self.plainTextEdit.textChanged.connect(self.on_value_changed)
-        self.comboBox.currentTextChanged.connect(self.on_value_changed)
-        self.radioButton_yes.clicked.connect(self.on_value_changed)
-        self.radioButton_no.clicked.connect(self.on_value_changed)
+        self.ui.checkBox.clicked.connect(self.on_value_changed)
+        self.ui.spinBox.valueChanged.connect(self.on_value_changed)
+        self.ui.doubleSpinBox.valueChanged.connect(self.on_value_changed)
+        self.ui.lineEdit.textEdited.connect(self.on_value_changed)
+        self.ui.plainTextEdit.textChanged.connect(self.on_value_changed)
+        self.ui.comboBox.currentTextChanged.connect(self.on_value_changed)
+        self.ui.radioButton_yes.clicked.connect(self.on_value_changed)
+        self.ui.radioButton_no.clicked.connect(self.on_value_changed)
 
     def apply_schema(self):
         """Initialize the item schema according to self.rss_dict"""
         rss_dict = self.rss_dict
-        self.checkBox.setText(rss_dict["name"])
-        self.checkBox.setToolTip(rss_dict.get("hint", None))
+        self.ui.checkBox.setText(rss_dict["name"])
+        self.ui.checkBox.setToolTip(rss_dict.get("hint", None))
 
         widget = self.get_data_widget()
         self.show_only_data_widget()
         if "choices" in rss_dict:  # combobox
-            assert widget is self.comboBox
-            self.comboBox.insertItems(0, rss_dict["choices"])
+            assert widget is self.ui.comboBox
+            self.ui.comboBox.insertItems(0, rss_dict["choices"])
             editable = "choices fixed" not in rss_dict.get("options", [])
-            self.comboBox.setEditable(editable)
+            self.ui.comboBox.setEditable(editable)
             if editable:
-                self.comboBox.setToolTip("You may also type your own choice.")
+                self.ui.comboBox.setToolTip(
+                    "You may also type your own choice.")
         else:
             example = rss_dict.get("example", None)
             if example and hasattr(widget, "setPlaceholderText"):
                 widget.setPlaceholderText(f"e.g. {example}")
         if "unit" in rss_dict:
-            self.doubleSpinBox.setSuffix(" " + rss_dict["unit"])
+            self.ui.doubleSpinBox.setSuffix(" " + rss_dict["unit"])
 
     def check(self, b):
         """Check the check box"""
-        self.checkBox.setChecked(b)
+        self.ui.checkBox.setChecked(b)
 
     def get_value(self):
         """Return the value of the current data widget"""
@@ -210,51 +209,51 @@ class RSSItem(RSSItemBase):
     def set_value(self, value):
         """Set the widget value with the appropriate function"""
         widget = self.get_data_widget()
-        if widget is self.lineEdit:
-            self.lineEdit.setText(value)
-        elif widget is self.comboBox:
-            self.comboBox.setCurrentText(value)
-        elif widget is self.spinBox or widget is self.doubleSpinBox:
+        if widget is self.ui.lineEdit:
+            self.ui.lineEdit.setText(value)
+        elif widget is self.ui.comboBox:
+            self.ui.comboBox.setCurrentText(value)
+        elif widget is self.ui.spinBox or widget is self.ui.doubleSpinBox:
             widget.setValue(value)
-        elif widget is self.plainTextEdit:
+        elif widget is self.ui.plainTextEdit:
             widget.setPlainText(value)
-        elif widget is self.widget_bool:
+        elif widget is self.ui.widget_bool:
             if value:
-                self.radioButton_yes.setChecked(True)
+                self.ui.radioButton_yes.setChecked(True)
             else:
-                self.radioButton_no.setChecked(True)
+                self.ui.radioButton_no.setChecked(True)
 
     def get_data_widget(self, retval=False):
         """Return the widget the holds the data according to self.rss_dict"""
         self.blockSignals(True)
         rss_dict = self.rss_dict
         if "choices" in rss_dict:  # combobox
-            widget = self.comboBox
-            value = self.comboBox.currentText()
+            widget = self.ui.comboBox
+            value = self.ui.comboBox.currentText()
         else:
             itemtype = rss_dict.get("type", "string")
             if itemtype == "string":
                 if "text" in rss_dict.get("options", []):
-                    widget = self.plainTextEdit
-                    value = self.plainTextEdit.toPlainText()
+                    widget = self.ui.plainTextEdit
+                    value = self.ui.plainTextEdit.toPlainText()
                 else:
-                    widget = self.lineEdit
-                    value = self.lineEdit.text()
+                    widget = self.ui.lineEdit
+                    value = self.ui.lineEdit.text()
             elif itemtype == "list":
-                widget = self.lineEdit
-                value = self.lineEdit.text()
+                widget = self.ui.lineEdit
+                value = self.ui.lineEdit.text()
             elif itemtype == "float":
-                widget = self.doubleSpinBox
-                value = self.doubleSpinBox.value()
+                widget = self.ui.doubleSpinBox
+                value = self.ui.doubleSpinBox.value()
             elif itemtype == "integer":
-                widget = self.spinBox
-                value = self.spinBox.value()
+                widget = self.ui.spinBox
+                value = self.ui.spinBox.value()
             elif itemtype == "boolean":
-                widget = self.widget_bool
-                value = self.radioButton_yes.isChecked()
+                widget = self.ui.widget_bool
+                value = self.ui.radioButton_yes.isChecked()
             elif itemtype == "date":
-                widget = self.lineEdit
-                value = self.lineEdit.text()
+                widget = self.ui.lineEdit
+                value = self.ui.lineEdit.text()
             else:
                 raise ValueError(f"No rule to process item {rss_dict}")
         self.blockSignals(False)
@@ -266,11 +265,11 @@ class RSSItem(RSSItemBase):
     def show_only_data_widget(self):
         """Convenience function that hides all but the data widget"""
         widget = self.get_data_widget()
-        for ww in [self.comboBox,
-                   self.doubleSpinBox,
-                   self.lineEdit,
-                   self.plainTextEdit,
-                   self.spinBox,
-                   self.widget_bool]:
+        for ww in [self.ui.comboBox,
+                   self.ui.doubleSpinBox,
+                   self.ui.lineEdit,
+                   self.ui.plainTextEdit,
+                   self.ui.spinBox,
+                   self.ui.widget_bool]:
             if ww is not widget:
                 ww.hide()

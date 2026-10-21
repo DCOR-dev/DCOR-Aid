@@ -1,13 +1,14 @@
-from importlib import resources
 import sys
 import uuid
 
 from dclab.rtdc_dataset.fmt_dcor import access_token
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtWidgets import QMessageBox, QWizard
 
 from ...api import (
     APIAuthorizationError, APINotFoundError, NoAPIKeyError, CKANAPI)
+
+from .wizard_init_ui import Ui_Wizard
 
 
 def get_dcor_dev_api_key():
@@ -45,11 +46,10 @@ class InitWizard(QtWidgets.QWizard):
 
     def __init__(self, *args, **kwargs):
         super().__init__(None)
-        ref_ui = resources.files("dcoraid.gui.wizard_init") / "wizard_init.ui"
-        with resources.as_file(ref_ui) as path_ui:
-            uic.loadUi(path_ui, self)
+        self.ui = Ui_Wizard()
+        self.ui.setupUi(self)
 
-        self.pushButton_path_access_token.clicked.connect(
+        self.ui.pushButton_path_access_token.clicked.connect(
             self.on_browse_access_token)
         self.button(QWizard.WizardButton.FinishButton).clicked.connect(
             self._finalize)
@@ -99,8 +99,8 @@ class InitWizard(QtWidgets.QWizard):
                 if user_scenario == "medical":
                     # save the server certificate
                     cert_data = access_token.get_certificate(
-                        self.lineEdit_access_token_path.text(),
-                        self.lineEdit_access_token_password.text())
+                        self.ui.lineEdit_access_token_path.text(),
+                        self.ui.lineEdit_access_token_password.text())
                     settings.setValue("auth/certificate", cert_data)
                 elif settings.contains("auth/certificate"):
                     settings.remove("auth/certificate")
@@ -113,11 +113,11 @@ class InitWizard(QtWidgets.QWizard):
     def get_api_key(self):
         user_scenario = self.get_user_scenario()
         if user_scenario == "dcor":
-            return self.lineEdit_apikey_dcor.text()
+            return self.ui.lineEdit_apikey_dcor.text()
         elif user_scenario == "medical":
             return access_token.get_api_key(
-                self.lineEdit_access_token_path.text(),
-                self.lineEdit_access_token_password.text())
+                self.ui.lineEdit_access_token_path.text(),
+                self.ui.lineEdit_access_token_password.text())
         elif user_scenario == "dcor-dev":
             return get_dcor_dev_api_key()
         elif user_scenario == "anonymous":
@@ -133,28 +133,28 @@ class InitWizard(QtWidgets.QWizard):
             return "dcor.mpl.mpg.de"
         elif user_scenario == "medical":
             return access_token.get_hostname(
-                self.lineEdit_access_token_path.text(),
-                self.lineEdit_access_token_password.text())
+                self.ui.lineEdit_access_token_path.text(),
+                self.ui.lineEdit_access_token_password.text())
         elif user_scenario == "dcor-dev":
             return "dcor-dev.mpl.mpg.de"
         elif user_scenario == "anonymous":
             return "dcor.mpl.mpg.de"
         elif user_scenario == "custom":
-            return self.lineEdit_server_custom.text()
+            return self.ui.lineEdit_server_custom.text()
         else:
             raise ValueError("Undefined!")
 
     def get_user_scenario(self):
         """Return string representing the user scenario (from first page)"""
-        if self.radioButton_dcor.isChecked():
+        if self.ui.radioButton_dcor.isChecked():
             return "dcor"
-        elif self.radioButton_med.isChecked():
+        elif self.ui.radioButton_med.isChecked():
             return "medical"
-        elif self.radioButton_play.isChecked():
+        elif self.ui.radioButton_play.isChecked():
             return "dcor-dev"
-        elif self.radioButton_anonym.isChecked():
+        elif self.ui.radioButton_anonym.isChecked():
             return "anonymous"
-        elif self.radioButton_custom.isChecked():
+        elif self.ui.radioButton_custom.isChecked():
             return "custom"
         else:
             raise ValueError("Undefined!")
@@ -166,15 +166,15 @@ class InitWizard(QtWidgets.QWizard):
         page_dict = {}
         for ii in self.pageIds():
             page_dict[self.page(ii)] = ii
-        if page == self.page_welcome:
+        if page == self.ui.page_welcome:
             if user_scenario == "dcor":
-                return page_dict[self.page_dcor]
+                return page_dict[self.ui.page_dcor]
             elif user_scenario == "medical":
-                return page_dict[self.page_med]
+                return page_dict[self.ui.page_med]
             elif user_scenario in ["dcor-dev", "anonymous"]:
                 return -1
             elif user_scenario == "custom":
-                return page_dict[self.page_custom]
+                return page_dict[self.ui.page_custom]
             else:
                 raise ValueError("No Rule!")
         else:
@@ -186,4 +186,4 @@ class InitWizard(QtWidgets.QWizard):
             self, 'Open access token', '', 'DCOR access token (*.dcor-access)',
             'DCOR access token (*.dcor-access)')
         if path:
-            self.lineEdit_access_token_path.setText(path)
+            self.ui.lineEdit_access_token_path.setText(path)
