@@ -11,8 +11,8 @@ import warnings
 import time
 
 from dcoraid.api import (
-    CKANAPI, dataset_create, APIAuthorizationError, APIConflictError,
-    APINotFoundError, NoAPIKeyError
+    CKANAPI, dataset_create, APIConflictError, create_dcor_dev_user,
+    is_valid_api_key
 )
 from dcoraid.upload import UploadQueue
 
@@ -65,42 +65,13 @@ def get_or_create_api_key_file(path):
     """Return a valid API key from `path` or create a new user"""
     if path.exists():
         key = path.read_text().strip()
-        if key and is_valid_api_key(key):
+        if is_valid_api_key(server=SERVER, api_key=key):
             return key
-    key = create_test_user()
+    # This only works on DCOR-dev-like servers that allow creating
+    # users via the API.
+    key = create_dcor_dev_user(server=SERVER, fullname="DCOR-Aid Tester")
     path.write_text(key)
     return key
-
-
-def is_valid_api_key(key):
-    """Check whether `key` is a valid API key on the test server"""
-    api = CKANAPI(server=SERVER, api_key=key, ssl_verify=True)
-    try:
-        api.get_user_dict()
-    except (APIAuthorizationError, APINotFoundError, NoAPIKeyError):
-        return False
-    return True
-
-
-def create_test_user():
-    """Create a new user on the test server and return its API key
-
-    This only works on DCOR-dev-like servers that allow creating users
-    via the API. The naming scheme is the same as in the DCOR-Aid
-    setup wizard, so that test users are purged regularly.
-    """
-    api = CKANAPI(server=SERVER, ssl_verify=True)
-    rstr = str(uuid.uuid4())
-    usr = f"dcoraid-{rstr[:5]}"
-    user_dict = api.post(
-        "user_create",
-        data={"name": usr,
-              "fullname": f"DCOR-Aid Tester {usr.capitalize()}",
-              "email": f"{usr}@dcor-dev.mpl.mpg.de",
-              "password": str(uuid.uuid4()),
-              "with_apitoken": True,
-              })
-    return user_dict["token"]
 
 
 @functools.lru_cache

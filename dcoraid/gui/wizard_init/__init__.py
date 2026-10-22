@@ -1,12 +1,10 @@
 import sys
-import uuid
 
 from dclab.rtdc_dataset.fmt_dcor import access_token
 from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtWidgets import QMessageBox, QWizard
 
-from ...api import (
-    APIAuthorizationError, APINotFoundError, NoAPIKeyError, CKANAPI)
+from ...api import create_dcor_dev_user, is_valid_api_key
 
 from .wizard_init_ui import Ui_Wizard
 
@@ -19,25 +17,9 @@ def get_dcor_dev_api_key():
     """
     settings = QtCore.QSettings()
     api_key = settings.value("auth/api key", "")
-    api = CKANAPI(server="https://dcor-dev.mpl.mpg.de",
-                  api_key=api_key,
-                  ssl_verify=True)
-    try:
-        api.get_user_dict()
-    except (APIAuthorizationError, APINotFoundError, NoAPIKeyError):
-        # create a new user
-        rstr = str(uuid.uuid4())
-        pwd = str(uuid.uuid4())[:8]
-        usr = f"dcoraid-{rstr[:5]}"
-        user_dict = api.post(
-            "user_create",
-            data={"name": usr,
-                  "fullname": f"Player {rstr[:5]}",
-                  "email": f"{usr}@dcor-dev.mpl.mpg.de",
-                  "password": pwd,
-                  "with_apitoken": True,
-                  })
-        api_key = user_dict["token"]
+    server = "dcor-dev.mpl.mpg.de"
+    if not is_valid_api_key(server=server, api_key=api_key):
+        api_key = create_dcor_dev_user(server=server)
     return api_key
 
 
