@@ -212,7 +212,7 @@
       <item>
        <widget class="QLabel" name="label_playground">
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You would like to see whether DCOR could fit into your analysis workflow. All data on &lt;a href=&quot;https://dcor-dev.mpl.mpg.de&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;dcor-dev.mpl.mpg.de&lt;/span&gt;&lt;/a&gt; are purged weekly.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You would like to see whether DCOR could fit into your analysis workflow. All data and user accounts on &lt;a href=&quot;https://dcor-dev.mpl.mpg.de&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;dcor-dev.mpl.mpg.de&lt;/span&gt;&lt;/a&gt; are purged weekly. DCOR-Aid automatically creates a new account when needed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="textFormat">
          <enum>Qt::RichText</enum>

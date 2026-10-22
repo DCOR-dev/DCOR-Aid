@@ -223,7 +223,7 @@ class Ui_Wizard(object):
         self.radioButton_med.setText(_translate("Wizard", "Health facility"))
         self.label_2.setText(_translate("Wizard", "<html><head/><body><p>If you are working in a health facility, you should use the DCOR instance hosted by your institution (to comply with patient data protection laws).</p></body></html>"))
         self.radioButton_play.setText(_translate("Wizard", "Playground"))
-        self.label_playground.setText(_translate("Wizard", "<html><head/><body><p>You would like to see whether DCOR could fit into your analysis workflow. All data on <a href=\"https://dcor-dev.mpl.mpg.de\"><span style=\" text-decoration: underline; color:#0000ff;\">dcor-dev.mpl.mpg.de</span></a> are purged weekly.</p></body></html>"))
+        self.label_playground.setText(_translate("Wizard", "<html><head/><body><p>You would like to see whether DCOR could fit into your analysis workflow. All data and user accounts on <a href=\"https://dcor-dev.mpl.mpg.de\"><span style=\" text-decoration: underline; color:#0000ff;\">dcor-dev.mpl.mpg.de</span></a> are purged weekly. DCOR-Aid automatically creates a new account when needed.</p></body></html>"))
         self.radioButton_anonym.setText(_translate("Wizard", "Anonymous"))
         self.label_15.setText(_translate("Wizard", "You would only like to browse DCOR data."))
         self.radioButton_custom.setText(_translate("Wizard", "Custom"))
