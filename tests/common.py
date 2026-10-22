@@ -10,7 +10,10 @@ import warnings
 
 import time
 
-from dcoraid.api import CKANAPI, dataset_create
+from dcoraid.api import (
+    CKANAPI, dataset_create, APIAuthorizationError, APIConflictError,
+    APINotFoundError, NoAPIKeyError
+)
 from dcoraid.upload import UploadQueue
 
 
@@ -27,15 +30,77 @@ def get_api():
     return api
 
 
+@functools.lru_cache
 def get_api_key():
+    """Return the API key of the test user
+
+    The API key is taken from the `DCOR_API_KEY` environment variable.
+    If that is not set, the key stored in the file `tests/api_key` is
+    used. If that file does not exist or the key is invalid (e.g. the
+    user was purged from the server), a new user is created on the test
+    server (only possible on DCOR-dev-like servers) and its API key is
+    written to `tests/api_key`.
+    """
     key = os.environ.get("DCOR_API_KEY")
     if not key:
-        # local file
-        kp = pathlib.Path(__file__).parent / "api_key"
-        if not kp.exists():
-            raise ValueError("No DCOR_API_KEY variable or api_key file!")
-        key = kp.read_text().strip()
+        key = get_or_create_api_key_file(
+            pathlib.Path(__file__).parent / "api_key")
     return key
+
+
+@functools.lru_cache
+def get_api_key_other_user():
+    """Return the API key of a second test user
+
+    This user shares a circle, a collection, and a dataset with the
+    test user (see :func:`get_shared_defaults`). The API key is stored
+    in the file `tests/api_key_2` (created on demand like for
+    :func:`get_api_key`).
+    """
+    return get_or_create_api_key_file(
+        pathlib.Path(__file__).parent / "api_key_2")
+
+
+def get_or_create_api_key_file(path):
+    """Return a valid API key from `path` or create a new user"""
+    if path.exists():
+        key = path.read_text().strip()
+        if key and is_valid_api_key(key):
+            return key
+    key = create_test_user()
+    path.write_text(key)
+    return key
+
+
+def is_valid_api_key(key):
+    """Check whether `key` is a valid API key on the test server"""
+    api = CKANAPI(server=SERVER, api_key=key, ssl_verify=True)
+    try:
+        api.get_user_dict()
+    except (APIAuthorizationError, APINotFoundError, NoAPIKeyError):
+        return False
+    return True
+
+
+def create_test_user():
+    """Create a new user on the test server and return its API key
+
+    This only works on DCOR-dev-like servers that allow creating users
+    via the API. The naming scheme is the same as in the DCOR-Aid
+    setup wizard, so that test users are purged regularly.
+    """
+    api = CKANAPI(server=SERVER, ssl_verify=True)
+    rstr = str(uuid.uuid4())
+    usr = f"dcoraid-{rstr[:5]}"
+    user_dict = api.post(
+        "user_create",
+        data={"name": usr,
+              "fullname": f"DCOR-Aid Tester {usr.capitalize()}",
+              "email": f"{usr}@dcor-dev.mpl.mpg.de",
+              "password": str(uuid.uuid4()),
+              "with_apitoken": True,
+              })
+    return user_dict["token"]
 
 
 @functools.lru_cache
@@ -52,6 +117,47 @@ def get_test_defaults():
         "user_dict": user_dict,
         "title": "DCOR-Aid test dataset",
         "server": SERVER,
+    }
+
+
+@functools.lru_cache
+def get_shared_defaults():
+    """Return circle, collection, and dataset shared with the test user
+
+    A second test user (see :func:`get_api_key_other_user`) creates a
+    circle and a collection, adds the test user as a member to both, and
+    creates a dataset in that circle and collection. From the point of
+    view of the test user, these are not their own, but shared with them.
+    """
+    test_user = get_test_defaults()["user"]
+    api = CKANAPI(server=SERVER, api_key=get_api_key_other_user(),
+                  ssl_verify=True)
+    name = api.user_name
+    circle = f"{name}-shared-circle"
+    collection = f"{name}-shared-collection"
+    try:
+        api.post("organization_create", {"name": circle})
+    except APIConflictError:
+        pass
+    try:
+        api.post("group_create", {"name": collection})
+    except APIConflictError:
+        pass
+    api.post("organization_member_create",
+             {"id": circle, "username": test_user, "role": "member"})
+    api.post("group_member_create",
+             {"id": collection, "username": test_user, "role": "member"})
+    dataset_dict = make_dataset_dict(hint="shared", circle=circle)
+    dataset_dict["groups"] = [{"name": collection}]
+    ds_dict = dataset_create(dataset_dict=dataset_dict,
+                             api=api,
+                             resources=[dpath],
+                             activate=True)
+    return {
+        "circle": circle,
+        "collection": collection,
+        "dataset_id": ds_dict["id"],
+        "user": name,
     }
 
 

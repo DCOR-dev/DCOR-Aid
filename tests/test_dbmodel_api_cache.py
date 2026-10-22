@@ -9,11 +9,7 @@ from . import common
 
 dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
 
-HAS_FIGSHARE_ACCESS = common.get_test_defaults()["user"] == "dcoraid"
 
-
-@pytest.mark.skipif(not HAS_FIGSHARE_ACCESS,
-                    reason="No access to figshare-import circle")
 def test_get_circles(tmp_path):
     api = common.get_api()
     db = CachedAPIInterrogator(cache_location=tmp_path, api=api)
@@ -21,20 +17,23 @@ def test_get_circles(tmp_path):
     circles = [c["name"] for c in circles_dicts]
     defaults = common.get_test_defaults()
     assert defaults["circle"] in circles
-    # requires that the "dcoraid" user is in the figshare-import circle
-    assert "figshare-import" in circles
+    # circle of another user in which the test user is a member
+    shared = common.get_shared_defaults()
+    assert shared["circle"] in circles
+    assert shared["circle"] in [c["name"] for c in db.get_circles_user()]
 
 
-@pytest.mark.skipif(not HAS_FIGSHARE_ACCESS,
-                    reason="No access to figshare-import circle")
 def test_get_collections(tmp_path):
     api = common.get_api()
     db = CachedAPIInterrogator(cache_location=tmp_path, api=api)
     collections = [c["name"] for c in db.get_collections()]
     defaults = common.get_test_defaults()
     assert defaults["collection"] in collections
-    # requires that the "dcoraid" user is in dcoraid-collection collection
-    assert "dcoraid-collection" in collections
+    # collection of another user in which the test user is a member
+    shared = common.get_shared_defaults()
+    assert shared["collection"] in collections
+    collections_user = [c["name"] for c in db.get_collections_user()]
+    assert shared["collection"] in collections_user
 
 
 def test_get_datasets_user_owned(tmp_path):
@@ -74,15 +73,10 @@ def test_user_data(tmp_path):
     assert data["fullname"] == defaults["user_name"], "fullname not correct"
 
 
-@pytest.mark.skipif(not HAS_FIGSHARE_ACCESS,
-                    reason="No access to figshare-import circle")
-def test_get_datasets_user_shared_figshare(tmp_path):
-    # The figshare circle must have the testing user as a member
+def test_get_datasets_user_shared(tmp_path):
+    # dataset of another user in a circle the test user is a member of
+    shared = common.get_shared_defaults()
     api = common.get_api()
     db = CachedAPIInterrogator(cache_location=tmp_path, api=api)
     datasets = db.get_datasets_user_shared()
-    for dd in datasets:
-        if dd["id"] == "89bf2177-ffeb-9893-83cc-b619fc2f6663":
-            break
-    else:
-        assert False, "Search did not return figshare-7771184-v2!"
+    assert shared["dataset_id"] in [dd["id"] for dd in datasets]
