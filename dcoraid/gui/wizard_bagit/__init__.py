@@ -1,15 +1,15 @@
-from importlib import resources
 import pathlib
 import threading
 import traceback
 
-from PyQt6 import uic, QtCore, QtTest, QtWidgets
+from PyQt6 import QtCore, QtTest, QtWidgets
 from PyQt6.QtWidgets import QWizard
 
 from ..api import get_ckan_api
 from ...bagit import bag_circle
 
 from .. import settings
+from .wizard_bagit_ui import Ui_Wizard
 
 
 class BagItWizard(QtWidgets.QWizard):
@@ -17,10 +17,8 @@ class BagItWizard(QtWidgets.QWizard):
 
     def __init__(self, *args, **kwargs):
         super().__init__(None)
-        ref_ui = resources.files(
-            "dcoraid.gui.wizard_bagit") / "wizard_bagit.ui"
-        with resources.as_file(ref_ui) as path_ui:
-            uic.loadUi(path_ui, self)
+        self.ui = Ui_Wizard()
+        self.ui.setupUi(self)
 
         self.settings = QtCore.QSettings()
 
@@ -35,35 +33,35 @@ class BagItWizard(QtWidgets.QWizard):
         self.event_bagit_abort = threading.Event()
 
         # progressbar
-        self.progressBar.setMaximum(100_000)
+        self.ui.progressBar.setMaximum(100_000)
 
         # user info
-        self.label_user.setText(f"{self.api.user_name}")
+        self.ui.label_user.setText(f"{self.api.user_name}")
 
         # fetch the circles that the user is a member of
         circles = self.api.get("organization_list_for_user",
                                permission="read")
         for ci in circles:
-            self.comboBox_circles.addItem(
+            self.ui.comboBox_circles.addItem(
                 ci["title"] if ci["title"] else ci["name"], ci["name"])
         self.on_circle_changed()
 
         # set default download location
-        self.lineEdit_path.setText(str(self.download_path))
-        self.lineEdit_path_2.setText(str(self.download_path))
+        self.ui.lineEdit_path.setText(str(self.download_path))
+        self.ui.lineEdit_path_2.setText(str(self.download_path))
 
         # disable going back from parameter page
-        self.page_02_prepare.setCommitPage(True)
+        self.ui.page_02_prepare.setCommitPage(True)
 
         # signals
         # circle selection
-        self.comboBox_circles.currentIndexChanged.connect(
+        self.ui.comboBox_circles.currentIndexChanged.connect(
             self.on_circle_changed)
         # cancel wizard
         self.button(QWizard.WizardButton.CancelButton).clicked.connect(
             self.on_cancel)
         # browse button
-        self.pushButton_browse.clicked.connect(self.on_browse)
+        self.ui.pushButton_browse.clicked.connect(self.on_browse)
 
     @property
     def download_path(self):
@@ -74,19 +72,20 @@ class BagItWizard(QtWidgets.QWizard):
     @download_path.setter
     def download_path(self, value):
         settings.set_dir("bagit", value, self.settings)
-        self.lineEdit_path.setText(str(value))
-        self.lineEdit_path_2.setText(str(value))
+        self.ui.lineEdit_path.setText(str(value))
+        self.ui.lineEdit_path_2.setText(str(value))
 
     def nextId(self):
-        if self.currentPage() == self.page_03_bagit:
+        if self.currentPage() == self.ui.page_03_bagit:
             self.start_bagit()
             page_dict = {}
             for ii in self.pageIds():
                 page_dict[self.page(ii)] = ii
 
             # force user to stay on that page
-            return page_dict[self.page_03_bagit]
-        elif self.currentPage() in [self.page_04_finish, self.page_05_fail]:
+            return page_dict[self.ui.page_03_bagit]
+        elif self.currentPage() in [self.ui.page_04_finish,
+                                    self.ui.page_05_fail]:
             return -1
         else:
             return super().nextId()
@@ -98,9 +97,9 @@ class BagItWizard(QtWidgets.QWizard):
             page_dict[self.page(ii)] = ii
 
         if success:
-            self.setCurrentId(page_dict[self.page_04_finish])
+            self.setCurrentId(page_dict[self.ui.page_04_finish])
         else:
-            self.setCurrentId(page_dict[self.page_05_fail])
+            self.setCurrentId(page_dict[self.ui.page_05_fail])
 
     @QtCore.pyqtSlot()
     def on_browse(self):
@@ -121,12 +120,12 @@ class BagItWizard(QtWidgets.QWizard):
 
     @QtCore.pyqtSlot()
     def on_circle_changed(self):
-        current_circle = self.comboBox_circles.currentData()
-        self.label_circle.setText(current_circle)
+        current_circle = self.ui.comboBox_circles.currentData()
+        self.ui.label_circle.setText(current_circle)
 
     @QtCore.pyqtSlot(float)
     def on_progress(self, value):
-        self.progressBar.setValue(int(value*100_000))
+        self.ui.progressBar.setValue(int(value*100_000))
 
     def start_bagit(self):
         # prevent multiple calls to this method
@@ -138,7 +137,7 @@ class BagItWizard(QtWidgets.QWizard):
 
         # initialize the worker and connect all signals
         self.bagit_thread = QtCore.QThread()
-        circle_name = self.comboBox_circles.currentData()
+        circle_name = self.ui.comboBox_circles.currentData()
         bagit_kwargs = {
             "api": self.api,
             "circle_name": circle_name,
@@ -158,14 +157,14 @@ class BagItWizard(QtWidgets.QWizard):
         self.bagit_worker.progress.connect(
             self.on_progress)
         self.bagit_worker.traceback.connect(
-            self.plainTextEdit_traceback.setPlainText)
+            self.ui.plainTextEdit_traceback.setPlainText)
         self.bagit_thread.start()
 
     def validateCurrentPage(self):
         page = self.currentPage()
-        if page == self.page_02_prepare:
+        if page == self.ui.page_02_prepare:
             return (bool(self.download_path.is_dir())
-                    and bool(self.comboBox_circles.currentData()))
+                    and bool(self.ui.comboBox_circles.currentData()))
         else:
             return super().validateCurrentPage()
 

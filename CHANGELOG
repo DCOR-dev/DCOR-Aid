@@ -37,6 +37,11 @@
  - ref: correct return type hint of `meta_cache._values_only`
  - ref: `DBExtract.__add__` accepts lists like `DBExtract.__iadd__`
  - ref: correct type hints for `CKANAPI.get` kwargs and CLI exit status
+ - ref: migrate GUI design to the one of DCscope: all .ui files are in
+   the top-level `ui` directory and converted with `ui/run_uic.sh` to
+   `*_ui.py` modules, which are used via `self.ui`
+ - ref: move `UploadTableWidget`, `DownloadTableWidget`, and
+   `UserTableWidget` to separate modules
  - setup: add tool.ruff.lint section to pyproject.toml
  - tests: automatically create test users on DCOR-dev if `DCOR_API_KEY`
    is not set or `tests/api_key` is missing or invalid

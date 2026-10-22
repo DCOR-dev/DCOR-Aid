@@ -104,22 +104,22 @@ def test_gui_mydata_dataset_add_to_collection(mw, qtbot):
     # monkeypatch success message box
     with mock.patch.object(QMessageBox, "information",
                            return_value=None):
-        mw.panel_upload.on_upload_task(action=tpath)
+        mw.ui.panel_upload.on_upload_task(action=tpath)
     # get the dataset ID
-    uj = mw.panel_upload.jobs[-1]
+    uj = mw.ui.panel_upload.jobs[-1]
     ds_id = uj.dataset_id
     # wait for the job
     common.wait_for_job_no_queue(uj)
     # go to the "My Data" tab and click update
-    mw.tabWidget.setCurrentIndex(1)
-    qtbot.mouseClick(mw.panel_my_data.pushButton_update_db,
+    mw.ui.tabWidget.setCurrentIndex(1)
+    qtbot.mouseClick(mw.ui.panel_my_data.ui.pushButton_update_db,
                      QtCore.Qt.MouseButton.LeftButton)
     # select our dataset
-    fw_datasets = mw.panel_my_data.user_filter_chain.fw_datasets
+    fw_datasets = mw.ui.panel_my_data.ui.user_filter_chain.ui.fw_datasets
     entries = fw_datasets.get_entry_identifiers()
     index = entries.index(ds_id)
     # we cannot click on qtablewidgetitems (because they are not widgets)
-    widget1 = fw_datasets.tableWidget.item(index, 0)
+    widget1 = fw_datasets.ui.tableWidget.item(index, 0)
     assert widget1 is not None
     widget1.setSelected(True)
     selected = fw_datasets.get_entry_identifiers(
@@ -139,7 +139,7 @@ def test_gui_mydata_dataset_add_to_collection(mw, qtbot):
     with mock.patch.object(
             QInputDialog, "getItem",
             return_value=(f"{ii}: {item['display_name']}", True)):
-        qtbot.mouseClick(fw_datasets.pushButton_custom,
+        qtbot.mouseClick(fw_datasets.ui.pushButton_custom,
                          QtCore.Qt.MouseButton.LeftButton)
 
     # Check whether dataset is in collection in database
@@ -169,8 +169,8 @@ def test_gui_start_with_bad_server(qtbot):
         QtWidgets.QApplication.processEvents(
             QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
         # just make sure that DCOR-Aid thinks it is offline
-        assert not mw.panel_upload.isEnabled()
-        assert not mw.panel_download.isEnabled()
+        assert not mw.ui.panel_upload.isEnabled()
+        assert not mw.ui.panel_download.isEnabled()
         mw.close()
         QtWidgets.QApplication.processEvents(
             QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
@@ -195,9 +195,9 @@ def test_gui_start_with_bad_api_key(qtbot):
         QtWidgets.QApplication.processEvents(
             QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
         # just make sure that DCOR-Aid thinks it is offline
-        assert not mw.panel_upload.isEnabled()
+        assert not mw.ui.panel_upload.isEnabled()
         # downloads should still be possible
-        assert mw.panel_download.isEnabled()
+        assert mw.ui.panel_download.isEnabled()
         mw.close()
         QtWidgets.QApplication.processEvents(
             QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
@@ -208,9 +208,9 @@ def test_gui_start_with_bad_api_key(qtbot):
 
 def test_gui_upload_simple(mw, qtbot):
     """Upload a test dataset"""
-    dlg = UploadDialog(mw.panel_upload)
-    mw.panel_upload._dlg_manual = dlg
-    dlg.finished.connect(mw.panel_upload.on_upload_manual_ready)
+    dlg = UploadDialog(mw.ui.panel_upload)
+    mw.ui.panel_upload._dlg_manual = dlg
+    dlg.finished.connect(mw.ui.panel_upload.on_upload_manual_ready)
     # Fill data for testing
     dlg._autofill_for_testing()
     # Avoid message boxes
@@ -221,11 +221,11 @@ def test_gui_upload_simple(mw, qtbot):
         dlg.on_proceed()
     assert dlg.dataset_id is not None
 
-    common.wait_for_job(upload_queue=mw.panel_upload.jobs,
+    common.wait_for_job(upload_queue=mw.ui.panel_upload.jobs,
                         dataset_id=dlg.dataset_id,
                         set_job_done=False)
 
-    mw.panel_upload.widget_jobs.on_update_job_status()
+    mw.ui.panel_upload.ui.widget_jobs.on_update_job_status()
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
     QtTest.QTest.qWait(500)
@@ -241,8 +241,8 @@ def test_gui_upload_task(mw, qtbot):
                             return_value=None)):
         act = QtGui.QAction("some unimportant text")
         act.setData("single")
-        mw.panel_upload.on_upload_task(action=act)
-    uj = mw.panel_upload.jobs[-1]
+        mw.ui.panel_upload.on_upload_task(action=act)
+    uj = mw.ui.panel_upload.jobs[-1]
     assert uj.task_id == task_id
 
 
@@ -262,10 +262,10 @@ def test_gui_upload_task_bad_dataset_id_no(mw, qtbot):
          mock.patch.object(QMessageBox, "information", return_value=None):
         act = QtGui.QAction("some unimportant text")
         act.setData("single")
-        mw.panel_upload.on_upload_task(action=act)
-    if len(mw.panel_upload.jobs):
+        mw.ui.panel_upload.on_upload_task(action=act)
+    if len(mw.ui.panel_upload.jobs):
         # there might be upload jobs from previous tests here
-        assert mw.panel_upload.jobs[-1].task_id != task_id
+        assert mw.ui.panel_upload.jobs[-1].task_id != task_id
 
 
 def test_gui_upload_task_bad_dataset_id_yes(mw, qtbot):
@@ -283,11 +283,11 @@ def test_gui_upload_task_bad_dataset_id_yes(mw, qtbot):
          mock.patch.object(QMessageBox, "information", return_value=None):
         act = QtGui.QAction("some unimportant text")
         act.setData("single")
-        mw.panel_upload.on_upload_task(action=act)
-    uj = mw.panel_upload.jobs[-1]
+        mw.ui.panel_upload.on_upload_task(action=act)
+    uj = mw.ui.panel_upload.jobs[-1]
     assert uj.task_id == task_id
-    mw.panel_upload.jobs.daemon_compress.shutdown_flag.set()
-    mw.panel_upload.jobs.daemon_compress.join()
+    mw.ui.panel_upload.jobs.daemon_compress.shutdown_flag.set()
+    mw.ui.panel_upload.jobs.daemon_compress.join()
 
 
 def test_gui_upload_task_missing_circle_multiple(mw, qtbot):
@@ -322,22 +322,23 @@ def test_gui_upload_task_missing_circle_multiple(mw, qtbot):
         with mock.patch.object(widget_upload.circle_mgr,
                                "request_circle",
                                wraps=request_circle) as rw:
-            mw.panel_upload.on_upload_task(action=act)
-            uj1 = mw.panel_upload.jobs[-2]
-            uj2 = mw.panel_upload.jobs[-1]
+            mw.ui.panel_upload.on_upload_task(action=act)
+            uj1 = mw.ui.panel_upload.jobs[-2]
+            uj2 = mw.ui.panel_upload.jobs[-1]
             assert {uj1.task_id, uj2.task_id} == {task_id1, task_id2}
             assert rw.call_count == 1
 
 
 def test_gui_upload_private(mw, qtbot):
     """Upload a private test dataset"""
-    dlg = UploadDialog(mw.panel_upload)
-    mw.panel_upload._dlg_manual = dlg
-    dlg.finished.connect(mw.panel_upload.on_upload_manual_ready)
+    dlg = UploadDialog(mw.ui.panel_upload)
+    mw.ui.panel_upload._dlg_manual = dlg
+    dlg.finished.connect(mw.ui.panel_upload.on_upload_manual_ready)
     # Fill data for testing
     dlg._autofill_for_testing()
     # set visibility to private
-    dlg.comboBox_vis.setCurrentIndex(dlg.comboBox_vis.findData("private"))
+    dlg.ui.comboBox_vis.setCurrentIndex(
+        dlg.ui.comboBox_vis.findData("private"))
     # Avoid message boxes
     with mock.patch.object(QMessageBox, "question",
                            return_value=QMessageBox.StandardButton.Yes), \
@@ -347,7 +348,7 @@ def test_gui_upload_private(mw, qtbot):
     dataset_id = dlg.dataset_id
     assert dataset_id is not None
 
-    common.wait_for_job(upload_queue=mw.panel_upload.jobs,
+    common.wait_for_job(upload_queue=mw.ui.panel_upload.jobs,
                         dataset_id=dataset_id)
 
     # make sure the dataset is private
@@ -375,6 +376,6 @@ def test_gui_upload_task_missing_circle(mw, qtbot):
          mock.patch.object(QMessageBox, "information", return_value=None):
         act = QtGui.QAction("some unimportant text")
         act.setData("single")
-        mw.panel_upload.on_upload_task(action=act)
-    uj = mw.panel_upload.jobs[-1]
+        mw.ui.panel_upload.on_upload_task(action=act)
+    uj = mw.ui.panel_upload.jobs[-1]
     assert uj.task_id == task_id

@@ -16,7 +16,7 @@ import requests_cache
 import requests_toolbelt
 import urllib3
 
-from PyQt6 import uic, QtCore, QtGui, QtTest, QtWidgets
+from PyQt6 import QtCore, QtGui, QtTest, QtWidgets
 
 from ..api import APIOutdatedError
 from ..dbmodel import CachedAPIInterrogator
@@ -28,6 +28,7 @@ from .status_widget import StatusWidget
 from . import updater
 from .wizard_bagit import BagItWizard
 from .wizard_init import InitWizard
+from .main_ui import Ui_MainWindow
 
 
 file_manager = ExitStack()
@@ -82,13 +83,12 @@ class DCORAid(QtWidgets.QMainWindow):
 
         #: DCOR-Aid settings
         self.settings = QtCore.QSettings()
-        ref_ui = resources.files("dcoraid.gui") / "main.ui"
-        with resources.as_file(ref_ui) as path_ui:
-            uic.loadUi(path_ui, self)
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
 
         # setup logging
         root_logger = logging.getLogger()
-        root_logger.addHandler(self.panel_logs.log_handler)
+        root_logger.addHandler(self.ui.panel_logs.log_handler)
 
         self.logger = logging.getLogger(__name__)
         self.logger.info(f"DCOR-Aid {__version__}")
@@ -99,37 +99,37 @@ class DCORAid(QtWidgets.QMainWindow):
         # Window title
         self.setWindowTitle(f"DCOR-Aid {__version__}")
         # Disable native menubar (e.g. on Mac)
-        self.menubar.setNativeMenuBar(False)
+        self.ui.menubar.setNativeMenuBar(False)
         # File menu
-        self.actionPreferences.triggered.connect(self.dlg_pref.show)
-        self.actionInitWizard.triggered.connect(self.on_wizard_init)
-        self.actionBagItWizard.triggered.connect(self.on_wizard_bagit)
+        self.ui.actionPreferences.triggered.connect(self.dlg_pref.show)
+        self.ui.actionInitWizard.triggered.connect(self.on_wizard_init)
+        self.ui.actionBagItWizard.triggered.connect(self.on_wizard_bagit)
         # Help menu
-        self.actionSoftware.triggered.connect(self.on_action_software)
-        self.actionAbout.triggered.connect(self.on_action_about)
+        self.ui.actionSoftware.triggered.connect(self.on_action_software)
+        self.ui.actionAbout.triggered.connect(self.on_action_about)
 
         # Display login status
-        self.status_widget = StatusWidget(self.tabWidget)
-        self.tabWidget.setCornerWidget(self.status_widget)
+        self.status_widget = StatusWidget(self.ui.tabWidget)
+        self.ui.tabWidget.setCornerWidget(self.status_widget)
         self.status_widget.clicked.connect(self.dlg_pref.on_show_server)
 
         # Signal for requesting resource download
-        self.panel_find_data.download_item.connect(
-            self.panel_download.download_an_item)
-        self.panel_my_data.download_item.connect(
-            self.panel_download.download_an_item)
+        self.ui.panel_find_data.download_item.connect(
+            self.ui.panel_download.download_an_item)
+        self.ui.panel_my_data.download_item.connect(
+            self.ui.panel_download.download_an_item)
 
         # Signal for dataset upload or modification
-        self.panel_upload.upload_finished.connect(self.on_dataset_changed)
+        self.ui.panel_upload.upload_finished.connect(self.on_dataset_changed)
 
         QtWidgets.QApplication.processEvents(
             QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
         if self.settings.value("user scenario", "") == "anonymous":
             # disable tabs that an anonymous user cannot use
-            self.tab_my_data.setEnabled(False)
-            self.tab_maintain.setEnabled(False)
-            self.tab_upload.setEnabled(False)
+            self.ui.tab_my_data.setEnabled(False)
+            self.ui.tab_maintain.setEnabled(False)
+            self.ui.tab_upload.setEnabled(False)
 
         # Run wizard if necessary
         if ((self.settings.value("user scenario", "") != "anonymous")
@@ -158,9 +158,9 @@ class DCORAid(QtWidgets.QMainWindow):
         except BaseException:
             self.logger.error(traceback.format_exc())
         else:
-            self.panel_find_data.set_database(self.database)
-            self.panel_my_data.set_database(self.database)
-            self.panel_download.set_database(self.database)
+            self.ui.panel_find_data.set_database(self.database)
+            self.ui.panel_my_data.set_database(self.database)
+            self.ui.panel_download.set_database(self.database)
 
         self.status_widget.request_status_update()
 
@@ -248,8 +248,8 @@ class DCORAid(QtWidgets.QMainWindow):
         while len(root_logger.handlers) > 0:
             h = root_logger.handlers[0]
             root_logger.removeHandler(h)
-        self.panel_upload.prepare_quit()
-        self.panel_download.prepare_quit()
+        self.ui.panel_upload.prepare_quit()
+        self.ui.panel_download.prepare_quit()
         self.status_widget.prepare_quit()
         QtWidgets.QApplication.processEvents(
             QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)

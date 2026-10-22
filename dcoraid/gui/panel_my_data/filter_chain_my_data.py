@@ -17,26 +17,26 @@ class FilterChainMyData(FilterChain):
         super().__init__(*args, **kwargs)
 
         # Enable "create collection" toolbutton
-        self.fw_collections.pushButton_custom.setText(
+        self.ui.fw_collections.ui.pushButton_custom.setText(
             "Create new collection...")
-        self.fw_collections.pushButton_custom.setVisible(True)
-        self.fw_collections.pushButton_custom.clicked.connect(
+        self.ui.fw_collections.ui.pushButton_custom.setVisible(True)
+        self.ui.fw_collections.ui.pushButton_custom.clicked.connect(
             self.on_create_collection)
 
         # Enable the "add to collection" toolbutton
-        self.fw_datasets.pushButton_custom.setText(
+        self.ui.fw_datasets.ui.pushButton_custom.setText(
             "Add selected datasets to a collection...")
-        self.fw_datasets.pushButton_custom.setVisible(True)
-        self.fw_datasets.pushButton_custom.clicked.connect(
+        self.ui.fw_datasets.ui.pushButton_custom.setVisible(True)
+        self.ui.fw_datasets.ui.pushButton_custom.clicked.connect(
             self.on_add_datasets_to_collection)
 
         # Enable share buttons for collections and datasets
-        self.fw_datasets.active_actions.append("share")
-        self.fw_datasets.active_actions.append("remove-from-collection")
-        self.fw_collections.active_actions.append("share")
-        self.fw_datasets.share_item.connect(self.on_share_item)
-        self.fw_collections.share_item.connect(self.on_share_item)
-        self.fw_datasets.remove_item.connect(self.on_remove_item)
+        self.ui.fw_datasets.active_actions.append("share")
+        self.ui.fw_datasets.active_actions.append("remove-from-collection")
+        self.ui.fw_collections.active_actions.append("share")
+        self.ui.fw_datasets.share_item.connect(self.on_share_item)
+        self.ui.fw_collections.share_item.connect(self.on_share_item)
+        self.ui.fw_datasets.remove_item.connect(self.on_remove_item)
 
         self._dlg = None
 
@@ -75,7 +75,7 @@ class FilterChainMyData(FilterChain):
         they have write-access to.
         """
         # get current selection
-        dataset_ids = self.fw_datasets.get_entry_identifiers(selected=True)
+        dataset_ids = self.ui.fw_datasets.get_entry_identifiers(selected=True)
         if not dataset_ids:
             # no datasets selected
             QtWidgets.QMessageBox.information(
@@ -161,7 +161,7 @@ class FilterChainMyData(FilterChain):
         if id_type != "dataset":
             raise NotImplementedError("`id_type` must be 'dataset'")
         # Fetch the currently selected collection(s).
-        selected = self.fw_collections.get_entry_identifiers(selected=True)
+        selected = self.ui.fw_collections.get_entry_identifiers(selected=True)
         if selected:
             api = get_ckan_api()
             for colid in selected:

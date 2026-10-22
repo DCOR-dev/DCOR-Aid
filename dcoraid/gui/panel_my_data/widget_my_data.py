@@ -3,15 +3,13 @@ from __future__ import annotations
 import logging
 import traceback as tb
 
-from importlib import resources
-
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 from ...common import ConnectionTimeoutErrors
 from ...dbmodel import DBExtract
 
 from ..api import get_ckan_api
-from ..main import DCORAid
+from .widget_my_data_ui import Ui_Form
 
 
 logger = logging.getLogger(__name__)
@@ -23,23 +21,21 @@ class WidgetMyData(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         """Browse public DCOR data"""
         super().__init__(*args, **kwargs)
-        ref_ui = resources.files(
-            "dcoraid.gui.panel_my_data") / "widget_my_data.ui"
-        with resources.as_file(ref_ui) as path_ui:
-            uic.loadUi(path_ui, self)
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         # Signals for user datasets (my data)
-        self.pushButton_update_db.clicked.connect(self.on_update_db)
-        self.user_filter_chain.download_item.connect(self.download_item)
-        self.user_filter_chain.added_datasets_to_collection.connect(
+        self.ui.pushButton_update_db.clicked.connect(self.on_update_db)
+        self.ui.user_filter_chain.download_item.connect(self.download_item)
+        self.ui.user_filter_chain.added_datasets_to_collection.connect(
             self.on_added_datasets_to_collection)
-        self.user_filter_chain.removed_datasets_from_collection.connect(
+        self.ui.user_filter_chain.removed_datasets_from_collection.connect(
             self.on_remove_datasets_from_collection)
 
         # Signals for checkboxes
-        self.checkBox_user_following.clicked.connect(self.on_update_view)
-        self.checkBox_user_owned.clicked.connect(self.on_update_view)
-        self.checkBox_user_shared.clicked.connect(self.on_update_view)
+        self.ui.checkBox_user_following.clicked.connect(self.on_update_view)
+        self.ui.checkBox_user_owned.clicked.connect(self.on_update_view)
+        self.ui.checkBox_user_shared.clicked.connect(self.on_update_view)
 
     @QtCore.pyqtSlot(dict, list)
     def on_added_datasets_to_collection(self,
@@ -116,13 +112,13 @@ class WidgetMyData(QtWidgets.QWidget):
         data = DBExtract()
         if api.is_available() and api.api_key:
             try:
-                if self.checkBox_user_following.isChecked():
+                if self.ui.checkBox_user_following.isChecked():
                     data += self.database.get_datasets_user_following()
-                if self.checkBox_user_owned.isChecked():
+                if self.ui.checkBox_user_owned.isChecked():
                     data += self.database.get_datasets_user_owned()
-                if self.checkBox_user_shared.isChecked():
+                if self.ui.checkBox_user_shared.isChecked():
                     data += self.database.get_datasets_user_shared()
-                self.user_filter_chain.set_db_extract(data)
+                self.ui.user_filter_chain.set_db_extract(data)
             except ConnectionTimeoutErrors:
                 logger.error(tb.format_exc())
                 QtWidgets.QMessageBox.critical(
@@ -133,6 +129,8 @@ class WidgetMyData(QtWidgets.QWidget):
 
     @staticmethod
     def find_main_window():
+        # import here to avoid circular import via main_ui
+        from ..main import DCORAid
         # Global function to find the (open) QMainWindow in application
         app = QtWidgets.QApplication.instance()
         for widget in app.topLevelWidgets():

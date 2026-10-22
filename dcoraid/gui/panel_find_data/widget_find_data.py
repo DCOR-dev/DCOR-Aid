@@ -1,11 +1,9 @@
 import logging
 
-from importlib import resources
+from PyQt6 import QtCore, QtWidgets
 
-from PyQt6 import uic, QtCore, QtWidgets
-
-from ..main import DCORAid
 from ..status_widget import StatusWidget
+from .widget_find_data_ui import Ui_Form
 
 
 logger = logging.getLogger(__name__)
@@ -17,22 +15,20 @@ class WidgetFindData(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         """Browse DCOR data"""
         super().__init__(*args, **kwargs)
-        ref_ui = resources.files(
-            "dcoraid.gui.panel_find_data") / "widget_find_data.ui"
-        with resources.as_file(ref_ui) as path_ui:
-            uic.loadUi(path_ui, self)
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         settings = QtCore.QSettings()
         server = settings.value("auth/server", "dcor.mpl.mpg.de")
         title = StatusWidget.get_title(server)
-        self.label_search.setText(f"Search {title or 'DCOR'}")
+        self.ui.label_search.setText(f"Search {title or 'DCOR'}")
 
         self.database = None
 
         # Signals for data browser
-        self.pushButton_search.clicked.connect(self.on_search)
-        self.pushButton_update_db.clicked.connect(self.on_update_db)
-        self.public_filter_chain.download_item.connect(self.download_item)
+        self.ui.pushButton_search.clicked.connect(self.on_search)
+        self.ui.pushButton_update_db.clicked.connect(self.on_update_db)
+        self.ui.public_filter_chain.download_item.connect(self.download_item)
 
     @QtCore.pyqtSlot()
     def on_search(self):
@@ -41,9 +37,9 @@ class WidgetFindData(QtWidgets.QWidget):
         if mv.database:
             self.setCursor(QtCore.Qt.CursorShape.WaitCursor)
             dbe = self.database.search_dataset(
-                self.lineEdit_search.text(),
-                limit=self.spinBox_public_rows.value())
-            self.public_filter_chain.set_db_extract(dbe)
+                self.ui.lineEdit_search.text(),
+                limit=self.ui.spinBox_public_rows.value())
+            self.ui.public_filter_chain.set_db_extract(dbe)
             self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
 
     @QtCore.pyqtSlot()
@@ -52,6 +48,8 @@ class WidgetFindData(QtWidgets.QWidget):
 
     @staticmethod
     def find_main_window():
+        # import here to avoid circular import via main_ui
+        from ..main import DCORAid
         # Global function to find the (open) QMainWindow in application
         app = QtWidgets.QApplication.instance()
         for widget in app.topLevelWidgets():

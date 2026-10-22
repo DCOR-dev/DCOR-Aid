@@ -1,10 +1,11 @@
-from importlib import resources
 import os
 import platform
 import subprocess
 import webbrowser
 
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
+
+from .widget_actions_download_ui import Ui_Form
 
 
 class TableCellActionsDownload(QtWidgets.QWidget):
@@ -16,24 +17,22 @@ class TableCellActionsDownload(QtWidgets.QWidget):
         Used for the "Running Downloads" table in the "Downloads" tab.
         """
         super().__init__(*args, **kwargs)
-        ref_ui = resources.files(
-            "dcoraid.gui.panel_downloads") / "widget_actions_download.ui"
-        with resources.as_file(ref_ui) as path_ui:
-            uic.loadUi(path_ui, self)
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         self.job = job
         # signals and slots
-        self.tb_delete.clicked.connect(self.on_delete)
-        self.tb_error.clicked.connect(self.on_error)
-        self.tb_retry.clicked.connect(self.on_retry)
-        self.tb_view.clicked.connect(self.on_view)
-        self.tb_folder.clicked.connect(self.on_folder)
+        self.ui.tb_delete.clicked.connect(self.on_delete)
+        self.ui.tb_error.clicked.connect(self.on_error)
+        self.ui.tb_retry.clicked.connect(self.on_retry)
+        self.ui.tb_view.clicked.connect(self.on_view)
+        self.ui.tb_folder.clicked.connect(self.on_folder)
 
-        for tbact in [self.tb_delete,
-                      self.tb_error,
-                      self.tb_retry,
-                      self.tb_view,
-                      self.tb_folder,
+        for tbact in [self.ui.tb_delete,
+                      self.ui.tb_error,
+                      self.ui.tb_retry,
+                      self.ui.tb_view,
+                      self.ui.tb_folder,
                       ]:
             row_height = tbact.geometry().height()
             tbact.setFixedSize(row_height - 2, row_height - 2)
@@ -80,14 +79,14 @@ class TableCellActionsDownload(QtWidgets.QWidget):
         state = job.state
 
         if state in ["abort", "error"]:
-            self.tb_retry.show()
+            self.ui.tb_retry.show()
         else:
-            self.tb_retry.hide()
+            self.ui.tb_retry.hide()
 
         if state == "error":
-            self.tb_error.show()
+            self.ui.tb_error.show()
         else:
-            self.tb_error.hide()
+            self.ui.tb_error.hide()
 
 
 def open_file(path):

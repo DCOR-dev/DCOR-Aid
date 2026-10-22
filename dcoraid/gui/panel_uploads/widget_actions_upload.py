@@ -1,7 +1,8 @@
-from importlib import resources
 import webbrowser
 
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
+
+from .widget_actions_upload_ui import Ui_Form
 
 
 class TableCellActionsUpload(QtWidgets.QWidget):
@@ -14,24 +15,22 @@ class TableCellActionsUpload(QtWidgets.QWidget):
         Used for the "Running Uploads" table in the "Uploads" tab.
         """
         super().__init__(*args, **kwargs)
-        ref_ui = resources.files(
-            "dcoraid.gui.panel_uploads") / "widget_actions_upload.ui"
-        with resources.as_file(ref_ui) as path_ui:
-            uic.loadUi(path_ui, self)
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         self.job = job
         # signals and slots
-        self.tb_abort.clicked.connect(self.on_abort)
-        self.tb_delete.clicked.connect(self.on_delete)
-        self.tb_error.clicked.connect(self.on_error)
-        self.tb_retry.clicked.connect(self.on_retry)
-        self.tb_view.clicked.connect(self.on_view)
+        self.ui.tb_abort.clicked.connect(self.on_abort)
+        self.ui.tb_delete.clicked.connect(self.on_delete)
+        self.ui.tb_error.clicked.connect(self.on_error)
+        self.ui.tb_retry.clicked.connect(self.on_retry)
+        self.ui.tb_view.clicked.connect(self.on_view)
 
-        for tbact in [self.tb_abort,
-                      self.tb_delete,
-                      self.tb_error,
-                      self.tb_retry,
-                      self.tb_view,
+        for tbact in [self.ui.tb_abort,
+                      self.ui.tb_delete,
+                      self.ui.tb_error,
+                      self.ui.tb_retry,
+                      self.ui.tb_view,
                       ]:
             row_height = tbact.geometry().height()
             tbact.setFixedSize(row_height - 2, row_height - 2)
@@ -72,26 +71,26 @@ class TableCellActionsUpload(QtWidgets.QWidget):
         state = job.state
 
         if state in ["online", "verify", "finalize", "done"]:
-            self.tb_view.show()
+            self.ui.tb_view.show()
         else:
-            self.tb_view.hide()
+            self.ui.tb_view.hide()
 
         if state in ["abort", "error"]:
-            self.tb_retry.show()
+            self.ui.tb_retry.show()
         else:
-            self.tb_retry.hide()
+            self.ui.tb_retry.hide()
 
         if state == "error":
-            self.tb_error.show()
+            self.ui.tb_error.show()
         else:
-            self.tb_error.hide()
+            self.ui.tb_error.hide()
 
         if state in ["compress", "transfer"]:
-            self.tb_abort.show()
+            self.ui.tb_abort.show()
         else:
-            self.tb_abort.hide()
+            self.ui.tb_abort.hide()
 
         if state not in ["compress", "transfer"]:
-            self.tb_delete.show()
+            self.ui.tb_delete.show()
         else:
-            self.tb_delete.hide()
+            self.ui.tb_delete.hide()

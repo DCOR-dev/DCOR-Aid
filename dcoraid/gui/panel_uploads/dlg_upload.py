@@ -1,10 +1,8 @@
 import logging
 import pathlib
-from importlib import resources
 import traceback as tb
 
-from PyQt6 import uic, QtCore, QtGui, QtWidgets
-
+from PyQt6 import QtCore, QtGui, QtWidgets
 
 from ...api import dataset_create
 from ...common import is_dc_file
@@ -16,6 +14,7 @@ from ..api import get_ckan_api
 from . import circle_mgr
 from .resources_model import ResourcesModel
 from .resource_schema_preset import PersistentResourceSchemaPresets
+from .dlg_upload_ui import Ui_Dialog
 
 
 class NoCircleSelectedError(ValueError):
@@ -31,16 +30,14 @@ class UploadDialog(QtWidgets.QDialog):
         """
         super().__init__(*args, **kwargs)
         self.logger = logging.getLogger(__name__)
-        ref_ui = resources.files(
-            "dcoraid.gui.panel_uploads") / "dlg_upload.ui"
-        with resources.as_file(ref_ui) as path_ui:
-            uic.loadUi(path_ui, self)
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
 
         # Dialog box buttons
-        self.pushButton_proceed = self.buttonBox.button(
+        self.pushButton_proceed = self.ui.buttonBox.button(
             QtWidgets.QDialogButtonBox.StandardButton.Apply)
         self.pushButton_proceed.setText("Proceed with upload / Enqueue job")
-        self.pushButton_cancel = self.buttonBox.button(
+        self.pushButton_cancel = self.ui.buttonBox.button(
             QtWidgets.QDialogButtonBox.StandardButton.Cancel)
 
         # Keep identifier
@@ -59,7 +56,7 @@ class UploadDialog(QtWidgets.QDialog):
         # Set circle choices
         circles = self.get_user_circle_dicts()
         for ci in circles:
-            self.comboBox_circles.addItem(
+            self.ui.comboBox_circles.addItem(
                 ci["title"] if ci["title"] else ci["name"], ci["name"])
 
         with ShowWaitCursor():
@@ -67,22 +64,22 @@ class UploadDialog(QtWidgets.QDialog):
             licenses = self.api.get_license_list()
             for lic in licenses:
                 if lic["domain_data"]:  # just an identifier to exclude "none"
-                    self.comboBox_license.addItem(
+                    self.ui.comboBox_license.addItem(
                         "{} ({})".format(lic["title"], lic["id"]), lic["id"])
 
             # Set supplementary resource schema
             rss = self.api.get_supplementary_resource_schema()
-            self.widget_schema.populate_schema(rss)
+            self.ui.widget_schema.populate_schema(rss)
 
         # Set visibility choices
         # We can infer this from the license list
         license_ids = [lic["id"] for lic in licenses]
         if set(license_ids) == {"none", "patient"}:
             # only allow private datasets
-            self.comboBox_vis.addItem("Private", "private")
+            self.ui.comboBox_vis.addItem("Private", "private")
         else:
-            self.comboBox_vis.addItem("Public", "public")
-            self.comboBox_vis.addItem("Private", "private")
+            self.ui.comboBox_vis.addItem("Public", "public")
+            self.ui.comboBox_vis.addItem("Private", "private")
 
         # Shortcut for testing
         self.shortcut = QtGui.QShortcut(
@@ -91,20 +88,20 @@ class UploadDialog(QtWidgets.QDialog):
 
         # Setup resources view
         self.rvmodel = ResourcesModel()
-        self.listView_resources.setModel(self.rvmodel)
-        self.selModel = self.listView_resources.selectionModel()
+        self.ui.listView_resources.setModel(self.rvmodel)
+        self.selModel = self.ui.listView_resources.selectionModel()
 
         # Effectively hide resource schema options initially
         self.on_selection_changed()
 
         # Presets for user convenience
         self.presets = PersistentResourceSchemaPresets()
-        self.comboBox_preset.addItems(sorted(self.presets.keys()))
+        self.ui.comboBox_preset.addItems(sorted(self.presets.keys()))
 
         # Restrict characters for line edit
         regex = QtCore.QRegularExpression(job.VALID_RESOURCE_REGEXP)
         validator = QtGui.QRegularExpressionValidator(regex)
-        self.lineEdit_res_filename.setValidator(validator)
+        self.ui.lineEdit_res_filename.setValidator(validator)
 
         # corner widget for markdown help
         self.label_link_markdown_help = QtWidgets.QLabel()
@@ -115,56 +112,56 @@ class UploadDialog(QtWidgets.QDialog):
             "upload.html#markdown-reference'>Show Markdown help</a>"
         )
         self.label_link_markdown_help.setOpenExternalLinks(True)
-        self.tabWidget_notes.setCornerWidget(self.label_link_markdown_help)
+        self.ui.tabWidget_notes.setCornerWidget(self.label_link_markdown_help)
 
         # Signals and slots
         # general buttons
-        self.toolButton_add.clicked.connect(self.on_add_resources)
-        self.toolButton_rem.clicked.connect(self.on_rem_resources)
+        self.ui.toolButton_add.clicked.connect(self.on_add_resources)
+        self.ui.toolButton_rem.clicked.connect(self.on_rem_resources)
         self.pushButton_proceed.clicked.connect(self.on_proceed)
         # resource-related signals
-        self.lineEdit_res_filename.textEdited.connect(
+        self.ui.lineEdit_res_filename.textEdited.connect(
             self.on_update_resources_model)
-        self.toolButton_res_filename.clicked.connect(self.on_reset_filename)
-        self.widget_schema.schema_changed.connect(
+        self.ui.toolButton_res_filename.clicked.connect(self.on_reset_filename)
+        self.ui.widget_schema.schema_changed.connect(
             self.on_update_resources_model)
         self.selModel.selectionChanged.connect(self.on_selection_changed)
         # do not allow to proceed without a title
-        self.lineEdit_authors.textEdited.connect(self.on_authors_edited)
+        self.ui.lineEdit_authors.textEdited.connect(self.on_authors_edited)
         self.on_authors_edited("")  # initial state
         # if the user changes the preset combobox text, offer them
         # to save it as a preset
-        self.comboBox_preset.editTextChanged.connect(
+        self.ui.comboBox_preset.editTextChanged.connect(
             self.on_preset_text_edited)
         # also offer the user to save the preset if the schema changed
-        self.widget_schema.schema_changed.connect(
+        self.ui.widget_schema.schema_changed.connect(
             self.on_preset_text_edited)
         self.on_preset_text_edited()  # empty string means no preset
         # store/load a preset
-        self.toolButton_preset_load.clicked.connect(self.on_preset_load)
-        self.toolButton_preset_store.clicked.connect(self.on_preset_store)
+        self.ui.toolButton_preset_load.clicked.connect(self.on_preset_load)
+        self.ui.toolButton_preset_store.clicked.connect(self.on_preset_store)
 
         # signal for showing dataset notes preview
-        self.tabWidget_notes.currentChanged.connect(
+        self.ui.tabWidget_notes.currentChanged.connect(
             self.on_notes_preview)
 
         # Do not allow drag and drop to line edit of combobox
-        self.comboBox_preset.lineEdit().setAcceptDrops(False)
+        self.ui.comboBox_preset.lineEdit().setAcceptDrops(False)
 
     def _autofill_for_testing(self, **kwargs):
-        self.lineEdit_title.setText(kwargs.get("title", "Dataset Title"))
-        self.lineEdit_authors.setText(kwargs.get("authors", "John Doe"))
-        self.lineEdit_doi.setText(kwargs.get("doi", ""))
-        self.lineEdit_references.setText(kwargs.get("references", ""))
-        self.plainTextEdit_notes.setPlainText(
+        self.ui.lineEdit_title.setText(kwargs.get("title", "Dataset Title"))
+        self.ui.lineEdit_authors.setText(kwargs.get("authors", "John Doe"))
+        self.ui.lineEdit_doi.setText(kwargs.get("doi", ""))
+        self.ui.lineEdit_references.setText(kwargs.get("references", ""))
+        self.ui.plainTextEdit_notes.setPlainText(
             kwargs.get("notes", "A description"))
-        self.lineEdit_tags.setText(kwargs.get("tags", "HL60, GFP"))
-        lcn_index = self.comboBox_license.findData("CC-BY-SA-4.0")
+        self.ui.lineEdit_tags.setText(kwargs.get("tags", "HL60, GFP"))
+        lcn_index = self.ui.comboBox_license.findData("CC-BY-SA-4.0")
         # lcn_index is -1 on DCOR-med when there is no CC license
         lcn_index = max(lcn_index, 0)
-        self.comboBox_license.setCurrentIndex(lcn_index)
-        self.comboBox_circles.setCurrentIndex(0)
-        self.comboBox_vis.setCurrentIndex(0)
+        self.ui.comboBox_license.setCurrentIndex(lcn_index)
+        self.ui.comboBox_circles.setCurrentIndex(0)
+        self.ui.comboBox_vis.setCurrentIndex(0)
         relpath = "../../../tests/data/calibration_beads_47.rtdc"
         path = pathlib.Path(__file__).resolve().parent / relpath
         if path.exists():
@@ -206,20 +203,20 @@ class UploadDialog(QtWidgets.QDialog):
         """Get all the metadata from the form"""
         # Dataset
         tags = []
-        for tt in self.lineEdit_tags.text().replace(" ", "").split(","):
+        for tt in self.ui.lineEdit_tags.text().replace(" ", "").split(","):
             if tt:
                 tags.append({"name": tt})
 
         dataset_dict = {
-            "title": self.lineEdit_title.text(),
-            "authors": self.lineEdit_authors.text(),
-            "doi": self.lineEdit_doi.text(),
-            "references": self.lineEdit_references.text(),
+            "title": self.ui.lineEdit_title.text(),
+            "authors": self.ui.lineEdit_authors.text(),
+            "doi": self.ui.lineEdit_doi.text(),
+            "references": self.ui.lineEdit_references.text(),
             "tags": tags,
-            "notes": self.plainTextEdit_notes.toPlainText(),
-            "license_id": self.comboBox_license.currentData(),
-            "private": self.comboBox_vis.currentData() == "private",
-            "owner_org": self.comboBox_circles.currentData(),
+            "notes": self.ui.plainTextEdit_notes.toPlainText(),
+            "license_id": self.ui.comboBox_license.currentData(),
+            "private": self.ui.comboBox_vis.currentData() == "private",
+            "owner_org": self.ui.comboBox_circles.currentData(),
         }
         return dataset_dict
 
@@ -246,53 +243,54 @@ class UploadDialog(QtWidgets.QDialog):
                     " ".join([f"*{s}" for s in suffixes])))
         files = [str(ff) for ff in files]  # make sure files are strings
         self.rvmodel.add_resources(files)
-        if not self.listView_resources.selectedIndexes():
+        if not self.ui.listView_resources.selectedIndexes():
             # Select the first item
             ix = self.rvmodel.index(0, 0)
-            sm = self.listView_resources.selectionModel()
+            sm = self.ui.listView_resources.selectionModel()
             sm.select(ix, QtCore.QItemSelectionModel.SelectionFlag.Select)
 
     @QtCore.pyqtSlot()
     def on_notes_preview(self):
         """Display preview when preview tab is selected"""
-        if self.tabWidget_notes.currentWidget() == self.tab_notes_preview:
-            self.textEdit_preview.setMarkdown(
-                self.plainTextEdit_notes.toPlainText())
+        if (self.ui.tabWidget_notes.currentWidget()
+                == self.ui.tab_notes_preview):
+            self.ui.textEdit_preview.setMarkdown(
+                self.ui.plainTextEdit_notes.toPlainText())
 
     @QtCore.pyqtSlot()
     def on_preset_load(self):
         """Load the preset with the current name"""
-        curtext = self.comboBox_preset.currentText()
+        curtext = self.ui.comboBox_preset.currentText()
 
         # Load from presets (must come before UI logic)
-        self.widget_schema.set_schema(self.presets[curtext])
+        self.ui.widget_schema.set_schema(self.presets[curtext])
 
         # UI logic
-        self.toolButton_preset_store.setEnabled(False)
-        self.toolButton_preset_load.setEnabled(False)
+        self.ui.toolButton_preset_store.setEnabled(False)
+        self.ui.toolButton_preset_load.setEnabled(False)
 
     @QtCore.pyqtSlot()
     def on_preset_store(self):
         """Store the current preset"""
-        curtext = self.comboBox_preset.currentText()
+        curtext = self.ui.comboBox_preset.currentText()
 
         # Store preset
-        preset = self.widget_schema.get_current_schema()
+        preset = self.ui.widget_schema.get_current_schema()
         self.presets[curtext] = preset
         self.on_update_resources_model()
 
         # UI logic
         items = []
-        for ii in range(self.comboBox_preset.count()):
-            items.append(self.comboBox_preset.itemText(ii))
+        for ii in range(self.ui.comboBox_preset.count()):
+            items.append(self.ui.comboBox_preset.itemText(ii))
         items = sorted(set(items + [curtext]))
-        self.comboBox_preset.blockSignals(True)
-        self.comboBox_preset.clear()
-        self.comboBox_preset.addItems(items)
-        self.comboBox_preset.setCurrentIndex(items.index(curtext))
-        self.comboBox_preset.blockSignals(False)
-        self.toolButton_preset_store.setEnabled(False)
-        self.toolButton_preset_load.setEnabled(False)
+        self.ui.comboBox_preset.blockSignals(True)
+        self.ui.comboBox_preset.clear()
+        self.ui.comboBox_preset.addItems(items)
+        self.ui.comboBox_preset.setCurrentIndex(items.index(curtext))
+        self.ui.comboBox_preset.blockSignals(False)
+        self.ui.toolButton_preset_store.setEnabled(False)
+        self.ui.toolButton_preset_load.setEnabled(False)
 
     @QtCore.pyqtSlot()
     def on_preset_text_edited(self):
@@ -302,15 +300,15 @@ class UploadDialog(QtWidgets.QDialog):
         a preset.
         """
         # UI logic only
-        curtext = self.comboBox_preset.currentText()
+        curtext = self.ui.comboBox_preset.currentText()
         if curtext:
-            self.toolButton_preset_store.setEnabled(True)
+            self.ui.toolButton_preset_store.setEnabled(True)
         else:
-            self.toolButton_preset_store.setEnabled(False)
+            self.ui.toolButton_preset_store.setEnabled(False)
         if curtext in self.presets:
-            self.toolButton_preset_load.setEnabled(True)
+            self.ui.toolButton_preset_load.setEnabled(True)
         else:
-            self.toolButton_preset_load.setEnabled(False)
+            self.ui.toolButton_preset_load.setEnabled(False)
 
     @QtCore.pyqtSlot()
     def on_proceed(self):
@@ -415,14 +413,14 @@ class UploadDialog(QtWidgets.QDialog):
     @QtCore.pyqtSlot()
     def on_rem_resources(self):
         """Remove the selected resources"""
-        sel = self.listView_resources.selectedIndexes()
+        sel = self.ui.listView_resources.selectedIndexes()
         self.rvmodel.rem_resources(sel)
-        self.listView_resources.clearSelection()
+        self.ui.listView_resources.clearSelection()
 
     @QtCore.pyqtSlot()
     def on_reset_filename(self):
         """Reset the filename of the current resource"""
-        sel = self.listView_resources.selectedIndexes()
+        sel = self.ui.listView_resources.selectedIndexes()
         self.rvmodel.reset_filenames(sel)
         # update lineEdit_res_filename
         self.on_selection_changed()
@@ -430,44 +428,44 @@ class UploadDialog(QtWidgets.QDialog):
     @QtCore.pyqtSlot()
     def on_selection_changed(self):
         """User changed the ListView selection; Refresh side panel"""
-        sel = self.listView_resources.selectedIndexes()
+        sel = self.ui.listView_resources.selectedIndexes()
         seltype = self.rvmodel.get_indexes_types(sel)
         # Resource options
         if len(sel) == 1:  # a single resource; show resource options
-            self.groupBox_res_info.show()
+            self.ui.groupBox_res_info.show()
             # populate
             path, data = self.rvmodel.get_data_for_index(sel[0])
-            self.lineEdit_res_filename.setText(data["file"]["filename"])
-            self.lineEdit_res_path.setText(path)
+            self.ui.lineEdit_res_filename.setText(data["file"]["filename"])
+            self.ui.lineEdit_res_path.setText(path)
         else:  # hide resource options
-            self.groupBox_res_info.hide()
+            self.ui.groupBox_res_info.hide()
         # Supplement options
         if seltype in ["dc", "mixed"]:
-            self.widget_supplement.show()
+            self.ui.widget_supplement.show()
             # populate
             common = self.rvmodel.get_common_supplements_from_indexes(sel)
-            self.widget_schema.set_schema(common)
+            self.ui.widget_schema.set_schema(common)
         else:
-            self.widget_supplement.hide()
+            self.ui.widget_supplement.hide()
 
         # also reset the preset combo box string
-        self.comboBox_preset.setCurrentText("")
+        self.ui.comboBox_preset.setCurrentText("")
 
     @QtCore.pyqtSlot()
     def on_update_resources_model(self):
         """Assemble metadata dictionary and update self.rvmodel"""
         data_dict = {}
-        sel = self.listView_resources.selectedIndexes()
+        sel = self.ui.listView_resources.selectedIndexes()
         if len(sel) == 0:  # nothing to do
             return
         elif len(sel) == 1:  # update file name
             path = pathlib.Path(self.rvmodel.get_data_for_index(sel[0])[0])
             suffix = path.suffix
             # prevent users from changing the suffix
-            fn = self.lineEdit_res_filename.text()
+            fn = self.ui.lineEdit_res_filename.text()
             if not fn.endswith(suffix):
                 fn += suffix
-                self.lineEdit_res_filename.setText(fn)
+                self.ui.lineEdit_res_filename.setText(fn)
             # In DCOR-Aid <= 0.17.1, we had an additional check for whether
             # the `path` in the model is different to `fn`. There probably
             # were race conditions which caused the model to be updated
@@ -480,7 +478,7 @@ class UploadDialog(QtWidgets.QDialog):
             # See issue #84.
             data_dict["file"] = {"filename": fn}
         # collect supplementary resource data
-        schema = self.widget_schema.get_current_schema()
+        schema = self.ui.widget_schema.get_current_schema()
         if schema:  # only update supplement if user made changes
             data_dict["supplement"] = schema
         self.rvmodel.update_resources(sel, data_dict)

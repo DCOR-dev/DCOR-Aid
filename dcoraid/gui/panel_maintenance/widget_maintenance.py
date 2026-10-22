@@ -1,17 +1,15 @@
 from os import path as os_path
 import shutil
 
-from importlib import resources
-
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtCore import QStandardPaths
 
 from ...api import dataset_draft_remove_all
 from ...upload import PersistentUploadJobList
 
 from ..api import get_ckan_api
-from ..main import DCORAid
 from ..tools import ShowWaitCursor
+from .widget_maintenance_ui import Ui_Form
 
 
 class MaintenanceWidget(QtWidgets.QWidget):
@@ -20,17 +18,17 @@ class MaintenanceWidget(QtWidgets.QWidget):
         """
         super().__init__(*args, **kwargs)
 
-        ref_ui = resources.files(
-            "dcoraid.gui.panel_maintenance") / "widget_maintenance.ui"
-        with resources.as_file(ref_ui) as path_ui:
-            uic.loadUi(path_ui, self)
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
-        self.pushButton_cache.clicked.connect(self.on_clear_cache)
-        self.pushButton_drafts.clicked.connect(self.on_remove_drafts)
-        self.pushButton_meta.clicked.connect(self.on_clear_meta)
+        self.ui.pushButton_cache.clicked.connect(self.on_clear_cache)
+        self.ui.pushButton_drafts.clicked.connect(self.on_remove_drafts)
+        self.ui.pushButton_meta.clicked.connect(self.on_clear_meta)
 
     @staticmethod
     def find_main_window():
+        # import here to avoid circular import via main_ui
+        from ..main import DCORAid
         # Global function to find the (open) QMainWindow in application
         app = QtWidgets.QApplication.instance()
         for widget in app.topLevelWidgets():
@@ -41,7 +39,7 @@ class MaintenanceWidget(QtWidgets.QWidget):
     def on_clear_cache(self):
         """Clear local upload cache"""
         mw = self.find_main_window()
-        queue = mw.panel_upload.jobs
+        queue = mw.ui.panel_upload.jobs
         dirs = queue.find_zombie_caches()
         msg = QtWidgets.QMessageBox()
         msg.setIcon(QtWidgets.QMessageBox.Icon.Information)

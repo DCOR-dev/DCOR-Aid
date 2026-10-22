@@ -16,10 +16,10 @@ class FilterCircles(filter_base.FilterBase):
         super().__init__(*args, **kwargs)
         self.active_actions += ["view-online"]
 
-        self.label.setText("Circles")
-        self.lineEdit.setPlaceholderText("filter names...")
-        self.checkBox.setVisible(False)
-        self.label_info.setVisible(False)
+        self.ui.label.setText("Circles")
+        self.ui.lineEdit.setPlaceholderText("filter names...")
+        self.ui.checkBox.setVisible(False)
+        self.ui.label_info.setVisible(False)
 
     def get_entry_actions(self, row, entry):
         api = get_ckan_api()
@@ -38,10 +38,10 @@ class FilterCollections(filter_base.FilterBase):
         super().__init__(*args, **kwargs)
         self.active_actions += [
             "download", "download-condensed", "view-online"]
-        self.label.setText("Collections")
-        self.lineEdit.setPlaceholderText("filter names...")
-        self.checkBox.setVisible(False)
-        self.label_info.setVisible(False)
+        self.ui.label.setText("Collections")
+        self.ui.lineEdit.setPlaceholderText("filter names...")
+        self.ui.checkBox.setVisible(False)
+        self.ui.label_info.setVisible(False)
 
     def get_entry_actions(self, row, entry):
         api = get_ckan_api()
@@ -80,10 +80,10 @@ class FilterDatasets(filter_base.FilterBase):
         super().__init__(*args, **kwargs)
         self.active_actions += [
             "download", "download-condensed", "view-online"]
-        self.label.setText("Datasets")
-        self.lineEdit.setPlaceholderText("filter titles...")
-        self.checkBox.setVisible(False)
-        self.label_info.setVisible(False)
+        self.ui.label.setText("Datasets")
+        self.ui.lineEdit.setPlaceholderText("filter titles...")
+        self.ui.checkBox.setVisible(False)
+        self.ui.label_info.setVisible(False)
 
     def get_entry_actions(self, row, entry):
         api = get_ckan_api()
@@ -122,15 +122,15 @@ class FilterResources(filter_base.FilterBase):
         super().__init__(*args, **kwargs)
         self.active_actions += [
             "download", "download-condensed", "view-online"]
-        self.label.setText("Resources")
-        self.lineEdit.setPlaceholderText("filter file names...")
-        self.checkBox.setVisible(True)
-        self.checkBox.setText(".rtdc only")
-        self.checkBox.setChecked(True)
-        self.tableWidget.setDragEnabled(True)
-        self.tableWidget.setDragDropMode(
+        self.ui.label.setText("Resources")
+        self.ui.lineEdit.setPlaceholderText("filter file names...")
+        self.ui.checkBox.setVisible(True)
+        self.ui.checkBox.setText(".rtdc only")
+        self.ui.checkBox.setChecked(True)
+        self.ui.tableWidget.setDragEnabled(True)
+        self.ui.tableWidget.setDragDropMode(
             QtWidgets.QAbstractItemView.DragDropMode.DragOnly)
-        self.label_info.setText(
+        self.ui.label_info.setText(
             "<i>Hint: You can drag and drop your selection "
             "from the resources list to DCscope!</i>")
 
@@ -164,7 +164,7 @@ class FilterResources(filter_base.FilterBase):
     def set_entry_label(self, row, entry):
         super().set_entry_label(row, entry)
         # set additional data link
-        item = self.tableWidget.item(row, 0)
+        item = self.ui.tableWidget.item(row, 0)
         api = get_ckan_api()
         dcor_url = f"{api.server}/api/3/action/dcserv?id={entry['id']}"
         item.setData(Qt.ItemDataRole.UserRole + 1, dcor_url)

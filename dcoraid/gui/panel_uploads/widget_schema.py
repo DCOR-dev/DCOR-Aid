@@ -51,7 +51,7 @@ class SchemaWidget(QtWidgets.QWidget):
         schema = {}
         for sec in self.schema_widgets:
             for widget in self.schema_widgets[sec]:
-                if widget.checkBox.isChecked():
+                if widget.ui.checkBox.isChecked():
                     if sec not in schema:
                         schema[sec] = {}
                     key = widget.rss_dict["key"]

@@ -1,7 +1,8 @@
 import copy
-from importlib import resources
 
-from PyQt6 import QtCore, QtGui, QtWidgets, uic
+from PyQt6 import QtCore, QtGui, QtWidgets
+
+from .filter_base_ui import Ui_Form
 
 
 class FilterBase(QtWidgets.QWidget):
@@ -27,39 +28,40 @@ class FilterBase(QtWidgets.QWidget):
         super().__init__(*args, **kwargs)
         # to be populated by subclasses
         self.active_actions = []
-        ref_ui = resources.files("dcoraid.gui.dbview") / "filter_base.ui"
-        with resources.as_file(ref_ui) as path_ui:
-            uic.loadUi(path_ui, self)
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         #: List of entries in the current list
         self.entries = []
 
         # resize first column
-        header = self.tableWidget.horizontalHeader()
+        header = self.ui.tableWidget.horizontalHeader()
         header.setSectionResizeMode(0,
                                     QtWidgets.QHeaderView.ResizeMode.Stretch)
 
         # trigger user selection change signal
-        self.tableWidget.itemSelectionChanged.connect(self.on_entry_selected)
+        self.ui.tableWidget.itemSelectionChanged.connect(
+            self.on_entry_selected)
 
         # TODO: enable quick-filters via lineEdit
-        self.lineEdit.setVisible(False)
+        self.ui.lineEdit.setVisible(False)
 
         # Disable custom tool button
-        self.pushButton_custom.setVisible(False)
+        self.ui.pushButton_custom.setVisible(False)
 
         # default drag&drop behavior is "off"
-        self.tableWidget.setDropIndicatorShown(False)  # don't show indicator
-        self.tableWidget.setDragEnabled(False)  # disable drag
-        self.tableWidget.setDragDropOverwriteMode(False)  # don't overwrite
-        self.tableWidget.setDragDropMode(
+        # don't show indicator
+        self.ui.tableWidget.setDropIndicatorShown(False)
+        self.ui.tableWidget.setDragEnabled(False)  # disable drag
+        self.ui.tableWidget.setDragDropOverwriteMode(False)  # don't overwrite
+        self.ui.tableWidget.setDragDropMode(
             # drag & drop disabled
             QtWidgets.QAbstractItemView.DragDropMode.NoDragDrop)
-        self.tableWidget.setDefaultDropAction(
+        self.ui.tableWidget.setDefaultDropAction(
             QtCore.Qt.DropAction.IgnoreAction)  # no drop by default
-        self.tableWidget.horizontalHeader().setSectionResizeMode(
+        self.ui.tableWidget.horizontalHeader().setSectionResizeMode(
             0, QtWidgets.QHeaderView.ResizeMode.Stretch)
-        self.tableWidget.horizontalHeader().setSectionResizeMode(
+        self.ui.tableWidget.horizontalHeader().setSectionResizeMode(
             1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
 
     def get_entry_actions(self, row, entry):
@@ -71,7 +73,7 @@ class FilterBase(QtWidgets.QWidget):
         if selected:
             identifiers = []
             for ii, entry in enumerate(self.entries):
-                if self.tableWidget.item(ii, 0).isSelected():
+                if self.ui.tableWidget.item(ii, 0).isSelected():
                     identifiers.append(entry[which])
         else:
             identifiers = [ee[which] for ee in self.entries]
@@ -88,13 +90,13 @@ class FilterBase(QtWidgets.QWidget):
         """
         if not isinstance(entries, list):
             raise ValueError(f"`entries` must be list, got '{entries}'!")
-        self.tableWidget.clear()
+        self.ui.tableWidget.clear()
         self.entries = copy.deepcopy(entries)
-        self.tableWidget.blockSignals(True)
-        self.tableWidget.setRowCount(len(self.entries))
+        self.ui.tableWidget.blockSignals(True)
+        self.ui.tableWidget.setRowCount(len(self.entries))
         for row, entry in enumerate(self.entries):
             self.set_entry(row, entry)
-        self.tableWidget.blockSignals(False)
+        self.ui.tableWidget.blockSignals(False)
 
     def set_entry(self, row, entry):
         """Set table Widget entry at index `row`"""
@@ -119,7 +121,7 @@ class FilterBase(QtWidgets.QWidget):
                 row_height = tbact.geometry().height()
                 tbact.setFixedSize(row_height - 2, row_height - 2)
 
-        self.tableWidget.setCellWidget(row, 1, widact)
+        self.ui.tableWidget.setCellWidget(row, 1, widact)
 
         return widact
 
@@ -137,4 +139,4 @@ class FilterBase(QtWidgets.QWidget):
         item.setText(entry.get("title") or entry["name"])
         item.setToolTip(entry.get("title") or entry["name"])
         item.setStatusTip(entry.get("title") or entry["name"])
-        self.tableWidget.setItem(row, 0, item)
+        self.ui.tableWidget.setItem(row, 0, item)
