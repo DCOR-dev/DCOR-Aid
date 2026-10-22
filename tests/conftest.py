@@ -117,3 +117,5 @@ def pytest_sessionstart(session):
         user_dict = api.get("user_show")
         user_dict["fullname"] = defaults["user_name"]
         api.post("user_update", user_dict)
+        # make sure the shared defaults are created initially
+        common.get_shared_defaults()
