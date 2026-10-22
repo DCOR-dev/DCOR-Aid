@@ -45,6 +45,7 @@
    `*_ui.py` modules, which are used via `self.ui`
  - ref: move `UploadTableWidget`, `DownloadTableWidget`, and
    `UserTableWidget` to separate modules
+ - ref: fix remaining ruff findings and add missing type annotations
  - setup: add tool.ruff.lint section to pyproject.toml
  - tests: automatically create test users on DCOR-dev if `DCOR_API_KEY`
    is not set or `tests/api_key` is missing or invalid

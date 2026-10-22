@@ -82,25 +82,25 @@ class MetaCache:
 
         # The organization registry is a dictionary with organization IDs and
         # a list of dataset IDs as values.
-        self._registry_org = {}
+        self._registry_org: dict[str, list[str]] = {}
 
         #: Dictionary of databases for persistent storage
-        self._databases = {}
+        self._databases: dict[str, SQLiteKeyJSONDatabase] = {}
 
         #: List of dataset IDs, mapping database index to dataset ID
-        self._map_index_id = []
+        self._map_index_id: list[str] = []
 
         #: Dict of dataset ID indices, mapping dataset ID to database index
-        self._map_id_index = {}
+        self._map_id_index: dict[str, int] = {}
 
         #: Dict of dataset ID indices, mapping dataset ID to organization
-        self._map_id_org = {}
+        self._map_id_org: dict[str, str] = {}
 
         #: List of dates
-        self._dates = []
+        self._dates: list[str] = []
 
         #: List of booleans indicating whether dataset was created by the user
-        self.datasets_user_owned = []
+        self.datasets_user_owned: list[bool] = []
 
         self._lock = threading.Lock()
 

@@ -148,8 +148,8 @@ class UploadJob:
         self.supplements = resource_supplements
         self._resources_uploaded = [False] * len(resource_names)
         self.task_id = task_id
-        self.paths_uploaded = []
-        self.paths_uploaded_before = []
+        self.paths_uploaded: list[pathlib.Path] = []
+        self.paths_uploaded_before: list[pathlib.Path] = []
         self.state = None
         self.set_state("init")
         self.traceback = None
