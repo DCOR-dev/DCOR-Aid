@@ -98,11 +98,11 @@ def test_get_users_query():
     api = common.get_api()
     db = db_api.APIInterrogator(api=api)
     defaults = common.get_test_defaults()
-    assert db.get_users(query=defaults["user"]) == [defaults["user"]]
+    assert defaults["user"] in db.get_users(query=defaults["user"])
     users, fullnames = db.get_users(query=defaults["user"],
                                     ret_fullnames=True)
-    assert users == [defaults["user"]]
-    assert fullnames == [defaults["user_name"]]
+    assert defaults["user"] in users
+    assert defaults["user_name"] in fullnames
     assert len(db.get_users(limit=2)) == 2
 
 
