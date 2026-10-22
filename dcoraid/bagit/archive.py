@@ -14,6 +14,7 @@ import urllib3.exceptions
 
 from ..api import CKANAPI
 from ..api import errors as api_errors
+from ..common import is_dc_resource_dict
 from ..dbmodel import APIInterrogator
 from ..download import DownloadJob
 from . import info, manifest
@@ -243,8 +244,9 @@ def bag_dataset(api: CKANAPI,
         if abort_event is not None and abort_event.is_set():
             return
 
-        # condensed resource
-        if res_dict["name"].endswith(".rtdc"):
+        # condensed resource (must match the criterion used in
+        # `manifest.write_manifest`)
+        if is_dc_resource_dict(res_dict):
             download_resource(api=api,
                               bag_path=bag_path,
                               res_dict=res_dict,

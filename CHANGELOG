@@ -7,6 +7,9 @@
  - fix: `dcoraid-upload-task` silenced exceptions by returning in `finally`
  - fix: BagIt archiving silently created bags for resources whose download
    or verification failed
+ - fix: BagIt archives of recently uploaded datasets could be invalid,
+   because the condensed file or the SHA256 sum of a resource was missing
+   in the manifest
  - fix: comparing the cached dataset list with a list of a different
    length returned True or raised an IndexError
  - fix: dataset search via the API returned more results than `limit`

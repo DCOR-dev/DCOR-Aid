@@ -1,6 +1,8 @@
 import hashlib
 import warnings
 
+from ..common import is_dc_resource_dict
+
 
 class ManifestValidationError(BaseException):
     pass
@@ -46,15 +48,20 @@ def write_manifest(bag_path, ds_dict):
     """
     manifest = []
     for res_dict in ds_dict["resources"]:
-        manifest.append(f"{res_dict['sha256']}  data/{res_dict['name']}")
-        if res_dict.get("mimetype") == "RT-DC":
-            pp_res = bag_path / "data" / res_dict["name"]
-            pp_cond = pp_res.with_name(f"{pp_res.stem}_condensed.rtdc")
-            # compute that hash for the condensed file
-            if pp_cond.exists():
-                manifest.append(f"{hash_file(pp_cond)}  data/{pp_cond.name}")
-            else:
-                warnings.warn(f"No condensed file found for {pp_res}")
+        pp_res = bag_path / "data" / res_dict["name"]
+        # The SHA256 sum is computed by DCOR in the background after the
+        # upload. If it is not available yet, compute it from the
+        # downloaded file (which was verified via its ETag).
+        res_hash = res_dict.get("sha256") or hash_file(pp_res)
+        manifest.append(f"{res_hash}  data/{pp_res.name}")
+        # The condensed file is downloaded for all DC resources (see
+        # `archive.bag_dataset`). Every file in the payload must be listed
+        # in the manifest, so we add it whenever it exists.
+        pp_cond = pp_res.with_name(f"{pp_res.stem}_condensed.rtdc")
+        if pp_cond.exists():
+            manifest.append(f"{hash_file(pp_cond)}  data/{pp_cond.name}")
+        elif is_dc_resource_dict(res_dict):
+            warnings.warn(f"No condensed file found for {pp_res}")
 
     # add dataset.json
     json_hash = hash_file(bag_path / "data" / "dataset.json")
