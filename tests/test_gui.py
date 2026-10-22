@@ -50,6 +50,22 @@ def mw(qtbot):
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
 
 
+def test_gui_playground_user_recreated(qtbot):
+    """Reset the local database when a new playground user was created"""
+    with mock.patch("dcoraid.gui.main.ensure_playground_user",
+                    return_value=True), \
+            mock.patch("dcoraid.gui.main.CachedAPIInterrogator.reset_cache"
+                       ) as reset_cache:
+        mw = DCORAid()
+        qtbot.addWidget(mw)
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
+        reset_cache.assert_called_once()
+        mw.close()
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
+
+
 @pytest.mark.filterwarnings("ignore::UserWarning",
                             match="No API token is set!")
 def test_gui_anonymous(qtbot):
@@ -188,6 +204,10 @@ def test_gui_start_with_bad_api_key(qtbot):
     good_key = settings.value("auth/api key")
     bad_key = good_key[:-2] + "00"
     settings.setValue("auth/api key", bad_key)
+    # In the playground scenario ("dcor-dev"), DCOR-Aid would create a new
+    # user. We want to test a regular user with a bad API key.
+    scenario = settings.value("user scenario")
+    settings.setValue("user scenario", "dcor")
     try:
         mw = DCORAid()
         qtbot.addWidget(mw)
@@ -204,6 +224,7 @@ def test_gui_start_with_bad_api_key(qtbot):
     finally:
         # reset to testing defaults
         settings.setValue("auth/api key", good_key)
+        settings.setValue("user scenario", scenario)
 
 
 def test_gui_upload_simple(mw, qtbot):

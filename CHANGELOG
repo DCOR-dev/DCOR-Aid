@@ -24,6 +24,8 @@
    limits `all_fields` list results to 25 items)
  - fix: datasets shared with the user were searched in all circles
    and collections instead of only those the user is a member of
+ - enh: automatically create a new DCOR-dev user in the playground user
+   scenario if the previous user was purged
  - enh: `dcoraid-upload-task` reads the API key from the `DCOR_API_KEY`
    environment variable if it is not passed as an argument
  - enh: retry downloading resources and archiving datasets in BagIt

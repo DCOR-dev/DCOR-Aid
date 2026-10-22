@@ -22,7 +22,7 @@ from ..api import APIOutdatedError
 from ..dbmodel import CachedAPIInterrogator
 from .._version import __version__
 
-from .api import get_ckan_api
+from .api import ensure_playground_user, get_ckan_api
 from .preferences import PreferencesDialog
 from .status_widget import StatusWidget
 from . import updater
@@ -83,6 +83,16 @@ class DCORAid(QtWidgets.QMainWindow):
 
         #: DCOR-Aid settings
         self.settings = QtCore.QSettings()
+
+        # In the playground scenario, the DCOR-dev user might have been
+        # purged. This must happen before any widget accesses the API.
+        playground_error = None
+        try:
+            playground_user_created = ensure_playground_user()
+        except BaseException:
+            playground_user_created = False
+            playground_error = traceback.format_exc()
+
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -92,6 +102,13 @@ class DCORAid(QtWidgets.QMainWindow):
 
         self.logger = logging.getLogger(__name__)
         self.logger.info(f"DCOR-Aid {__version__}")
+        if playground_user_created:
+            self.logger.info("Created a new DCOR-dev playground user, "
+                             "because the previous user does not exist "
+                             "anymore (users are purged regularly).")
+        elif playground_error is not None:
+            self.logger.error("Could not check the DCOR-dev playground "
+                              f"user:\n{playground_error}")
 
         # GUI
         # Preferences dialog
@@ -151,6 +168,9 @@ class DCORAid(QtWidgets.QMainWindow):
                 cache_location=QtCore.QStandardPaths.writableLocation(
                     QtCore.QStandardPaths.StandardLocation.CacheLocation)
                 )
+            if playground_user_created:
+                # The local database contains data that have been purged.
+                self.database.reset_cache()
             self._last_asked_about_update = self.database.local_timestamp
             if not bool(int(self.settings.value(
                     "skip database update on startup", "0"))):

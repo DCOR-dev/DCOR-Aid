@@ -7,7 +7,7 @@ import tempfile
 
 from PyQt6 import QtCore
 
-from ..api import CKANAPI
+from ..api import CKANAPI, create_dcor_dev_user, is_valid_api_key
 
 _disable_ssl = os.environ.get("DCORAID_SKIP_SSL_VERIFY", "").lower() == "true"
 #: Either a boolean or a path to the server's SSL certificate. Defaults
@@ -36,6 +36,44 @@ def get_ckan_api(public=False):
                             ssl_verify=ssl_verify,
                             check_ckan_version=False)
     return _CKAN_API
+
+
+def ensure_playground_user():
+    """Make sure that the user of the DCOR-dev playground exists
+
+    In the "dcor-dev" user scenario (playground), DCOR-Aid uses a user
+    that was created automatically on DCOR-dev. All users and data on
+    DCOR-dev are purged regularly. If the API key of the playground user
+    is not valid anymore, a new user is created and its API key is
+    stored in the settings.
+
+    This function must be called before :func:`get_ckan_api` is called.
+
+    Returns
+    -------
+    created: bool
+        Whether a new user was created
+    """
+    global _CKAN_API
+    settings = QtCore.QSettings()
+    if settings.value("user scenario", "") != "dcor-dev":
+        return False
+    api_key = settings.value("auth/api key", "")
+    if not api_key:
+        # Not set up yet (this is done by the setup wizard).
+        return False
+    server = settings.value("auth/server", "dcor-dev.mpl.mpg.de")
+    ssl_verify = setup_certificate_file()
+    if is_valid_api_key(server=server,
+                        api_key=api_key,
+                        ssl_verify=ssl_verify):
+        return False
+    api_key = create_dcor_dev_user(server=server, ssl_verify=ssl_verify)
+    settings.setValue("auth/api key", api_key)
+    settings.sync()
+    # make sure the new API key is used
+    _CKAN_API = None
+    return True
 
 
 def setup_certificate_file():
