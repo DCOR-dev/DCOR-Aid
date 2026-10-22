@@ -1,3 +1,4 @@
+import hashlib
 from unittest import mock
 import warnings
 import uuid
@@ -166,3 +167,45 @@ def test_download_resource_retry_verification_error(tmp_path):
     assert len(temp_paths) == 2
     for pp in temp_paths:
         assert not pp.exists()
+
+
+def fake_download_resource(api, bag_path, res_dict, condensed, **kwargs):
+    """Write a dummy file instead of downloading the resource"""
+    dl_path = bag_path / "data" / res_dict["name"]
+    if condensed:
+        dl_path = dl_path.with_name(dl_path.stem + "_condensed.rtdc")
+    dl_path.write_bytes(f"content of {dl_path.name}".encode())
+
+
+@pytest.mark.parametrize("server_metadata", [True, False])
+def test_bag_dataset_fresh_metadata(tmp_path, server_metadata):
+    """Bags must be valid even if DCOR did not yet process the resources
+
+    Right after an upload, DCOR might not yet have set the "mimetype"
+    and "sha256" of a resource (offline test).
+    """
+    resources = [{"id": "res-1", "name": "data.rtdc"},
+                 {"id": "res-2", "name": "notes.txt"}]
+    if server_metadata:
+        for res_dict in resources:
+            content = f"content of {res_dict['name']}".encode()
+            res_dict["sha256"] = hashlib.sha256(content).hexdigest()
+        resources[0]["mimetype"] = "RT-DC"
+    ds_dict = {"id": "ds-1",
+               "name": "dataset-1",
+               "title": "Dataset 1",
+               "organization": {"name": "circle-1"},
+               "resources": resources,
+               }
+    with mock.patch.object(archive, "download_resource",
+                           fake_download_resource):
+        archive.bag_dataset(api=mock.MagicMock(),
+                            ds_dict=ds_dict,
+                            bag_path=tmp_path)
+
+    payload = sorted(pp.name for pp in (tmp_path / "data").iterdir())
+    assert payload == ["data.rtdc", "data_condensed.rtdc", "dataset.json",
+                       "notes.txt"]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        bagit.Bag(str(tmp_path)).validate()
