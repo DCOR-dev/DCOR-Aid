@@ -26,13 +26,13 @@ from .errors import (APIConflictError, APINotFoundError, NoAPIKeyError,
 MIN_CKAN_VERSION = "2.9.4"
 
 #: List of license lists for each DCOR server
-SERVER_LICENCES = {}
+SERVER_LICENCES: dict[str, list[dict]] = {}
 
 #: List of supplementary resource schema dictionaries
-SERVER_RSS = {}
+SERVER_RSS: dict[str, dict] = {}
 
 #: List of supported resource suffixes
-SERVER_RSUFFIX = {}
+SERVER_RSUFFIX: dict[str, list[str]] = {}
 
 # Configure retry strategy
 retry_strategy = Retry(

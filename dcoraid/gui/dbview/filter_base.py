@@ -89,7 +89,7 @@ class FilterBase(QtWidgets.QWidget):
 
         """
         if not isinstance(entries, list):
-            raise ValueError(f"`entries` must be list, got '{entries}'!")
+            raise TypeError(f"`entries` must be list, got '{entries}'!")
         self.ui.tableWidget.clear()
         self.entries = copy.deepcopy(entries)
         self.ui.tableWidget.blockSignals(True)

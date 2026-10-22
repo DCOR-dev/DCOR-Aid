@@ -171,7 +171,7 @@ if __name__ == "__main__":
         for name in names:
             ipaths = find_icons(name, theme)
             if not ipaths:
-                print("Could not find {} {}".format(theme, name))
+                print(f"Could not find {theme} {name}")
                 continue
             for ipath, relp in ipaths:
                 dest = here / relp
