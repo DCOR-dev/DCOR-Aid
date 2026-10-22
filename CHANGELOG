@@ -46,6 +46,8 @@
  - ref: move `UploadTableWidget`, `DownloadTableWidget`, and
    `UserTableWidget` to separate modules
  - ref: fix remaining ruff findings and add missing type annotations
+ - ref: new `dcoraid.api.create_dcor_dev_user` and
+   `dcoraid.api.is_valid_api_key` used by the setup wizard and the tests
  - setup: add tool.ruff.lint section to pyproject.toml
  - tests: automatically create test users on DCOR-dev if `DCOR_API_KEY`
    is not set or `tests/api_key` is missing or invalid
