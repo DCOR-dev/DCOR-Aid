@@ -249,6 +249,60 @@ def test_cache_upsert_many(tmp_path):
         assert mc.datasets[-2]["title"] == "Peter Pan 3"
 
 
+def test_cache_upsert_many_registry(tmp_path):
+    """`upsert_many` must register inserted datasets with their circle"""
+    org_id = str(uuid.uuid4())
+    ds_list = [make_dataset_dict_full_fake(org_id=org_id,
+                                           time_created=time.time() - 100 + ii)
+               for ii in range(5)]
+
+    with meta_cache.MetaCache(tmp_path) as mc:
+        mc.upsert_many(ds_list, org_id=org_id)
+        assert sorted(mc._registry_org[org_id]) == \
+            sorted(ds["id"] for ds in ds_list)
+
+
+def test_cache_upsert_many_twice_same_session(tmp_path):
+    """Updating datasets in the same session must not insert duplicates
+
+    This is what happens when the local database is updated incrementally
+    (`CachedAPIInterrogator.update`) without restarting DCOR-Aid.
+    """
+    org_id = str(uuid.uuid4())
+    ds_list = [make_dataset_dict_full_fake(org_id=org_id,
+                                           time_created=time.time() - 100 + ii)
+               for ii in range(5)]
+
+    with meta_cache.MetaCache(tmp_path) as mc:
+        mc.upsert_many(ds_list, org_id=org_id)
+        ds_list[0]["title"] = "Peter Pan"
+        # upsert only the modified dataset and a new one
+        ds_new = make_dataset_dict_full_fake(org_id=org_id)
+        mc.upsert_many([ds_list[0], ds_new], org_id=org_id)
+        assert len(mc.datasets) == 6
+        assert mc.datasets[-1]["title"] == "Peter Pan"
+        assert ds_new in mc.datasets
+
+    with meta_cache.MetaCache(tmp_path) as mc:
+        assert len(mc.datasets) == 6
+        assert mc.datasets[-1]["title"] == "Peter Pan"
+
+
+def test_cache_upsert_dataset_after_upsert_many(tmp_path):
+    """`upsert_dataset` must recognize datasets added via `upsert_many`"""
+    org_id = str(uuid.uuid4())
+    ds_list = [make_dataset_dict_full_fake(org_id=org_id,
+                                           time_created=time.time() - 100 + ii)
+               for ii in range(5)]
+
+    with meta_cache.MetaCache(tmp_path) as mc:
+        mc.upsert_many(ds_list, org_id=org_id)
+        ds_list[2]["title"] = "Peter Pan"
+        mc.upsert_dataset(ds_list[2])
+        assert len(mc.datasets) == 5
+        assert mc.datasets[2]["title"] == "Peter Pan"
+
+
 def test_cache_upsert_many_search(tmp_path):
     """Test the `upsert_many` wrapper, searching data afterwards"""
     ds_list = []

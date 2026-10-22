@@ -375,7 +375,7 @@ class MetaCache:
         ms_created = [ds_dict["metadata_created"] for ds_dict in dataset_dicts]
 
         # registry
-        self._registry_org.setdefault(org_id, []).__add__(ds_ids)
+        self._registry_org.setdefault(org_id, []).extend(ds_ids)
 
         # search array
         dates_cur = np.array(self._dates, copy=True)
