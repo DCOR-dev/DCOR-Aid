@@ -6,6 +6,7 @@ import logging
 import os
 import pathlib
 import re
+import time
 import traceback
 from collections.abc import Callable
 from typing import BinaryIO
@@ -280,6 +281,31 @@ def get_etag_from_response(response):
     return etag
 
 
+#: Seconds to wait before the first retry of an S3 request; the waiting
+#: time doubles with each retry (see :func:`wait_before_retry`)
+RETRY_WAIT = 5.0
+
+
+def wait_before_retry(attempt: int, attempts: int, retry_wait: float):
+    """Wait before retrying a failed request
+
+    Parameters
+    ----------
+    attempt: int
+        index of the attempt that just failed (starting at 0)
+    attempts: int
+        total number of attempts
+    retry_wait: float
+        seconds to wait after the first attempt; the waiting time doubles
+        with each attempt. There is no waiting after the last attempt.
+    """
+    if attempt < attempts - 1:
+        wait = retry_wait * 2 ** attempt
+        logger.info(f"Retrying in {wait:.0f}s "
+                    f"(attempt {attempt + 2} of {attempts})")
+        time.sleep(wait)
+
+
 def requests_put_data_and_get_etag(
         file_object: io.FileIO | BinaryIO,
         put_url: str,
@@ -289,6 +315,7 @@ def requests_put_data_and_get_etag(
         callback: Callable,
         timeout=27.3,
         retries=3,
+        retry_wait=RETRY_WAIT,
         ):
     """Upload data via a PUT request and return the ETag
 
@@ -296,6 +323,12 @@ def requests_put_data_and_get_etag(
     ----------
     part_number: int
         multipart upload part number, indexing starts at 0
+    retries: int
+        number of attempts
+    retry_wait: float
+        seconds to wait before the first retry (doubles with each retry),
+        so that short connection problems (e.g. refused connections)
+        do not immediately lead to a failed upload
 
 
     Since this method makes use of :class:`.FilePart` which
@@ -310,7 +343,7 @@ def requests_put_data_and_get_etag(
                        )
     trcbck = None
     resp = None
-    for _ in range(retries):
+    for attempt in range(retries):
         # Always seek to the zero position.
         fd_part.seek(0)
         try:
@@ -322,6 +355,7 @@ def requests_put_data_and_get_etag(
         except BaseException:
             trcbck = traceback.format_exc()
             logger.warning(f"Encountered Exception for {put_url}:\n{trcbck} ")
+            wait_before_retry(attempt, retries, retry_wait)
             continue
         else:
             trcbck = None
@@ -329,6 +363,7 @@ def requests_put_data_and_get_etag(
             etag = get_etag_from_response(resp)
             if etag is not None and etag == fd_part.md5():
                 break
+            wait_before_retry(attempt, retries, retry_wait)
     else:
         raise S3UploadError(
             f"Could not upload or server did not return 'ETag' for upload "
@@ -561,6 +596,7 @@ def upload_s3_presigned_multipart(
             trcbck_compl = traceback.format_exc()
             logger.warning(
                 f"Encountered {trcbck_compl} for {complete_multipart_url}")
+            wait_before_retry(jj, retries, RETRY_WAIT)
             continue
         else:
             etag_full = get_etag_from_response(resp_compl)
@@ -572,6 +608,7 @@ def upload_s3_presigned_multipart(
                     logger.warning(f"ETag mismatch, expected {etag_expected}, "
                                    f"got {etag_full}; (retry {jj})")
                     # The server returned the wrong ETag. We will try again.
+                    wait_before_retry(jj, retries, RETRY_WAIT)
                     continue
             else:
                 # Some servers do not properly return the ETag in the response
@@ -585,6 +622,7 @@ def upload_s3_presigned_multipart(
                         f"Server did not return ETag in the response header "
                         f"and returned an error message in the body: {rbody}"
                     )
+                    wait_before_retry(jj, retries, RETRY_WAIT)
                     continue
                 else:
                     # We have to assume everything went well.
