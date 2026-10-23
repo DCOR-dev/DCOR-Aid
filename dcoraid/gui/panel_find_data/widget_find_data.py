@@ -2,6 +2,7 @@ import logging
 
 from PyQt6 import QtCore, QtWidgets
 
+from ..api import get_ckan_api
 from ..status_widget import StatusWidget
 from .widget_find_data_ui import Ui_Form
 
@@ -18,9 +19,9 @@ class WidgetFindData(QtWidgets.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
-        settings = QtCore.QSettings()
-        server = settings.value("auth/server", "dcor.mpl.mpg.de")
-        title = StatusWidget.get_title(server)
+        # Use the server URL of the API, which contains the scheme
+        # (the server might be stored without scheme in the settings).
+        title = StatusWidget.get_title(get_ckan_api().server)
         self.ui.label_search.setText(f"Search {title or 'DCOR'}")
 
         self.database = None
