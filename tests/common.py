@@ -99,6 +99,10 @@ def get_shared_defaults():
     circle and a collection, adds the test user as a member to both, and
     creates a dataset in that circle and collection. From the point of
     view of the test user, these are not their own, but shared with them.
+
+    The second test user also creates a circle and a collection that
+    are not shared with the test user ("circle_private" and
+    "collection_private").
     """
     test_user = get_test_defaults()["user"]
     api = CKANAPI(server=SERVER, api_key=get_api_key_other_user(),
@@ -106,14 +110,16 @@ def get_shared_defaults():
     name = api.user_name
     circle = f"{name}-shared-circle"
     collection = f"{name}-shared-collection"
-    try:
-        api.post("organization_create", {"name": circle})
-    except APIConflictError:
-        pass
-    try:
-        api.post("group_create", {"name": collection})
-    except APIConflictError:
-        pass
+    circle_private = f"{name}-private-circle"
+    collection_private = f"{name}-private-collection"
+    for action, group_name in [("organization_create", circle),
+                               ("group_create", collection),
+                               ("organization_create", circle_private),
+                               ("group_create", collection_private)]:
+        try:
+            api.post(action, {"name": group_name})
+        except APIConflictError:
+            pass
     api.post("organization_member_create",
              {"id": circle, "username": test_user, "role": "member"})
     api.post("group_member_create",
@@ -127,6 +133,8 @@ def get_shared_defaults():
     return {
         "circle": circle,
         "collection": collection,
+        "circle_private": circle_private,
+        "collection_private": collection_private,
         "dataset_id": ds_dict["id"],
         "user": name,
     }
