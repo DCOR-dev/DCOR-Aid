@@ -36,6 +36,7 @@ class FilterBase(QtWidgets.QWidget):
 
         # resize first column
         header = self.ui.tableWidget.horizontalHeader()
+        assert header is not None
         header.setSectionResizeMode(0,
                                     QtWidgets.QHeaderView.ResizeMode.Stretch)
 
