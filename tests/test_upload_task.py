@@ -44,7 +44,7 @@ def test_create_task():
     uj.task_verify_resources()
     common.wait_for_job_no_queue(uj)
     # Now make sure that all the information is still there
-    for ii in range(10):
+    for _ in range(100):
         ddict = api.get("package_show", id=uj.dataset_id)
         if ddict["resources"][1].get("size") is not None:
             break
