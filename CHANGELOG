@@ -36,6 +36,8 @@
    for database interrogators
  - enh: `get_users` of database interrogators accepts `query` and `limit`
    (only up to `limit` users are returned, by default 20)
+ - enh: wait between retries of failed S3 upload requests (5 s, doubling
+   with each retry) instead of retrying immediately
  - ref: convert `dcoraid.cli` module into a package; the upload task CLI
    now lives in `dcoraid.cli.task_upload_task`
  - ref: use `super()`, PEP 604 optional type hints, and builtin/
