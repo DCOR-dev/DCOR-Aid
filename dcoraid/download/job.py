@@ -314,7 +314,7 @@ class DownloadJob:
 
             try:
                 size_done = self.path.stat().st_size
-            except (AttributeError, FileNotFoundError):
+            except FileNotFoundError:
                 size_done = None
 
             if size_done is not None:
@@ -463,9 +463,10 @@ class DownloadJob:
                     self.path_temp.unlink()
                 self.set_state("done")
             else:  # only verify if we have self.temp_path
+                # `path_temp` is set in `task_download_resource`
+                assert self.path_temp is not None
                 self.set_state("verify")
                 if self.condensed:
-                    assert self.path_temp is not None
                     # do not perform ETag/SHA256 check
                     # TODO:
                     #  - Check whether the condensed file can be opened
@@ -505,7 +506,6 @@ class DownloadJob:
                                 self.set_state("error")
                             else:
                                 logger.info(f"ETag verified ({rid})")
-                                assert self.path_temp is not None
                                 self.path_temp.rename(self.path)
                                 self.set_state("done")
                     else:
@@ -520,7 +520,6 @@ class DownloadJob:
                             self.set_state("error")
                         else:
                             logger.info(f"SHA256 verified ({rid})")
-                            assert self.path_temp is not None
                             self.path_temp.rename(self.path)
                             self.set_state("done")
         elif self.state != "done":  # ignore state "done" [sic!]
