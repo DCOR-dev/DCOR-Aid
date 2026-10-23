@@ -1,14 +1,20 @@
 from __future__ import annotations
 
 from itertools import islice
+import logging
 import sys
 import time
 import urllib.parse
 
 import numpy as np
 
+from ..api.errors import APIBadRequest
+
 from .db_core import DBInterrogator
 from .extract import DBExtract
+
+
+logger = logging.getLogger(__name__)
 
 
 if sys.version_info >= (3, 12):
@@ -50,13 +56,22 @@ class APIInterrogator(DBInterrogator):
         This includes all collections in which the user has any role
         (also "member").
         """
+        user_id = self.api.user_id
+        if user_id is None:
+            return []
+        try:
+            # DCOR servers with ckanext-dcor_schemas >= 1.2.0
+            return self.api.get("dcor_group_list_for_user")
+        except APIBadRequest as e:
+            if "Action name not known" not in str(e):
+                raise
+            logger.info("The server does not support the API action "
+                        "`dcor_group_list_for_user`, falling back to "
+                        "checking the members of all collections.")
         # CKAN's `group_list_authz` only returns the collections that the
         # user may edit, and there is no API call that returns the
         # collections in which the user is a "member". Therefore, we have
         # to check the members of every collection.
-        user_id = self.api.user_id
-        if user_id is None:
-            return []
         collections = []
         for col in self.get_collections():
             members = self.api.get("member_list",
