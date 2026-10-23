@@ -56,7 +56,12 @@ def test_get_circles_user():
     db = db_api.APIInterrogator(api=api)
     circles_user = [c["name"] for c in db.get_circles_user()]
     assert common.get_test_defaults()["circle"] in circles_user
-    assert len(circles_user) < len(db.get_circles())
+    # Circles of other users must not be listed. Do not compare the
+    # number of circles, because on a freshly reset DCOR-dev, the test
+    # user might be a member of all circles.
+    private = common.get_shared_defaults()["circle_private"]
+    assert private not in circles_user
+    assert private in [c["name"] for c in db.get_circles()]
 
 
 def test_get_collections_all():
@@ -76,7 +81,12 @@ def test_get_collections_user():
     db = db_api.APIInterrogator(api=api)
     collections_user = [c["name"] for c in db.get_collections_user()]
     assert common.get_test_defaults()["collection"] in collections_user
-    assert len(collections_user) < len(db.get_collections())
+    # Collections of other users must not be listed. Do not compare the
+    # number of collections, because on a freshly reset DCOR-dev, the test
+    # user might be a member of all collections.
+    private = common.get_shared_defaults()["collection_private"]
+    assert private not in collections_user
+    assert private in [c["name"] for c in db.get_collections()]
 
 
 def test_get_datasets_user_owned(tmp_path):
