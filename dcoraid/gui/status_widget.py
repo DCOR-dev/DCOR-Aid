@@ -55,6 +55,10 @@ class StatusWidget(QtWidgets.QWidget):
 
     @staticmethod
     def get_favicon(server):
+        """Return the favicon of `server` (e.g. `CKANAPI.server`)
+
+        The `server` must be a URL including the scheme.
+        """
         dldir = pathlib.Path(
             QtCore.QStandardPaths.writableLocation(
                 QtCore.QStandardPaths.StandardLocation.AppDataLocation)
@@ -83,6 +87,10 @@ class StatusWidget(QtWidgets.QWidget):
 
     @staticmethod
     def get_title(server):
+        """Return the site title of `server` (e.g. `CKANAPI.server`)
+
+        The `server` must be a URL including the scheme.
+        """
         dldir = pathlib.Path(
             QtCore.QStandardPaths.writableLocation(
                 QtCore.QStandardPaths.StandardLocation.AppDataLocation)
