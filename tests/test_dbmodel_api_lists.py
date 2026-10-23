@@ -3,11 +3,12 @@ from unittest import mock
 
 import pytest
 
+from dcoraid.api.errors import APIBadRequest
 from dcoraid.dbmodel import db_api
 
 
 def make_interrogator(num_circles=60, num_collections=40, user_id="user-1",
-                      member_of=(), max_items=25):
+                      member_of=(), max_items=25, group_list_action=False):
     """Return an APIInterrogator with a mocked CKAN API
 
     Parameters
@@ -20,6 +21,9 @@ def make_interrogator(num_circles=60, num_collections=40, user_id="user-1",
         Collection names in which the user is a member
     max_items: int
         Maximum number of items CKAN returns with `all_fields=True`
+    group_list_action: bool
+        Whether the server supports the `dcor_group_list_for_user` action
+        (ckanext-dcor_schemas >= 1.2.0)
     """
     circles = [{"id": f"oid-{ii:03d}", "name": f"circle-{ii:03d}"}
                for ii in range(num_circles)]
@@ -44,6 +48,12 @@ def make_interrogator(num_circles=60, num_collections=40, user_id="user-1",
                 return [["other-user", "user", "admin"]]
         elif api_call == "organization_list_for_user":
             return circles[:2]
+        elif api_call == "dcor_group_list_for_user":
+            if group_list_action:
+                return [c for c in collections if c["name"] in member_of]
+            else:
+                raise APIBadRequest("Bad request - Action name not known: "
+                                    "dcor_group_list_for_user")
         raise ValueError(f"Unexpected API call {api_call}")
 
     api = mock.MagicMock()
@@ -99,10 +109,36 @@ def test_get_circles_user():
 
 def test_get_collections_user():
     """Collections in which the user has any role (also "member")"""
-    ai, _ = make_interrogator(num_collections=40,
-                              member_of=["collection-003", "collection-030"])
+    ai, calls = make_interrogator(num_collections=40,
+                                  member_of=["collection-003",
+                                             "collection-030"],
+                                  group_list_action=True)
     assert [c["name"] for c in ai.get_collections_user()] == \
         ["collection-003", "collection-030"]
+    # the server-side action is used (one request)
+    assert [c[0] for c in calls] == ["dcor_group_list_for_user"]
+
+
+def test_get_collections_user_fallback():
+    """Older servers do not support `dcor_group_list_for_user`"""
+    ai, calls = make_interrogator(num_collections=40,
+                                  member_of=["collection-003",
+                                             "collection-030"],
+                                  group_list_action=False)
+    assert [c["name"] for c in ai.get_collections_user()] == \
+        ["collection-003", "collection-030"]
+    # fall back to checking the members of all collections
+    api_calls = [c[0] for c in calls]
+    assert api_calls[0] == "dcor_group_list_for_user"
+    assert api_calls.count("member_list") == 40
+
+
+def test_get_collections_user_other_bad_request():
+    """Only fall back if the action is not known to the server"""
+    ai, _ = make_interrogator()
+    ai.api.get.side_effect = APIBadRequest("Bad request - something else")
+    with pytest.raises(APIBadRequest, match="something else"):
+        ai.get_collections_user()
 
 
 def test_get_lists_user_anonymous():
