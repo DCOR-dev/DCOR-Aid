@@ -1,7 +1,10 @@
+import socket
 import time
+from unittest import mock
 import uuid
 
 import pytest
+import requests
 
 from dcoraid.api import ckan_api
 
@@ -77,3 +80,22 @@ def test_api_hostname(server, api_hostname):
     api = ckan_api.CKANAPI(server=server,
                            check_ckan_version=False)
     assert api.hostname == api_hostname
+
+
+def test_api_no_retry_on_name_resolution_error():
+    """Do not retry requests when the host name cannot be resolved"""
+    host = f"{uuid.uuid4()}.does.not.exist.example.com"
+    lookups = []
+
+    def getaddrinfo(name, *args, **kwargs):
+        lookups.append(name)
+        raise socket.gaierror(socket.EAI_NONAME, "Name or service not known")
+
+    api = ckan_api.CKANAPI(server=host,
+                           check_ckan_version=False,
+                           caching=False)
+    with (mock.patch("socket.getaddrinfo", side_effect=getaddrinfo),
+          pytest.raises(requests.exceptions.ConnectionError,
+                        match="Failed to resolve")):
+        api.get("status_show")
+    assert len(lookups) == 1

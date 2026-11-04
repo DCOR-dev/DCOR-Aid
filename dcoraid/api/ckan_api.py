@@ -8,6 +8,7 @@ import pathlib
 import random
 import traceback
 import urllib.parse
+from urllib3.exceptions import MaxRetryError, NameResolutionError
 from urllib3.util.retry import Retry
 
 from dclab.external.packaging import parse as parse_version
@@ -34,8 +35,27 @@ SERVER_RSS: dict[str, dict] = {}
 #: List of supported resource suffixes
 SERVER_RSUFFIX: dict[str, list[str]] = {}
 
+
+class RetryExceptNameResolution(Retry):
+    """Retry strategy that gives up immediately if a host cannot be resolved
+
+    A failed name lookup is rarely transient (e.g. a typo in the server
+    name), and on Windows every failed lookup may take half a minute.
+    """
+    def increment(self, method=None, url=None, response=None, error=None,
+                  _pool=None, _stacktrace=None):
+        if isinstance(error, NameResolutionError):
+            raise MaxRetryError(_pool, url, error) from error
+        return super().increment(method=method,
+                                 url=url,
+                                 response=response,
+                                 error=error,
+                                 _pool=_pool,
+                                 _stacktrace=_stacktrace)
+
+
 # Configure retry strategy
-retry_strategy = Retry(
+retry_strategy = RetryExceptNameResolution(
     total=3,  # Total retries
     backoff_factor=1.5,  # {backoff factor} * (2 ** ({number prev. retries}))
     connect=3,  # Handle connection errors (e.g. because the server is busy)
