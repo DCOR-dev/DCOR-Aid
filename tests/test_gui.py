@@ -192,17 +192,18 @@ def test_gui_start_with_bad_server(qtbot):
     settings = QtCore.QSettings()
     settings.setValue("auth/server", "WRONG-dcor-dev.mpl.mpg.de")
     try:
-        mw = DCORAid()
-        qtbot.addWidget(mw)
-        QtWidgets.QApplication.setActiveWindow(mw)
-        QtWidgets.QApplication.processEvents(
-            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
-        # just make sure that DCOR-Aid thinks it is offline
-        assert not mw.ui.panel_upload.isEnabled()
-        assert not mw.ui.panel_download.isEnabled()
-        mw.close()
-        QtWidgets.QApplication.processEvents(
-            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
+        with common.fail_name_resolution("wrong-dcor-dev"):
+            mw = DCORAid()
+            qtbot.addWidget(mw)
+            QtWidgets.QApplication.setActiveWindow(mw)
+            QtWidgets.QApplication.processEvents(
+                QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
+            # just make sure that DCOR-Aid thinks it is offline
+            assert not mw.ui.panel_upload.isEnabled()
+            assert not mw.ui.panel_download.isEnabled()
+            mw.close()
+            QtWidgets.QApplication.processEvents(
+                QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 200)
     finally:
         # reset to testing defaults
         settings.setValue("auth/server", common.SERVER)

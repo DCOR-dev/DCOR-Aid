@@ -1,10 +1,13 @@
+import contextlib
 import datetime
 import functools
 import json
 import os
 import pathlib
 import shutil
+import socket
 import tempfile
+from unittest import mock
 import uuid
 import warnings
 
@@ -23,6 +26,26 @@ SERVER = os.environ.get("DCORAID_TEST_SERVER", "dcor-dev.mpl.mpg.de")
 
 dpath = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
 tpath = pathlib.Path(__file__).parent / "data" / "text_file.txt"
+
+
+@contextlib.contextmanager
+def fail_name_resolution(host_part):
+    """Let name resolution of hosts containing `host_part` fail immediately
+
+    On the Windows GitHub Actions runners, resolving the non-existent host
+    "WRONG-dcor-dev.mpl.mpg.de" took about half a minute per lookup, which
+    made `test_gui_start_with_bad_server` take 20 minutes.
+    """
+    getaddrinfo = socket.getaddrinfo
+
+    def getaddrinfo_fail(host, *args, **kwargs):
+        if host_part in str(host).lower():
+            raise socket.gaierror(socket.EAI_NONAME,
+                                  "Name or service not known")
+        return getaddrinfo(host, *args, **kwargs)
+
+    with mock.patch("socket.getaddrinfo", side_effect=getaddrinfo_fail):
+        yield
 
 
 def get_api():
