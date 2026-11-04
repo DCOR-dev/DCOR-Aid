@@ -13,7 +13,6 @@ import traceback as tb
 import dclab
 import requests
 import requests_cache
-import requests_toolbelt
 import urllib3
 
 from PyQt6 import QtCore, QtGui, QtTest, QtWidgets
@@ -342,7 +341,6 @@ class DCORAid(QtWidgets.QMainWindow):
         libs = [dclab,
                 requests,
                 requests_cache,
-                requests_toolbelt,
                 urllib3,
                 ]
         sw_text = f"DCOR-Aid {__version__}\n\n"

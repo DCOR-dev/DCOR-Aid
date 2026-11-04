@@ -5,11 +5,7 @@ import copy
 import functools
 import logging
 import pathlib
-import time
 from collections.abc import Callable
-
-import requests
-from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
 from .errors import (
     APIBadRequest, APIConflictError, APINotFoundError, NoS3UploadAvailableError
@@ -198,16 +194,18 @@ def resource_add(dataset_id, path, api, resource_name=None,
         it, only update the resource_dict.
     monitor_callback: None or callable
         This callable is used to monitor the upload progress. It must
-        accept one argument: a
-        `requests_toolbelt.MultipartEncoderMonitor` object.
+        accept one argument: an object with the attributes `len` (file
+        size) and `bytes_read` (number of bytes uploaded).
 
     Returns
     -------
     srv_time: float
-        Total time the server (nginx+uwsgi) needed to process the upload
+        Always 0 (kept for backwards compatibility; this was the time the
+        server needed to process uploads via CKAN, which are not supported
+        anymore)
     etag: str
-        ETag of the resource on S3; returns None if the upload was not
-        performed via S3
+        ETag of the resource on S3; returns None if the resource already
+        existed and was not uploaded
 
     See Also
     --------
@@ -230,31 +228,16 @@ def resource_add(dataset_id, path, api, resource_name=None,
                                            resource_name=resource_name,
                                            api=api):
 
-        # Perform the upload
-        try:
-            # Uploading directly to S3 is the preferred option.
-            etag = resource_add_upload_direct_s3(
-                api=api,
-                resource_path=path,
-                dataset_id=dataset_id,
-                resource_name=resource_name,
-                monitor_callback=monitor_callback,
-                logger=logger,
-                timeout=27.9
-            )
-        except NoS3UploadAvailableError as e:
-            # This is the fall-back option that causes a performance hit
-            # on the DCOR server and will be unsupported in the future.
-            logger.warning(str(e))
-            resource_add_upload_legacy_indirect_ckan(
-                api=api,
-                resource_path=path,
-                dataset_id=dataset_id,
-                resource_name=resource_name,
-                monitor_callback=monitor_callback,
-                logger=logger,
-                timeout=500,
-            )
+        # Perform the upload (DCOR only accepts uploads to S3)
+        etag = resource_add_upload_direct_s3(
+            api=api,
+            resource_path=path,
+            dataset_id=dataset_id,
+            resource_name=resource_name,
+            monitor_callback=monitor_callback,
+            logger=logger,
+            timeout=27.9
+        )
 
     # If we are here, then the upload was successful
     logger.info(f"Finished upload of {dataset_id}/{resource_name}")
@@ -356,77 +339,6 @@ def resource_add_upload_direct_s3(
         }
     api.post("package_revise", revise_dict, timeout=500)
     return etag
-
-
-def resource_add_upload_legacy_indirect_ckan(
-        api: CKANAPI,
-        resource_path: str | pathlib.Path,
-        dataset_id: str,
-        resource_name: str,
-        monitor_callback: Callable | None = None,
-        logger: logging.Logger | None = None,
-        timeout: float = 27.9):
-    """Legacy upload procedure for resources
-
-    This method uses the legacy path (nginx -> uwsgi -> CKAN API) to
-    upload resources to the block storage of the DCOR instance. It is
-    termed legacy, because it is very inefficient to process resources
-    like this. A better approach is to upload resources directly to S3.
-    DCOR supports uploading resources directly to S3, which is facilitated
-    via the `resource_upload_s3_url` API action providing a presigned
-    upload link. (see :func:`resource_add_upload_direct_s3`)
-    """
-    upload_id = f"{dataset_id}/{resource_name}"
-    if logger is not None:
-        logger.info(f"Commencing legacy upload of {upload_id}")
-
-    with pathlib.Path(resource_path).open("rb") as fd:
-        # use package_revise to upload the resource
-        # https://github.com/DCOR-dev/DCOR-Aid/issues/28
-        e = MultipartEncoder(fields={
-            'match__id': dataset_id,
-            'update__resources__extend': f'[{{"name":"{resource_name}"}}]',
-            'update__resources__-1__upload': (resource_name, fd)})
-        m = MultipartEncoderMonitor(e, monitor_callback)
-        # Increase the read size to speed-up upload (the default chunk
-        # size for uploads in urllib is 8k which results in a lot of
-        # Python code being involved in uploading a 20GB file; Setting
-        # the chunk size to 4MB should increase the upload speed):
-        # https://github.com/requests/toolbelt/issues/75
-        # #issuecomment-237189952
-        m._read = m.read
-        m.read = lambda size: m._read(4 * 1024 * 1024)
-
-        try:
-            api.post("package_revise",
-                     data=m,
-                     dump_json=False,
-                     headers={"Content-Type": m.content_type},
-                     timeout=timeout)
-        except requests.exceptions.Timeout:
-            # This means that the server does not respond. This is ok,
-            # because we can just check whether the resource was
-            # processed correctly.
-            if logger is not None:
-                logger.info(f"Timeout for upload {upload_id}")
-            start_wait_srv = time.monotonic()
-            wait_time_minutes = 60
-            for ii in range(wait_time_minutes):
-                if resource_exists(dataset_id=dataset_id,
-                                   resource_name=resource_name,
-                                   api=api):
-                    srv_time = timeout + time.monotonic() - start_wait_srv
-                    if logger is not None:
-                        logger.info(
-                            f"Waited {srv_time / 60:.1f} min for {upload_id}")
-                    break
-                else:
-                    if logger is not None:
-                        logger.info(f"Waiting {ii + 1} min for {upload_id}")
-                    time.sleep(60)
-            else:
-                raise ValueError(f"Timeout or {upload_id} not processed after "
-                                 + f"{wait_time_minutes} minutes!")
 
 
 def resource_exists(dataset_id: str,

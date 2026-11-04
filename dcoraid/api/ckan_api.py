@@ -435,7 +435,7 @@ class CKANAPI:
         ----------
         api_call: str
             An API call function (e.g. "package_create")
-        data: dict, MultipartEncoder, ...
+        data: dict
             The data connected to the post request. For
             "package_create", this would be a dictionary
             with the dataset name, author, license, etc.
