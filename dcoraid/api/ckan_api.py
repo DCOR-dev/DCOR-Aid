@@ -39,7 +39,7 @@ retry_strategy = Retry(
     total=3,  # Total retries
     backoff_factor=1.5,  # {backoff factor} * (2 ** ({number prev. retries}))
     connect=3,  # Handle connection errors (e.g. because the server is busy)
-    read=0,  # Fail on read errors
+    read=2,  # Retry twice on read errors (e.g. DCOR closed connection)
     redirect=False,  # implies raise_on_redirect=False
     status=0,  # Fail on bad status codes
     allowed_methods=["HEAD", "GET", "OPTIONS"]  # Retry only for safe methods

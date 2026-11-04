@@ -26,6 +26,7 @@
    and collections instead of only those the user is a member of
  - fix: "Find data" tab failed to fetch the site title when the server
    was stored without scheme (e.g. in the playground)
+ - fix: retry twice on read errors
  - enh: automatically create a new DCOR-dev user in the playground user
    scenario if the previous user was purged
  - enh: `dcoraid-upload-task` reads the API key from the `DCOR_API_KEY`
