@@ -66,6 +66,8 @@
  - tests: replace tests that required access to the `figshare-import`
    circle with a circle, collection, and dataset shared by a second
    automatically created test user
+ - tests: clear persistent upload jobs before and after each GUI test,
+   so that new main windows do not upload jobs of previous tests again
 1.1.3
  - enh: use `HTTPAdapter` with `urlib3`'s `Retry` to handle connection issues
  - enh: use `requests.Session` when caching is disabled
