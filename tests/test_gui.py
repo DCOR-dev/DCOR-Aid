@@ -16,11 +16,24 @@ from PyQt6 import QtCore, QtGui, QtTest, QtWidgets
 from PyQt6.QtWidgets import QInputDialog, QMessageBox
 
 from . import common
+from .conftest import cleanup_dcoraid_tasks
 
 
 @pytest.fixture(scope="function", autouse=True)
 def clear_ckan_api():
     dcoraid.gui.api._CKAN_API = None
+
+
+@pytest.fixture(scope="function", autouse=True)
+def clear_persistent_upload_jobs():
+    """Start and end every GUI test with an empty persistent job list
+
+    Otherwise, each new main window restores (and uploads again) the
+    unfinished upload jobs of all previous tests.
+    """
+    cleanup_dcoraid_tasks()
+    yield
+    cleanup_dcoraid_tasks()
 
 
 @pytest.fixture

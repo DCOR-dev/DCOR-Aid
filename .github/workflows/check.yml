@@ -57,7 +57,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DCOR_API_KEY: ${{ secrets.DCOR_API_KEY }}
       run: |
-        coverage run --source=dcoraid -m pytest tests
+        coverage run --source=dcoraid -m pytest --durations=20 tests
     - name: Lint with flake8
       run: |
         flake8 --exclude _version.py .
