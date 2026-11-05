@@ -44,6 +44,9 @@
    older servers (#108)
  - enh: do not retry API requests when the server name cannot be
    resolved (DCOR-Aid froze for minutes on Windows with a wrong server)
+ - ref: remove the fallback to uploading resources via CKAN
+   (`resource_add_upload_legacy_indirect_ckan`); DCOR only accepts
+   uploads to S3
  - ref: convert `dcoraid.cli` module into a package; the upload task CLI
    now lives in `dcoraid.cli.task_upload_task`
  - ref: use `super()`, PEP 604 optional type hints, and builtin/
@@ -64,6 +67,8 @@
  - ref: new `dcoraid.api.create_dcor_dev_user` and
    `dcoraid.api.is_valid_api_key` used by the setup wizard and the tests
  - setup: add tool.ruff.lint section to pyproject.toml
+ - setup: remove `requests_toolbelt` dependency (was only used for
+   uploads via CKAN)
  - tests: automatically create test users on DCOR-dev if `DCOR_API_KEY`
    is not set or `tests/api_key` is missing or invalid
  - tests: replace tests that required access to the `figshare-import`
